@@ -395,6 +395,9 @@ module IC3QE : sig
   val print_to_file : unit -> string option
   (** File for inductive blocking clauses. *)
 
+  val reuse_tree_pdf : unit -> string option
+  (** PDF file for reuse tree. *)
+
   val inductively_generalize : unit -> int
   (** Tighten blocking clauses to an unsatisfiable core. *)
 
@@ -412,6 +415,9 @@ module IC3QE : sig
 
   val fwd_prop_subsume : unit -> bool
   (** Subsumption in forward propagation. *)
+
+  val ltr_sort : unit -> bool
+  (** Enable LTR-based heuristic literal ordering. *)
 
   val use_invgen : unit -> bool
   (** Use invariants from invariant generators. *)

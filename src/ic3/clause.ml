@@ -36,6 +36,113 @@ let incr_lit_weight_by term k =
     let v = lit_weight term in
     Term.TermHashtbl.replace lit_weight_tbl term (v + k)
 
+(* Online learning-to-rank configuration (initialization from manual rules). *)
+let use_user_aux = ref true
+(* Prefer literals containing user variables; demote aux vars (e.g. gklocal_...). *)
+let use_atomish = ref true
+(* Prefer atomic (or negated atomic) literals. *)
+let use_size = ref true
+(* Prefer smaller term size (AST node count). *)
+
+let ltr_learning_rate = ref 0.1
+let ltr_debug_scores = ref true
+
+(* Weights: [user_aux; atomish; size; lit_weight] *)
+let ltr_weights : float array =
+  [|
+    (if !use_user_aux then 1.0 else 0.0);
+    (if !use_atomish then 1.0 else 0.0);
+    (if !use_size then 1.0 else 0.0);
+    1.0;
+  |]
+
+let has_prefix s prefix =
+  let len_s = String.length s and len_p = String.length prefix in
+  len_s >= len_p && String.sub s 0 len_p = prefix
+
+let is_atomish t =
+  let base = if Term.is_negated t then Term.unnegate t else t in
+  Term.is_atom base
+
+let term_size t =
+  Term.eval_t
+    (fun _ sub_sizes ->
+      1 + List.fold_left (fun a b -> a + b) 0 sub_sizes)
+    t
+
+let term_var_class t =
+  let svs = Term.state_vars_of_term t in
+  let has_user =
+    StateVar.StateVarSet.exists
+      (fun sv -> List.mem "usr" (StateVar.scope_of_state_var sv))
+      svs
+  in
+  let has_aux =
+    StateVar.StateVarSet.exists
+      (fun sv -> has_prefix (StateVar.name_of_state_var sv) "gklocal_")
+      svs
+  in
+  if has_user then 1.0 else if has_aux then -1.0 else 0.0
+
+let ltr_features t =
+  let size = float_of_int (term_size t) in
+  [|
+    term_var_class t;
+    (if is_atomish t then 1.0 else 0.0);
+    -. (log (1.0 +. size));
+    float_of_int (lit_weight t);
+  |]
+
+let ltr_score t =
+  if not (Flags.IC3QE.ltr_sort ()) then 0.0
+  else
+    let f = ltr_features t in
+    let s = ref 0.0 in
+    for i = 0 to Array.length ltr_weights - 1 do
+      s := !s +. ltr_weights.(i) *. f.(i)
+    done;
+    !s
+
+let ltr_update ~kept ~removed =
+  if not (Flags.IC3QE.ltr_sort ()) then ()
+  else
+    let avg_feat lits =
+      match lits with
+      | [] -> Array.make (Array.length ltr_weights) 0.0
+      | _ ->
+          let sum = Array.make (Array.length ltr_weights) 0.0 in
+          let n = float_of_int (List.length lits) in
+          List.iter
+            (fun t ->
+              let f = ltr_features t in
+              for i = 0 to Array.length sum - 1 do
+                sum.(i) <- sum.(i) +. f.(i)
+              done)
+            lits;
+          for i = 0 to Array.length sum - 1 do
+            sum.(i) <- sum.(i) /. n
+          done;
+          sum
+    in
+    let f_kept = avg_feat kept in
+    let f_rem = avg_feat removed in
+    for i = 0 to Array.length ltr_weights - 1 do
+      ltr_weights.(i) <-
+        ltr_weights.(i)
+        +. (!ltr_learning_rate *. (f_kept.(i) -. f_rem.(i)))
+    done
+
+let ltr_weights_to_string () =
+  let buf = Buffer.create 64 in
+  Buffer.add_string buf "[";
+  Array.iteri
+    (fun i w ->
+      if i > 0 then Buffer.add_string buf "; ";
+      Buffer.add_string buf (Printf.sprintf "%g" w))
+    ltr_weights;
+  Buffer.add_string buf "]";
+  Buffer.contents buf
+
 (* Generate next unique identifier for clause *)
 let next_clause_id =
   let r = ref 0 in
@@ -343,63 +450,31 @@ let actlits_n1_of_clause solver { clause_id; actlits_n1; literals } =
 let mk_clause_of_literals source literals =
 
   (* Sort and eliminate duplicate literals *)
-  let use_user_aux = ref true in
-  (* Prefer literals containing user variables; demote aux vars (e.g. gklocal_*)
-  let use_atomish = ref false in
-  (* Prefer atomic (or negated atomic) literals. *)
-  let use_weight = ref true in
-  (* Prefer literals that appear more often in inductive generalization results. *)
-  let use_size = ref false in
-  (* Prefer smaller term size (AST node count). *)
   let use_string_tiebreak = ref false in
   (* Stable tie-breaker using string form of term. *)
-
-  let term_size t =
-    Term.eval_t
-      (fun _ sub_sizes ->
-        1 + List.fold_left (fun a b -> a + b) 0 sub_sizes)
-      t
-  in
-  let is_atomish t =
-    let base = if Term.is_negated t then Term.unnegate t else t in
-    Term.is_atom base
-  in
-  let has_prefix s prefix =
-    let len_s = String.length s and len_p = String.length prefix in
-    len_s >= len_p && String.sub s 0 len_p = prefix
-  in
-  let term_var_class t =
-    let svs = Term.state_vars_of_term t in
-    let has_user =
-      StateVar.StateVarSet.exists
-        (fun sv -> List.mem "usr" (StateVar.scope_of_state_var sv))
-        svs
-    in
-    let has_aux =
-      StateVar.StateVarSet.exists
-        (fun sv -> has_prefix (StateVar.name_of_state_var sv) "gklocal_")
-        svs
-    in
-    if has_user then 0 else if has_aux then 2 else 1
-  in
   let compare_literals l1 l2 =
-    let score l =
-      ( (if !use_user_aux then term_var_class l else 0),
-        (if !use_atomish then (if is_atomish l then 0 else 1) else 0),
-        (if !use_weight then - (lit_weight l) else 0),
-        (if !use_size then term_size l else 0),
-        (if !use_string_tiebreak then Term.string_of_term l else "") )
-    in
-    Stdlib.compare (score l1) (score l2)
+    let s1 = ltr_score l1 in
+    let s2 = ltr_score l2 in
+    let c = if s1 < s2 then 1 else if s1 > s2 then -1 else 0 in
+    if c <> 0 then c
+    else
+      let t1 = if !use_string_tiebreak then Term.string_of_term l1 else "" in
+      let t2 = if !use_string_tiebreak then Term.string_of_term l2 else "" in
+      Stdlib.compare t1 t2
   in
   let literals =
-    Term.TermSet.(of_list literals |> elements) |> List.sort compare_literals
+    if Flags.IC3QE.ltr_sort () then
+      Term.TermSet.(of_list literals |> elements) |> List.sort compare_literals
+    else
+      Term.TermSet.(of_list literals |> elements)
   in
-
-  (* let literals = 
-  let compare_literals l1 l2 = String.compare (Term.string_of_term l1) (Term.string_of_term l2) in
-  List.sort compare_literals literals
-  in *)
+  if Flags.IC3QE.ltr_sort () && !ltr_debug_scores then
+    KEvent.log_uncond "@[<hv>LTR literal scores:@ @[<hv 1>{%a}@]@]"
+      (pp_print_list
+         (fun ppf lit ->
+           Format.fprintf ppf "%a:%g" Term.pp_print_term lit (ltr_score lit))
+         ";@ ")
+      literals;
   
   (* Next unique identifier for clause *)
   let clause_id = next_clause_id () in
@@ -567,7 +642,8 @@ let mk_clause_of_literals_l2l1 source literals =
 
   (* Return clause with activation literals *)
   { clause_id; actlit_p0; actlits_n0; actlit_p1; actlits_n1; literals; source }
-    
+
+
  
 (* Copy clause with a fresh activation literal *)
 let copy_clause_block_prop ({ literals } as clause) =

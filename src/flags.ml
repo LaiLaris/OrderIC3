@@ -787,6 +787,19 @@ module IC3QE = struct
            Output file for blocking clauses@ Default: stdout@]")
 
   let print_to_file () = !print_to_file
+
+  let reuse_tree_pdf_default = None
+  let reuse_tree_pdf = ref reuse_tree_pdf_default
+
+  let _ =
+    add_spec "--ic3qe_reuse_tree_pdf"
+      (Arg.String (fun str -> reuse_tree_pdf := Some str))
+      (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>where <string> is a file path in an existing directory.@ \
+           Output PDF path for reuse tree@ Default: auto@]")
+
+  let reuse_tree_pdf () = !reuse_tree_pdf
   let inductively_generalize_default = 1
   let inductively_generalize = ref inductively_generalize_default
 
@@ -853,6 +866,16 @@ module IC3QE = struct
           fwd_prop_subsume_default)
 
   let fwd_prop_subsume () = !fwd_prop_subsume
+  let ltr_sort_default = true
+  let ltr_sort = ref ltr_sort_default
+
+  let _ =
+    add_spec "--ic3qe_ltr_sort" (bool_arg ltr_sort) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Enable LTR-based heuristic literal ordering@ Default: %a@]"
+          fmt_bool ltr_sort_default)
+
+  let ltr_sort () = !ltr_sort
   let use_invgen_default = true
   let use_invgen = ref use_invgen_default
 
@@ -2625,7 +2648,7 @@ module Global = struct
   let log_invs () = !log_invs
 
   (* Print invariants. *)
-  let print_invs_default = true
+  let print_invs_default = false
   let print_invs = ref print_invs_default
 
   let _ =

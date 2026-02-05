@@ -112,67 +112,7 @@ let find_copyblock_pre_clause block_clause =
     | _ -> clause
   in
   loop block_clause
-(* ********************************************************************** *)
-(* Record cex_gen pairs to comapre                                        *)
-(* ********************************************************************** *)
-let generalization_pairs = ref []
-let build_log_folder_path () =
-  let in_file = Flags.input_file () in
-    (* 辅助函数：递归创建目录 *)
-  let rec mkdir_p path =
-    if not (Sys.file_exists path) then begin
-      let parent = Filename.dirname path in
-      if parent <> path then mkdir_p parent;
-      Unix.mkdir path 0o755
-    end
-  in
-  (* 从输入文件路径提取目录和无扩展名的文件名 *)
-  let extract_file_path in_file =
-    let last_slash = String.rindex in_file '/' in
-    let path_part = String.sub in_file 0 last_slash in
-    let file_part =
-      String.sub in_file (last_slash + 1)
-        (String.length in_file - last_slash - 1)
-    in
-    (* 去掉扩展名 *)
-    let base_name =
-      match String.rindex_opt file_part '.' with
-      | Some dot_idx -> String.sub file_part 0 dot_idx
-      | None -> file_part
-    in
-    (path_part, base_name)
-  in
-  let base_path = "./log/" in
-  let relative_path, base_name = extract_file_path in_file in
-  (* 构建完整的日志文件夹路径 *)
-  let folder_path =
-    Filename.concat (Filename.concat base_path relative_path) base_name
-  in
-  mkdir_p folder_path;
-  (folder_path, base_name)
 
-(* let write_generalization_pairs_to_file filename =
-  let oc = open_out filename in
-  let fmt = Format.formatter_of_out_channel oc in
-  Format.fprintf fmt "@[<hv>=== List of generalization clause pairs ===@,%a@]"
-    (pp_print_list
-       (fun ppf (i, orig, gen) ->
-         Format.fprintf ppf
-           "Pair %d:@,\
-            Cex (#%d):@,\
-            @[<hv 1>{%a}@]@,\
-            After generalization (#%d):@,\
-            @[<hv 1>{%a}@]"
-           (i + 1) (C.id_of_clause orig)
-           (pp_print_list Term.pp_print_term ";@ ")
-           (C.literals_of_clause orig)
-           (C.id_of_clause gen)
-           (pp_print_list Term.pp_print_term ";@ ")
-           (C.literals_of_clause gen))
-       "@,")
-    (List.mapi (fun i (orig, gen) -> (i, orig, gen)) (List.rev !generalization_pairs));
-    Format.pp_print_flush fmt ();
-close_out oc *)
 
 (* ********************************************************************** *)
 (* Exception raised in proof process                                      *)
@@ -446,7 +386,17 @@ let ind_generalize solver prop_set frame clause literals =
           (* New clause with generalized clause as parent *)
           let clause' = C.mk_clause_of_literals (C.IndGen clause) kept in
           List.iter C.incr_lit_weight (C.literals_of_clause clause');
-          
+          let kept_set = Term.TermSet.of_list kept in
+          let removed =
+            List.filter
+              (fun lit -> not (Term.TermSet.mem lit kept_set))
+              (C.literals_of_clause clause)
+          in
+          C.ltr_update ~kept ~removed;
+          SMTSolver.trace_comment solver
+            (Format.asprintf "LTR weights (after ind_gen): %s"
+               (C.ltr_weights_to_string ()));
+
           SMTSolver.trace_comment solver
             (Format.asprintf
                "@[<hv>New clause from inductive generalization of #%d:@ #%d \
@@ -1038,32 +988,25 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
 
           (* Inductively generalize clauses propagated for blocking to
            this frame *)
-          let (block_clause,is_block_copy), trace = match C.source_of_clause block_clause_orig with 
+          let block_clause, trace =
+            match C.source_of_clause block_clause_orig with
+            (* Clause was propagates for blocking *)
+            | C.CopyBlockProp _ ->
+                (* block_clause_orig, trace  *)
+                let block_clause =
+                  Stat.time_fun Stat.ic3_ind_gen_time (fun () ->
+                      ind_generalize solver prop_set actlits_p0_r_pred_i
+                        block_clause_orig
+                        (C.literals_of_clause block_clause_orig))
+                in
 
-          (* Clause was propagates for blocking *)
-          | C.CopyBlockProp _ -> 
-
-            let block_clause = 
-
-              Stat.time_fun Stat.ic3_ind_gen_time
-                (fun () -> 
-                  ind_generalize 
-                    solver
-                    prop_set
-                    actlits_p0_r_pred_i
-                    block_clause_orig
-                    (C.literals_of_clause block_clause_orig))
-            in
-
-            (block_clause,true), 
-
-            (* Need to modify trace to add generalized clause *)
-            (((block_clause, block_trace) :: block_clauses_tl), r_i) 
-            :: block_tl
-
-          (* Clause is an actual blocking clause *)
-          | _ -> (block_clause_orig, false), trace
-        in
+                ( block_clause,
+                  (* Need to modify trace to add generalized clause *)
+                  ((block_clause, block_trace) :: block_clauses_tl, r_i)
+                  :: block_tl )
+            (* Clause is an actual blocking clause *)
+            | _ -> (block_clause_orig, trace)
+          in
 
           (* Receive and assert new invariants *)
           handle_events solver input_sys aparam trans_sys
@@ -1179,15 +1122,6 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                       block_clause block_clause_literals_core)
               in
 
-              begin
-              match is_block_copy with
-              | true ->
-                  print_endline ("block_clause_id为" ^ string_of_int (C.id_of_clause block_clause));
-                  print_endline ("gen_clause_id为" ^ string_of_int (C.id_of_clause block_clause_gen))
-              | false ->
-                  generalization_pairs := (block_clause, block_clause_gen) :: !generalization_pairs
-              end;
-
               SMTSolver.trace_comment solver
                 (Format.asprintf
                    "@[<hv>block: Reduced clause@ %a@ with ind. gen. to@ %a@]"
@@ -1232,13 +1166,19 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                      (* if F.is_subsumed r_i block_clause_gen_literals then r_i else *)
 
                      (* Subsume in this frame and add *)
-                     let subsumed = F.subsume r_i block_clause_gen_literals in
-                     let num_subsumed = List.length (fst subsumed) in
-                     if num_subsumed > 0 then
-                       List.iter
-                         (fun lit -> C.incr_lit_weight_by lit num_subsumed)
-                         (C.literals_of_clause block_clause_gen);
-                     subsumed
+                    let subsumed = F.subsume r_i block_clause_gen_literals in
+                    let num_subsumed = List.length (fst subsumed) in
+                    if num_subsumed > 0 then (
+                      List.iter
+                        (fun lit -> C.incr_lit_weight_by lit num_subsumed)
+                        (C.literals_of_clause block_clause_gen);
+                      C.ltr_update
+                        ~kept:(C.literals_of_clause block_clause_gen)
+                        ~removed:[];
+                      SMTSolver.trace_comment solver
+                        (Format.asprintf "LTR weights (after subsume/block): %s"
+                           (C.ltr_weights_to_string ())));
+                    subsumed
                      (* Count number of subsumed clauses *)
                      |> count_subsumed solver
                      (* Deactivate activation literals of subsumed clauses *)
@@ -1616,10 +1556,14 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
         (* Subsume in frame with clause *)
         let subsumed = F.subsume a l in
         let num_subsumed = List.length (fst subsumed) in
-        if num_subsumed > 0 then
+        if num_subsumed > 0 then (
           List.iter
             (fun lit -> C.incr_lit_weight_by lit num_subsumed)
             (C.literals_of_clause c');
+          C.ltr_update ~kept:(C.literals_of_clause c') ~removed:[];
+          SMTSolver.trace_comment solver
+            (Format.asprintf "LTR weights (after subsume/fwd): %s"
+               (C.ltr_weights_to_string ())));
         subsumed
         (* Increment statistics *)
         |> count_subsumed solver
@@ -1651,10 +1595,14 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
         else
           let subsumed = F.subsume a l in
           let num_subsumed = List.length (fst subsumed) in
-          if num_subsumed > 0 then
+          if num_subsumed > 0 then (
             List.iter
               (fun lit -> C.incr_lit_weight_by lit num_subsumed)
               (C.literals_of_clause c');
+            C.ltr_update ~kept:(C.literals_of_clause c') ~removed:[];
+            SMTSolver.trace_comment solver
+              (Format.asprintf "LTR weights (after subsume/fwd): %s"
+                 (C.ltr_weights_to_string ())));
           subsumed
           |> count_subsumed solver
           |> deactivate_subsumed solver
@@ -2608,72 +2556,84 @@ let main input_sys aparam trans_sys =
       | _ -> ())
   | _ -> ());
 
-  match Flags.IC3QE.abstr () with
-  | `IA -> main_ic3 input_sys aparam trans_sys
-  | `None ->
-      if TransSys.subsystem_includes_function_symbol trans_sys then
-        raise
-          (UnsupportedFeature
-             "Shutting down IC3QE: system includes an abstract function.");
-      main_ic3 input_sys aparam trans_sys;
+  Fun.protect
+    ~finally:(fun () ->
+      let draw_text_centered text x y =
+        let font_size = 12 in
+        let width = String.length text * font_size / 2 in
+        let height = font_size in
+        Graphics.moveto (x - (width / 2) - 1) (y - (height / 2) + 2);
+        Graphics.draw_string text
+      in
+      let rec draw_tree_node_horizontal node x y =
+        Graphics.set_color black;
+        Graphics.draw_circle x y 10;
+        if C.id_of_clause node.node_clause = 3 then draw_text_centered "~P" x y
+        else
+          draw_text_centered
+            (string_of_int (C.id_of_clause node.node_clause))
+            x y;
 
-  let draw_text_centered text x y =
-    let font_size = 12 in
-    let width = String.length text * font_size / 2 in
-    let height = font_size in
-    Graphics.moveto (x - (width / 2) - 1) (y - (height / 2) + 2);
-    Graphics.draw_string text
-  in
-  let rec draw_tree_node_horizontal node x y =
-    Graphics.set_color black;
-    Graphics.draw_circle x y 10;
-    if C.id_of_clause node.node_clause = 3 then draw_text_centered "~P" x y
-    else
-      draw_text_centered
-        (string_of_int (C.id_of_clause node.node_clause))
-        x y;
+        let level_gap_x = 80 in
+        let node_gap_y = 50 in
 
-    let num_children = List.length node.children in
-
-    let start_y = y - (num_children * 50 / 2) in
-    let start_x =
-      if C.id_of_clause node.node_clause = 3 then x + 50
-      else x + 50 + (num_children * 15)
-    in
-
-    let rec draw_children_horizontal children current_x current_y =
-      match children with
-      | [] -> ()
-      | child :: rest ->
-          let child_y = current_y + 50 in
-          Graphics.moveto x y;
-          Graphics.lineto current_x child_y;
-          draw_tree_node_horizontal child current_x child_y;
-          draw_children_horizontal rest current_x child_y
-    in
-    draw_children_horizontal node.children start_x start_y
-  in
-
-  let draw_tree tree =
-    match tree with
-    | None -> print_endline "树没建好"
-    | Some root ->
-        let folder_path,base_name = build_log_folder_path () in
-        print_endline ("folder_path: " ^ folder_path);
-        let pdf_path =
-          Filename.concat folder_path (base_name ^ "_ori.pdf")
+        let rec subtree_height n =
+          match n.children with
+          | [] -> node_gap_y
+          | children ->
+              List.fold_left
+                (fun acc c -> acc + subtree_height c)
+                0 children
         in
-        if Sys.file_exists pdf_path then
-          Printf.printf "pdf成功保存到%s\n" pdf_path
-        else Printf.printf "警告: PDF文件可能未正确保存到%s\n" pdf_path;
-        Graphics.open_pdf pdf_path;
-        Graphics.open_graph "1800x2400";
-        let root_x = 50 in
-        let root_y = size_y () / 2 in
-        draw_tree_node_horizontal root root_x root_y;
-        Graphics.close_graph ()
+
+        let total_h = subtree_height node in
+        let child_x = x + level_gap_x in
+        let start_y = y - (total_h / 2) in
+
+        let rec draw_children_horizontal children current_offset =
+          match children with
+          | [] -> ()
+          | child :: rest ->
+              let h = subtree_height child in
+              let child_y = start_y + current_offset + (h / 2) in
+              let next_offset = current_offset + h in
+              Graphics.moveto x y;
+              Graphics.lineto child_x child_y;
+              draw_tree_node_horizontal child child_x child_y;
+              draw_children_horizontal rest next_offset
         in
-        draw_tree !reuse_tree;
+        draw_children_horizontal node.children 0
+      in
+
+      let draw_tree tree =
+        match tree with
+        | None -> print_endline "树没建好"
+        | Some root ->
+            (match Flags.IC3QE.reuse_tree_pdf () with
+            | Some path when path <> "" ->
+                let pdf_path = path in
+                if Sys.file_exists pdf_path then
+                  Printf.printf "pdf成功保存到%s\n" pdf_path
+                else Printf.printf "警告: PDF文件可能未正确保存到%s\n" pdf_path;
+                Graphics.open_pdf pdf_path;
+                Graphics.open_graph "1800x2400";
+                let root_x = 50 in
+                let root_y = size_y () / 2 in
+                draw_tree_node_horizontal root root_x root_y;
+                Graphics.close_graph ()
+            | _ -> ())
+      in
+      draw_tree !reuse_tree)
+    (fun () ->
+      match Flags.IC3QE.abstr () with
+      | `IA -> main_ic3 input_sys aparam trans_sys
+      | `None ->
+          if TransSys.subsystem_includes_function_symbol trans_sys then
+            raise
+              (UnsupportedFeature
+                  "Shutting down IC3QE: system includes an abstract function.");
+          main_ic3 input_sys aparam trans_sys
+          )
 
 (* 
    Local Variables:

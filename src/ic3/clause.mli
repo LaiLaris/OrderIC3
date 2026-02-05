@@ -109,6 +109,15 @@ val incr_lit_weight : Term.t -> unit
 val incr_lit_weight_by : Term.t -> int -> unit
 (** Increment weight of a literal by a given amount *)
 
+val ltr_score : Term.t -> float
+(** Return learning-to-rank score for a literal *)
+
+val ltr_update : kept:Term.t list -> removed:Term.t list -> unit
+(** Online update of learning-to-rank weights *)
+
+val ltr_weights_to_string : unit -> string
+(** Return current learning-to-rank weights for debugging *)
+
 (** {1 Activation Literals} *)
 
 val actlit_p0_of_clause : SMTSolver.t -> t -> Term.t
