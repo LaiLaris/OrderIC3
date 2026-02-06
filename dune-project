@@ -34,8 +34,10 @@ More advanced features include contract-based compositional verification, proof 
    (<= 2.2.2))
   (zmq
    (>= 5.1.0))
+  (graphicspdf
+   (>= 2.2.1))
+  )
  )
-)
 
 (using menhir 2.0)
 
