@@ -19,7 +19,7 @@
 open Lib
 open LustreReporting
 open Lexing
-open MenhirLib.General
+(* open MenhirLib.General *)
 module LA = LustreAst
 module LH = LustreAstHelpers
 module LN = LustreNode
