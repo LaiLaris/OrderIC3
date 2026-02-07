@@ -353,12 +353,47 @@ let deactivate_subsumed solver (subsumed, frame') =
 (* Inductive generalization                                                 *)
 (* ************************************************************************ *)
 
+(* let ind_gen_template_density_threshold = ref 6 *)
+
 (* Inductively generalize [clause] relative to [frame]
 
    Assuming that [clause] is relatively inductive to [frame] and
    initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
 let ind_generalize solver prop_set frame clause literals =
+  (* let literals =
+    let tmpl_cnt = Hashtbl.create 251 in
+    let key_of lit = C.template_key lit in
+    List.iter
+      (fun lit ->
+        match key_of lit with
+        | None -> ()
+        | Some key ->
+            let c = try Hashtbl.find tmpl_cnt key with Not_found -> 0 in
+            Hashtbl.replace tmpl_cnt key (c + 1))
+      literals;
+    let items =
+      List.mapi (fun i lit -> (i, lit)) literals
+    in
+    let count_of lit =
+      match key_of lit with
+      | None -> 0
+      | Some key -> (try Hashtbl.find tmpl_cnt key with Not_found -> 0)
+    in
+    let dense_of lit =
+      count_of lit > !ind_gen_template_density_threshold
+    in
+    let cmp (i1, l1) (i2, l2) =
+      let d1 = dense_of l1 in
+      let d2 = dense_of l2 in
+      if d1 <> d2 then compare d2 d1
+      else
+        let c1 = count_of l1 in
+        let c2 = count_of l2 in
+        if c1 <> c2 then compare c2 c1 else compare i1 i2
+    in
+    List.stable_sort cmp items |> List.map snd
+  in *)
   (* Linearly traverse the list of literals in the clause, and remove
      a literal the clause without the literal remains relatively
      inductive and initial
@@ -1732,6 +1767,20 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
           partition_fwd_prop solver trans_sys prop_set frames_tl_full
             (F.values frame')
         in
+
+        (* Update LTR weights on successful forward propagation:
+           treat propagated clauses as kept, non-propagated as removed. *)
+        (* if fwd <> [] then (
+          let kept_lits =
+            List.concat_map C.literals_of_clause fwd
+          in
+          let removed_lits =
+            List.concat_map C.literals_of_clause keep
+          in
+          C.ltr_update ~kept:kept_lits ~removed:removed_lits;
+          SMTSolver.trace_comment solver
+            (Format.asprintf "LTR weights (after fwd): %s"
+               (C.ltr_weights_to_string ()))); *)
 
         (* Update statistics *)
         Stat.incr ~by:(List.length fwd) Stat.ic3_fwd_propagated;

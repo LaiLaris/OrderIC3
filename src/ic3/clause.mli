@@ -118,6 +118,9 @@ val ltr_update : kept:Term.t list -> removed:Term.t list -> unit
 val ltr_weights_to_string : unit -> string
 (** Return current learning-to-rank weights for debugging *)
 
+val template_key : Term.t -> string option
+(** Return a normalized template key for a literal, if available *)
+
 (** {1 Activation Literals} *)
 
 val actlit_p0_of_clause : SMTSolver.t -> t -> Term.t

@@ -43,17 +43,21 @@ let use_atomish = ref true
 (* Prefer atomic (or negated atomic) literals. *)
 let use_size = ref true
 (* Prefer smaller term size (AST node count). *)
+let use_lin_diff = ref true
+(* Prefer linear difference constraints (x - y [+ c]) with +/-1 coefficients. *)
 
-let ltr_learning_rate = ref 0.1
-let ltr_debug_scores = ref true
+let ltr_learning_rate = ref 0.01
+let ltr_debug_scores = ref false
+let ltr_template_penalty = ref 0.1
 
-(* Weights: [user_aux; atomish; size; lit_weight] *)
+(* Weights: [user_aux; atomish; size; lit_weight; lin_diff] *)
 let ltr_weights : float array =
   [|
     (if !use_user_aux then 1.0 else 0.0);
     (if !use_atomish then 1.0 else 0.0);
     (if !use_size then 1.0 else 0.0);
     1.0;
+    (if !use_lin_diff then 1.0 else 0.0);
   |]
 
 let has_prefix s prefix =
@@ -69,6 +73,112 @@ let term_size t =
     (fun _ sub_sizes ->
       1 + List.fold_left (fun a b -> a + b) 0 sub_sizes)
     t
+
+let numeral_sign t =
+  if Term.is_numeral t then
+    let n = Term.numeral_of_term t in
+    if Numeral.equal n Numeral.one then Some 1
+    else if Numeral.equal n (Numeral.neg Numeral.one) then Some (-1)
+    else None
+  else None
+
+let state_var_of_term t =
+  match Term.destruct t with
+  | Term.T.Var v when Var.is_state_var_instance v ->
+      Some (Var.state_var_of_state_var_instance v)
+  | _ -> None
+
+let rec collect_linear_terms t =
+  match Term.destruct t with
+  | Term.T.App (s, args) when s == Symbol.s_plus -> (
+      let rec loop acc = function
+        | [] -> Some acc
+        | a :: rest -> (
+            match collect_linear_terms a with
+            | None -> None
+            | Some lits -> loop (List.rev_append lits acc) rest)
+      in
+      loop [] args)
+  | Term.T.App (s, [a; b]) when s == Symbol.s_minus -> (
+      match collect_linear_terms a, collect_linear_terms b with
+      | Some la, Some lb ->
+          let lb' = List.map (fun (sv, sign) -> (sv, -sign)) lb in
+          Some (List.rev_append lb' la)
+      | _ -> None)
+  | Term.T.App (s, [a]) when s == Symbol.s_minus -> (
+      match collect_linear_terms a with
+      | Some la -> Some (List.map (fun (sv, sign) -> (sv, -sign)) la)
+      | None -> None)
+  | Term.T.App (s, [a; b]) when s == Symbol.s_times -> (
+      match (numeral_sign a, state_var_of_term b) with
+      | Some sign, Some sv -> Some [ (sv, sign) ]
+      | _ -> (
+          match (numeral_sign b, state_var_of_term a) with
+          | Some sign, Some sv -> Some [ (sv, sign) ]
+          | _ -> if Term.is_numeral a || Term.is_numeral b then Some [] else None))
+  | _ -> (
+      match state_var_of_term t with
+      | Some sv -> Some [ (sv, 1) ]
+      | None -> if Term.is_numeral t then Some [] else None)
+
+let lin_diff_score t =
+  match collect_linear_terms t with
+  | None -> 0.0
+  | Some lits ->
+      let pos = ref StateVar.StateVarSet.empty in
+      let neg = ref StateVar.StateVarSet.empty in
+      List.iter
+        (fun (sv, sign) ->
+          if sign >= 0 then
+            pos := StateVar.StateVarSet.add sv !pos
+          else neg := StateVar.StateVarSet.add sv !neg)
+        lits;
+      let p = StateVar.StateVarSet.cardinal !pos in
+      let n = StateVar.StateVarSet.cardinal !neg in
+      if p = 0 || n = 0 then 0.0 else float_of_int (min p n)
+
+let template_key t =
+  let cmp_linear_terms t =
+    match Term.destruct t with
+    | Term.T.App (s, [a; b])
+      when Symbol.(
+             s == s_lt || s == s_gt || s == s_leq || s == s_geq || s == s_eq)
+      -> (
+        match collect_linear_terms a, collect_linear_terms b with
+        | Some la, Some lb ->
+            let lb' = List.map (fun (sv, sign) -> (sv, -sign)) lb in
+            Some (List.rev_append lb' la)
+        | _ -> None)
+    | _ -> None
+  in
+  let rec collect acc t =
+    let acc =
+      match cmp_linear_terms t with
+      | Some lt -> lt :: acc
+      | None -> acc
+    in
+    match Term.destruct t with
+    | Term.T.App (_, args) -> List.fold_left collect acc args
+    | _ -> acc
+  in
+  let templates = collect [] t in
+  let sv_id sv =
+    let scope = StateVar.scope_of_state_var sv |> String.concat "." in
+    scope ^ "/" ^ StateVar.name_of_state_var sv
+  in
+  let norm_terms terms =
+    terms
+    |> List.sort (fun (sv1, s1) (sv2, s2) ->
+           let c = String.compare (sv_id sv1) (sv_id sv2) in
+           if c <> 0 then c else compare s1 s2)
+    |> List.map (fun (sv, sign) -> (if sign < 0 then "-" else "+") ^ sv_id sv)
+    |> String.concat ","
+  in
+  match templates with
+  | [] -> None
+  | _ ->
+      let keys = List.map norm_terms templates |> List.sort String.compare in
+      Some (String.concat "|" keys)
 
 let term_var_class t =
   let svs = Term.state_vars_of_term t in
@@ -91,6 +201,7 @@ let ltr_features t =
     (if is_atomish t then 1.0 else 0.0);
     -. (log (1.0 +. size));
     float_of_int (lit_weight t);
+    lin_diff_score t;
   |]
 
 let ltr_score t =
@@ -451,10 +562,30 @@ let mk_clause_of_literals source literals =
 
   (* Sort and eliminate duplicate literals *)
   let use_string_tiebreak = ref false in
+  let tmpl_occ = Term.TermHashtbl.create 251 in
+  let tmpl_cnt = Hashtbl.create 251 in
+  List.iter
+    (fun lit ->
+      match template_key lit with
+      | None -> ()
+      | Some key ->
+          let c = try Hashtbl.find tmpl_cnt key with Not_found -> 0 in
+          let c' = c + 1 in
+          Hashtbl.replace tmpl_cnt key c';
+          Term.TermHashtbl.replace tmpl_occ lit c')
+    literals;
   (* Stable tie-breaker using string form of term. *)
   let compare_literals l1 l2 =
     let s1 = ltr_score l1 in
     let s2 = ltr_score l2 in
+    let occ1 =
+      try Term.TermHashtbl.find tmpl_occ l1 with Not_found -> 0
+    in
+    let occ2 =
+      try Term.TermHashtbl.find tmpl_occ l2 with Not_found -> 0
+    in
+    let s1 = s1 -. (!ltr_template_penalty *. float_of_int occ1) in
+    let s2 = s2 -. (!ltr_template_penalty *. float_of_int occ2) in
     let c = if s1 < s2 then 1 else if s1 > s2 then -1 else 0 in
     if c <> 0 then c
     else
@@ -468,13 +599,13 @@ let mk_clause_of_literals source literals =
     else
       Term.TermSet.(of_list literals |> elements)
   in
-  if Flags.IC3QE.ltr_sort () && !ltr_debug_scores then
+  (* if Flags.IC3QE.ltr_sort () && !ltr_debug_scores then
     KEvent.log_uncond "@[<hv>LTR literal scores:@ @[<hv 1>{%a}@]@]"
       (pp_print_list
          (fun ppf lit ->
            Format.fprintf ppf "%a:%g" Term.pp_print_term lit (ltr_score lit))
          ";@ ")
-      literals;
+      literals; *)
   
   (* Next unique identifier for clause *)
   let clause_id = next_clause_id () in
