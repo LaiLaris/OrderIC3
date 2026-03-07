@@ -105,6 +105,7 @@ let add_node_to_tree id clause =
   | Some parent ->
       let new_node = { node_clause = clause; children = [] } in
       parent.children <- new_node :: parent.children
+
 let find_copyblock_pre_clause block_clause =
   let rec loop clause =
     match C.source_of_clause clause with
@@ -112,7 +113,6 @@ let find_copyblock_pre_clause block_clause =
     | _ -> clause
   in
   loop block_clause
-
 
 (* ********************************************************************** *)
 (* Exception raised in proof process                                      *)
@@ -353,47 +353,12 @@ let deactivate_subsumed solver (subsumed, frame') =
 (* Inductive generalization                                                 *)
 (* ************************************************************************ *)
 
-let ind_gen_template_density_threshold = ref 5
-
 (* Inductively generalize [clause] relative to [frame]
 
    Assuming that [clause] is relatively inductive to [frame] and
    initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
 let ind_generalize solver prop_set frame clause literals =
-  let literals =
-    let tmpl_cnt = Hashtbl.create 251 in
-    let key_of lit = C.template_key lit in
-    List.iter
-      (fun lit ->
-        match key_of lit with
-        | None -> ()
-        | Some key ->
-            let c = try Hashtbl.find tmpl_cnt key with Not_found -> 0 in
-            Hashtbl.replace tmpl_cnt key (c + 1))
-      literals;
-    let items =
-      List.mapi (fun i lit -> (i, lit)) literals
-    in
-    let count_of lit =
-      match key_of lit with
-      | None -> 0
-      | Some key -> (try Hashtbl.find tmpl_cnt key with Not_found -> 0)
-    in
-    let dense_of lit =
-      count_of lit > !ind_gen_template_density_threshold
-    in
-    let cmp (i1, l1) (i2, l2) =
-      let d1 = dense_of l1 in
-      let d2 = dense_of l2 in
-      if d1 <> d2 then compare d2 d1
-      else
-        let c1 = count_of l1 in
-        let c2 = count_of l2 in
-        if c1 <> c2 then compare c2 c1 else compare i1 i2
-    in
-    List.stable_sort cmp items |> List.map snd
-  in
   (* Linearly traverse the list of literals in the clause, and remove
      a literal the clause without the literal remains relatively
      inductive and initial
@@ -420,17 +385,6 @@ let ind_generalize solver prop_set frame clause literals =
 
           (* New clause with generalized clause as parent *)
           let clause' = C.mk_clause_of_literals (C.IndGen clause) kept in
-          List.iter C.incr_lit_weight (C.literals_of_clause clause');
-          let kept_set = Term.TermSet.of_list kept in
-          let removed =
-            List.filter
-              (fun lit -> not (Term.TermSet.mem lit kept_set))
-              (C.literals_of_clause clause)
-          in
-          C.ltr_update ~kept ~removed;
-          SMTSolver.trace_comment solver
-            (Format.asprintf "LTR weights (after ind_gen): %s"
-               (C.ltr_weights_to_string ()));
 
           SMTSolver.trace_comment solver
             (Format.asprintf
@@ -438,16 +392,6 @@ let ind_generalize solver prop_set frame clause literals =
                 @[<hv 1>{%a}@]@]"
                (C.id_of_clause clause) (C.id_of_clause clause')
                (pp_print_list Term.pp_print_term ";@ ")
-               (C.literals_of_clause clause'));
-          SMTSolver.trace_comment solver
-            (Format.asprintf
-               "@[<hv>IndGen literal weights for #%d:@ @[<hv 1>{%a}@]@]"
-               (C.id_of_clause clause')
-               (pp_print_list
-                  (fun ppf lit ->
-                    Format.fprintf ppf "%a:%d" Term.pp_print_term lit
-                      (C.lit_weight lit))
-                  ";@ ")
                (C.literals_of_clause clause'));
           (* cex_clauses := clause :: !cex_clauses;
           generalized_clauses := clause' :: !generalized_clauses;
@@ -952,16 +896,6 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                    (C.id_of_clause clause)
                    (pp_print_list Term.pp_print_term ";@ ")
                    (C.literals_of_clause clause));
-              SMTSolver.trace_comment solver
-                (Format.asprintf
-                   "@[<hv>Frontier literal weights for #%d:@ @[<hv 1>{%a}@]@]"
-                   (C.id_of_clause clause)
-                   (pp_print_list
-                      (fun ppf lit ->
-                        Format.fprintf ppf "%a:%d" Term.pp_print_term lit
-                          (C.lit_weight lit))
-                      ";@ ")
-                   (C.literals_of_clause clause));
 
               (*根节点随便给了一个好拿到的C.t,id为3*)
               add_node_to_tree 3 clause;
@@ -1157,6 +1091,14 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                       block_clause block_clause_literals_core)
               in
 
+              (* begin
+              match is_block_copy with
+              | true ->
+                  print_endline ("block_clause_id为" ^ string_of_int (C.id_of_clause block_clause));
+                  print_endline ("gen_clause_id为" ^ string_of_int (C.id_of_clause block_clause_gen))
+              | false ->
+                  generalization_pairs := (block_clause, block_clause_gen) :: !generalization_pairs
+              end; *)
               SMTSolver.trace_comment solver
                 (Format.asprintf
                    "@[<hv>block: Reduced clause@ %a@ with ind. gen. to@ %a@]"
@@ -1164,8 +1106,6 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                    (Term.mk_or block_clause_literals_core)
                    Term.pp_print_term
                    (C.term_of_clause block_clause_gen));
-              
-              
 
               (* Add blocking clause to all frames up to where it has to
                 be blocked *)
@@ -1201,19 +1141,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                      (* if F.is_subsumed r_i block_clause_gen_literals then r_i else *)
 
                      (* Subsume in this frame and add *)
-                    let subsumed = F.subsume r_i block_clause_gen_literals in
-                    let num_subsumed = List.length (fst subsumed) in
-                    if num_subsumed > 0 then (
-                      List.iter
-                        (fun lit -> C.incr_lit_weight_by lit num_subsumed)
-                        (C.literals_of_clause block_clause_gen);
-                      C.ltr_update
-                        ~kept:(C.literals_of_clause block_clause_gen)
-                        ~removed:[];
-                      SMTSolver.trace_comment solver
-                        (Format.asprintf "LTR weights (after subsume/block): %s"
-                           (C.ltr_weights_to_string ())));
-                    subsumed
+                     F.subsume r_i block_clause_gen_literals
                      (* Count number of subsumed clauses *)
                      |> count_subsumed solver
                      (* Deactivate activation literals of subsumed clauses *)
@@ -1379,8 +1307,12 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                        (C.id_of_clause block_clause')
                        (pp_print_list Term.pp_print_term ";@ ")
                        (C.literals_of_clause block_clause'));
-                  let block_clause_pre = find_copyblock_pre_clause block_clause in
-                  add_node_to_tree (C.id_of_clause block_clause_pre) block_clause';
+                  let block_clause_pre =
+                    find_copyblock_pre_clause block_clause
+                  in
+                  add_node_to_tree
+                    (C.id_of_clause block_clause_pre)
+                    block_clause';
                   Stat.incr Stat.ic3_neg_state;
                   block solver input_sys aparam trans_sys prop_set term_tbl
                     predicates
@@ -1589,17 +1521,7 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
         a)
       else
         (* Subsume in frame with clause *)
-        let subsumed = F.subsume a l in
-        let num_subsumed = List.length (fst subsumed) in
-        if num_subsumed > 0 then (
-          List.iter
-            (fun lit -> C.incr_lit_weight_by lit num_subsumed)
-            (C.literals_of_clause c');
-          C.ltr_update ~kept:(C.literals_of_clause c') ~removed:[];
-          SMTSolver.trace_comment solver
-            (Format.asprintf "LTR weights (after subsume/fwd): %s"
-               (C.ltr_weights_to_string ())));
-        subsumed
+        F.subsume a l
         (* Increment statistics *)
         |> count_subsumed solver
         (* Deactivate activation literals of subsumed clauses *)
@@ -1628,21 +1550,8 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
           Stat.incr Stat.ic3_fwd_subsumed;
           a)
         else
-          let subsumed = F.subsume a l in
-          let num_subsumed = List.length (fst subsumed) in
-          if num_subsumed > 0 then (
-            List.iter
-              (fun lit -> C.incr_lit_weight_by lit num_subsumed)
-              (C.literals_of_clause c');
-            C.ltr_update ~kept:(C.literals_of_clause c') ~removed:[];
-            SMTSolver.trace_comment solver
-              (Format.asprintf "LTR weights (after subsume/fwd): %s"
-                 (C.ltr_weights_to_string ())));
-          subsumed
-          |> count_subsumed solver
-          |> deactivate_subsumed solver
-          |> snd
-          |> F.add l c'
+          F.subsume a l |> count_subsumed solver |> deactivate_subsumed solver
+          |> snd |> F.add l c'
   in
 
   let rec fwd_propagate' solver input_sys aparam trans_sys prop frames =
@@ -1768,20 +1677,6 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
             (F.values frame')
         in
 
-        (* Update LTR weights on successful forward propagation:
-           treat propagated clauses as kept, non-propagated as removed. *)
-        (* if fwd <> [] then (
-          let kept_lits =
-            List.concat_map C.literals_of_clause fwd
-          in
-          let removed_lits =
-            List.concat_map C.literals_of_clause keep
-          in
-          C.ltr_update ~kept:kept_lits ~removed:removed_lits;
-          SMTSolver.trace_comment solver
-            (Format.asprintf "LTR weights (after fwd): %s"
-               (C.ltr_weights_to_string ()))); *)
-
         (* Update statistics *)
         Stat.incr ~by:(List.length fwd) Stat.ic3_fwd_propagated;
 
@@ -1799,43 +1694,21 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
           Stat.set (List.length frames |> succ) Stat.ic3_fwd_fixpoint;
 
           (* Extract inductive invariant *)
-          let ind_inv = 
-            (List.fold_left 
-                (fun a c -> List.map C.term_of_clause (F.values c) @ a) 
-                (List.map C.term_of_clause fwd)
-                (frames_tl))
+          let ind_inv =
+            List.fold_left
+              (fun a c -> List.map C.term_of_clause (F.values c) @ a)
+              (List.map C.term_of_clause fwd)
+              frames_tl
             |> Term.mk_and
           in
-          let ind_inv_conjuncts =
-            let rec collect acc t =
-              if Term.is_node t then
-                let s = Term.node_symbol_of_term t in
-                match Symbol.node_of_symbol s with
-                | `AND ->
-                    List.fold_left collect acc (Term.node_args_of_term t)
-                | _ -> t :: acc
-              else t :: acc
-            in
-            List.rev (collect [] ind_inv)
-          in
-          SMTSolver.trace_comment solver
-            (Format.asprintf
-               "@[<hv>Inductive invariant:@ @[<hv 1>{%a}@]@]"
-               (pp_print_list Term.pp_print_term ";@ ")
-               ind_inv_conjuncts);
 
           (* Activation literals for inductive invariant *)
-          let ind_inv_p0, ind_inv_n0, ind_inv_n1 = 
-
-            let mk = 
-              C.create_and_assert_fresh_actlit
-                solver
-                "ind_inv"
-                ind_inv
+          let ind_inv_p0, ind_inv_n0, ind_inv_n1 =
+            let mk =
+              C.create_and_assert_fresh_actlit solver "ind_inv" ind_inv
             in
 
-            mk C.Actlit_p0, mk C.Actlit_n0, mk C.Actlit_n1
-
+            (mk C.Actlit_p0, mk C.Actlit_n0, mk C.Actlit_n1)
           in
 
           (* DEBUG
@@ -2181,7 +2054,6 @@ let rec restart_loop solver input_sys aparam trans_sys props predicates =
       with
       (* All propertes are valid *)
       | Success (_, ind_inv) ->
-
           let cert = (1, Term.mk_and (ind_inv :: List.map snd props)) in
 
           (* Send out valid properties *)
@@ -2630,9 +2502,7 @@ let main input_sys aparam trans_sys =
           match n.children with
           | [] -> node_gap_y
           | children ->
-              List.fold_left
-                (fun acc c -> acc + subtree_height c)
-                0 children
+              List.fold_left (fun acc c -> acc + subtree_height c) 0 children
         in
 
         let total_h = subtree_height node in
@@ -2657,8 +2527,8 @@ let main input_sys aparam trans_sys =
       let draw_tree tree =
         match tree with
         | None -> print_endline "树没建好"
-        | Some root ->
-            (match Flags.IC3QE.reuse_tree_pdf () with
+        | Some root -> (
+            match Flags.IC3QE.reuse_tree_pdf () with
             | Some path when path <> "" ->
                 let pdf_path = path in
                 if Sys.file_exists pdf_path then
@@ -2680,9 +2550,8 @@ let main input_sys aparam trans_sys =
           if TransSys.subsystem_includes_function_symbol trans_sys then
             raise
               (UnsupportedFeature
-                  "Shutting down IC3QE: system includes an abstract function.");
-          main_ic3 input_sys aparam trans_sys
-          )
+                 "Shutting down IC3QE: system includes an abstract function.");
+          main_ic3 input_sys aparam trans_sys)
 
 (* 
    Local Variables:

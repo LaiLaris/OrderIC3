@@ -21,252 +21,6 @@ open Lib
 (* Prefix for name of activation literals to avoid name clashes *)
 let actlit_prefix = "__ic3"
 
-(* Literal weights based on inductive generalization frequency *)
-let lit_weight_tbl : int Term.TermHashtbl.t = Term.TermHashtbl.create 251
-
-let lit_weight term =
-  try Term.TermHashtbl.find lit_weight_tbl term with Not_found -> 0
-
-let incr_lit_weight term =
-  let v = lit_weight term in
-  Term.TermHashtbl.replace lit_weight_tbl term (v + 1)
-
-let incr_lit_weight_by term k =
-  if k > 0 then
-    let v = lit_weight term in
-    Term.TermHashtbl.replace lit_weight_tbl term (v + k)
-
-(* Online learning-to-rank configuration (initialization from manual rules). *)
-let use_user_aux = ref true
-(* Prefer literals containing user variables; demote aux vars (e.g. gklocal_...). *)
-let use_atomish = ref true
-(* Prefer atomic (or negated atomic) literals. *)
-let use_size = ref true
-(* Prefer smaller term size (AST node count). *)
-let use_lin_diff = ref false
-(* Prefer linear difference constraints (x - y [+ c]) with +/-1 coefficients. *)
-let use_template_coarse = ref true
-let use_template_fine = ref false
-let ltr_learning_rate = ref 0.1
-let ltr_debug_scores = ref false
-let ltr_template_penalty = ref 0.1
-
-(* Weights: [user_aux; atomish; size; lin_diff] *)
-let ltr_weights : float array =
-  [|
-    (if !use_user_aux then 1.0 else 0.0);
-    (if !use_atomish then 1.0 else 0.0);
-    (if !use_size then 1.0 else 0.0);
-    (if !use_lin_diff then 1.0 else 0.0);
-  |]
-
-let has_prefix s prefix =
-  let len_s = String.length s and len_p = String.length prefix in
-  len_s >= len_p && String.sub s 0 len_p = prefix
-
-let is_atomish t =
-  let base = if Term.is_negated t then Term.unnegate t else t in
-  Term.is_atom base
-
-let term_size t =
-  Term.eval_t
-    (fun _ sub_sizes ->
-      1 + List.fold_left (fun a b -> a + b) 0 sub_sizes)
-    t
-
-let numeral_sign t =
-  if Term.is_numeral t then
-    let n = Term.numeral_of_term t in
-    if Numeral.equal n Numeral.one then Some 1
-    else if Numeral.equal n (Numeral.neg Numeral.one) then Some (-1)
-    else None
-  else None
-
-let state_var_of_term t =
-  match Term.destruct t with
-  | Term.T.Var v when Var.is_state_var_instance v ->
-      Some (Var.state_var_of_state_var_instance v)
-  | _ -> None
-
-let rec collect_linear_terms t =
-  match Term.destruct t with
-  | Term.T.App (s, args) when s == Symbol.s_plus -> (
-      let rec loop acc = function
-        | [] -> Some acc
-        | a :: rest -> (
-            match collect_linear_terms a with
-            | None -> None
-            | Some lits -> loop (List.rev_append lits acc) rest)
-      in
-      loop [] args)
-  | Term.T.App (s, [a; b]) when s == Symbol.s_minus -> (
-      match collect_linear_terms a, collect_linear_terms b with
-      | Some la, Some lb ->
-          let lb' = List.map (fun (sv, sign) -> (sv, -sign)) lb in
-          Some (List.rev_append lb' la)
-      | _ -> None)
-  | Term.T.App (s, [a]) when s == Symbol.s_minus -> (
-      match collect_linear_terms a with
-      | Some la -> Some (List.map (fun (sv, sign) -> (sv, -sign)) la)
-      | None -> None)
-  | Term.T.App (s, [a; b]) when s == Symbol.s_times -> (
-      match (numeral_sign a, state_var_of_term b) with
-      | Some sign, Some sv -> Some [ (sv, sign) ]
-      | _ -> (
-          match (numeral_sign b, state_var_of_term a) with
-          | Some sign, Some sv -> Some [ (sv, sign) ]
-          | _ -> if Term.is_numeral a || Term.is_numeral b then Some [] else None))
-  | _ -> (
-      match state_var_of_term t with
-      | Some sv -> Some [ (sv, 1) ]
-      | None -> if Term.is_numeral t then Some [] else None)
-
-let lin_diff_score t =
-  match collect_linear_terms t with
-  | None -> 0.0
-  | Some lits ->
-      let pos = ref StateVar.StateVarSet.empty in
-      let neg = ref StateVar.StateVarSet.empty in
-      List.iter
-        (fun (sv, sign) ->
-          if sign >= 0 then
-            pos := StateVar.StateVarSet.add sv !pos
-          else neg := StateVar.StateVarSet.add sv !neg)
-        lits;
-      let p = StateVar.StateVarSet.cardinal !pos in
-      let n = StateVar.StateVarSet.cardinal !neg in
-      if p = 0 || n = 0 then 0.0 else float_of_int (min p n)
-
-let template_key t =
-  let cmp_linear_terms t =
-    match Term.destruct t with
-    | Term.T.App (s, [a; b])
-      when Symbol.(
-             s == s_lt || s == s_gt || s == s_leq || s == s_geq || s == s_eq)
-      -> (
-        match collect_linear_terms a, collect_linear_terms b with
-        | Some la, Some lb ->
-            let lb' = List.map (fun (sv, sign) -> (sv, -sign)) lb in
-            Some (List.rev_append lb' la)
-        | _ -> None)
-    | _ -> None
-  in
-  let rec collect acc t =
-    let acc =
-      match cmp_linear_terms t with
-      | Some lt -> lt :: acc
-      | None -> acc
-    in
-    match Term.destruct t with
-    | Term.T.App (_, args) -> List.fold_left collect acc args
-    | _ -> acc
-  in
-  let templates = collect [] t in
-  let sv_id sv =
-    let scope = StateVar.scope_of_state_var sv |> String.concat "." in
-    scope ^ "/" ^ StateVar.name_of_state_var sv
-  in
-  let norm_terms terms =
-    terms
-    |> List.sort (fun (sv1, s1) (sv2, s2) ->
-           let c = String.compare (sv_id sv1) (sv_id sv2) in
-           if c <> 0 then c else compare s1 s2)
-    |> List.map (fun (sv, sign) -> (if sign < 0 then "-" else "+") ^ sv_id sv)
-    |> String.concat ","
-  in
-  match templates with
-  | [] -> None
-  | _ ->
-      let keys = List.map norm_terms templates |> List.sort String.compare in
-      Some (String.concat "|" keys)
-
-let template_key_coarse t =
-  let svs = Term.state_vars_of_term t |> StateVar.StateVarSet.elements in
-  let sv_id sv =
-    let scope = StateVar.scope_of_state_var sv |> String.concat "." in
-    scope ^ "/" ^ StateVar.name_of_state_var sv
-  in
-  match svs with
-  | [] -> None
-  | _ ->
-      let key =
-        svs |> List.map sv_id |> List.sort String.compare |> String.concat ","
-      in
-      Some ("vars:" ^ key)
-
-let term_var_class t =
-  let svs = Term.state_vars_of_term t in
-  let has_user =
-    StateVar.StateVarSet.exists
-      (fun sv -> List.mem "usr" (StateVar.scope_of_state_var sv))
-      svs
-  in
-  let has_aux =
-    StateVar.StateVarSet.exists
-      (fun sv -> has_prefix (StateVar.name_of_state_var sv) "gklocal_")
-      svs
-  in
-  if has_user then 1.0 else if has_aux then -1.0 else 0.0
-
-let ltr_features t =
-  let size = float_of_int (term_size t) in
-  [|
-    term_var_class t;
-    (if is_atomish t then 1.0 else 0.0);
-    -. (log (1.0 +. size));
-    lin_diff_score t;
-  |]
-
-let ltr_score t =
-  if not (Flags.IC3QE.ltr_sort ()) then 0.0
-  else
-    let f = ltr_features t in
-    let s = ref 0.0 in
-    for i = 0 to Array.length ltr_weights - 1 do
-      s := !s +. ltr_weights.(i) *. f.(i)
-    done;
-    !s
-
-let ltr_update ~kept ~removed =
-  if not (Flags.IC3QE.ltr_sort ()) then ()
-  else
-    let avg_feat lits =
-      match lits with
-      | [] -> Array.make (Array.length ltr_weights) 0.0
-      | _ ->
-          let sum = Array.make (Array.length ltr_weights) 0.0 in
-          let n = float_of_int (List.length lits) in
-          List.iter
-            (fun t ->
-              let f = ltr_features t in
-              for i = 0 to Array.length sum - 1 do
-                sum.(i) <- sum.(i) +. f.(i)
-              done)
-            lits;
-          for i = 0 to Array.length sum - 1 do
-            sum.(i) <- sum.(i) /. n
-          done;
-          sum
-    in
-    let f_kept = avg_feat kept in
-    let f_rem = avg_feat removed in
-    for i = 0 to Array.length ltr_weights - 1 do
-      ltr_weights.(i) <-
-        ltr_weights.(i)
-        +. (!ltr_learning_rate *. (f_kept.(i) -. f_rem.(i)))
-    done
-
-let ltr_weights_to_string () =
-  let buf = Buffer.create 64 in
-  Buffer.add_string buf "[";
-  Array.iteri
-    (fun i w ->
-      if i > 0 then Buffer.add_string buf "; ";
-      Buffer.add_string buf (Printf.sprintf "%g" w))
-    ltr_weights;
-  Buffer.add_string buf "]";
-  Buffer.contents buf
-
 (* Generate next unique identifier for clause *)
 let next_clause_id =
   let r = ref 0 in
@@ -572,99 +326,40 @@ let actlits_n1_of_clause solver { clause_id; actlits_n1; literals } =
 
 (* Create a clause of literals *)
 let mk_clause_of_literals source literals =
-
   (* Sort and eliminate duplicate literals *)
-  let use_string_tiebreak = ref false in
-  let tmpl_occ = Term.TermHashtbl.create 251 in
-  let tmpl_cnt = Hashtbl.create 251 in
-  let add_key lit key =
-    let c = try Hashtbl.find tmpl_cnt key with Not_found -> 0 in
-    let c' = c + 1 in
-    Hashtbl.replace tmpl_cnt key c';
-    Term.TermHashtbl.replace tmpl_occ lit c'
-  in
-  List.iter
-    (fun lit ->
-      (if !use_template_fine then
-         match template_key lit with
-         | None -> ()
-         | Some key -> add_key lit ("fine:" ^ key));
-      if !use_template_coarse then
-        match template_key_coarse lit with
-        | None -> ()
-        | Some key -> add_key lit ("coarse:" ^ key))
-    literals;
-  (* Stable tie-breaker using string form of term. *)
-  let compare_literals l1 l2 =
-    let s1 = ltr_score l1 in
-    let s2 = ltr_score l2 in
-    let occ1 =
-      try Term.TermHashtbl.find tmpl_occ l1 with Not_found -> 0
-    in
-    let occ2 =
-      try Term.TermHashtbl.find tmpl_occ l2 with Not_found -> 0
-    in
-    let s1 = s1 -. (!ltr_template_penalty *. float_of_int occ1) in
-    let s2 = s2 -. (!ltr_template_penalty *. float_of_int occ2) in
-    let c = if s1 < s2 then 1 else if s1 > s2 then -1 else 0 in
-    if c <> 0 then c
-    else
-      let w1 = lit_weight l1 in
-      let w2 = lit_weight l2 in
-      let cw = if w1 < w2 then 1 else if w1 > w2 then -1 else 0 in
-      if cw <> 0 then cw
-      else
-        let t1 = if !use_string_tiebreak then Term.string_of_term l1 else "" in
-        let t2 = if !use_string_tiebreak then Term.string_of_term l2 else "" in
-        Stdlib.compare t1 t2
-  in
-  let literals =
-    if Flags.IC3QE.ltr_sort () then
-      Term.TermSet.(of_list literals |> elements) |> List.sort compare_literals
-    else
-      Term.TermSet.(of_list literals |> elements)
-  in
-  (* if Flags.IC3QE.ltr_sort () && !ltr_debug_scores then
-    KEvent.log_uncond "@[<hv>LTR literal scores:@ @[<hv 1>{%a}@]@]"
-      (pp_print_list
-         (fun ppf lit ->
-           Format.fprintf ppf "%a:%g" Term.pp_print_term lit (ltr_score lit))
-         ";@ ")
-      literals; *)
+  let literals = Term.TermSet.(of_list literals |> elements) in
   
+  (* let literals =
+    let compare_literals l1 l2 =
+      String.compare (Term.string_of_term l1) (Term.string_of_term l2)
+    in
+    List.sort compare_literals literals
+    (* List.sort Term.compare literals *)
+  in *)
   (* Next unique identifier for clause *)
   let clause_id = next_clause_id () in
-
   (* Create uninterpreted function symbol *)
   let mk_uf_symbol tag =
-
     (* Name of uninterpreted function symbol *)
-    let uf_symbol_name = 
-      Format.asprintf "%s%s_%d_%s"
-        actlit_prefix
-        "_clause"
-        clause_id
-        tag
+    let uf_symbol_name =
+      Format.asprintf "%s%s_%d_%s" actlit_prefix "_clause" clause_id tag
     in
 
     (* Create uninterpreted function symbol *)
     UfSymbol.mk_uf_symbol uf_symbol_name [] Type.t_bool
-      
   in
 
   (* Create activation literal for positive unprimed clause *)
-  let actlit_p0 = mk_uf_symbol "p0" |> (fun uf -> Term.mk_uf uf []) in
+  let actlit_p0 = mk_uf_symbol "p0" |> fun uf -> Term.mk_uf uf [] in
 
   (* Create activation literal for positive primed clause *)
-  let actlit_p1 = mk_uf_symbol "p1" |> (fun uf -> Term.mk_uf uf []) in
-  
+  let actlit_p1 = mk_uf_symbol "p1" |> fun uf -> Term.mk_uf uf [] in
+
   (* Create activation literals for negated unprimed literal *)
   let actlits_n0 =
     List.mapi
       (fun i _ ->
-        mk_uf_symbol
-          (Format.asprintf "n0_%d" i)
-          |> (fun uf -> Term.mk_uf uf []))
+        mk_uf_symbol (Format.asprintf "n0_%d" i) |> fun uf -> Term.mk_uf uf [])
       literals
   in
 
@@ -672,135 +367,13 @@ let mk_clause_of_literals source literals =
   let actlits_n1 =
     List.mapi
       (fun i _ ->
-        mk_uf_symbol
-          (Format.asprintf "n1_%d" i)
-          |> (fun uf -> Term.mk_uf uf []))
+        mk_uf_symbol (Format.asprintf "n1_%d" i) |> fun uf -> Term.mk_uf uf [])
       literals
   in
 
   (* Return clause with activation literals *)
   { clause_id; actlit_p0; actlits_n0; actlit_p1; actlits_n1; literals; source }
 
-let mk_clause_of_literals_l1l2 source literals =
-
-  (* Sort and eliminate duplicate literals *)
-  (* let literals = Term.TermSet.(of_list literals |> elements) in *)
-
-  let literals = 
-  let compare_literals l1 l2 = String.compare (Term.string_of_term l1) (Term.string_of_term l2) in
-  List.sort compare_literals literals
-  in
-  
-  (* Next unique identifier for clause *)
-  let clause_id = next_clause_id () in
-
-  (* Create uninterpreted function symbol *)
-  let mk_uf_symbol tag =
-
-    (* Name of uninterpreted function symbol *)
-    let uf_symbol_name = 
-      Format.asprintf "%s%s_%d_%s"
-        actlit_prefix
-        "_clause"
-        clause_id
-        tag
-    in
-
-    (* Create uninterpreted function symbol *)
-    UfSymbol.mk_uf_symbol uf_symbol_name [] Type.t_bool
-      
-  in
-
-  (* Create activation literal for positive unprimed clause *)
-  let actlit_p0 = mk_uf_symbol "p0" |> (fun uf -> Term.mk_uf uf []) in
-
-  (* Create activation literal for positive primed clause *)
-  let actlit_p1 = mk_uf_symbol "p1" |> (fun uf -> Term.mk_uf uf []) in
-  
-  (* Create activation literals for negated unprimed literal *)
-  let actlits_n0 =
-    List.mapi
-      (fun i _ ->
-        mk_uf_symbol
-          (Format.asprintf "n0_%d" i)
-          |> (fun uf -> Term.mk_uf uf []))
-      literals
-  in
-
-  (* Create activation literals for negated primed literal *)
-  let actlits_n1 =
-    List.mapi
-      (fun i _ ->
-        mk_uf_symbol
-          (Format.asprintf "n1_%d" i)
-          |> (fun uf -> Term.mk_uf uf []))
-      literals
-  in
-
-  (* Return clause with activation literals *)
-  { clause_id; actlit_p0; actlits_n0; actlit_p1; actlits_n1; literals; source }
-
-let mk_clause_of_literals_l2l1 source literals =
-
-  (* Sort and eliminate duplicate literals *)
-  (* let literals = Term.TermSet.(of_list literals |> elements) in *)
-
-  let literals = 
-  let compare_literals l2 l1 = String.compare (Term.string_of_term l1) (Term.string_of_term l2) in
-  List.sort compare_literals literals
-  in
-  
-  (* Next unique identifier for clause *)
-  let clause_id = next_clause_id () in
-
-  (* Create uninterpreted function symbol *)
-  let mk_uf_symbol tag =
-
-    (* Name of uninterpreted function symbol *)
-    let uf_symbol_name = 
-      Format.asprintf "%s%s_%d_%s"
-        actlit_prefix
-        "_clause"
-        clause_id
-        tag
-    in
-
-    (* Create uninterpreted function symbol *)
-    UfSymbol.mk_uf_symbol uf_symbol_name [] Type.t_bool
-      
-  in
-
-  (* Create activation literal for positive unprimed clause *)
-  let actlit_p0 = mk_uf_symbol "p0" |> (fun uf -> Term.mk_uf uf []) in
-
-  (* Create activation literal for positive primed clause *)
-  let actlit_p1 = mk_uf_symbol "p1" |> (fun uf -> Term.mk_uf uf []) in
-  
-  (* Create activation literals for negated unprimed literal *)
-  let actlits_n0 =
-    List.mapi
-      (fun i _ ->
-        mk_uf_symbol
-          (Format.asprintf "n0_%d" i)
-          |> (fun uf -> Term.mk_uf uf []))
-      literals
-  in
-
-  (* Create activation literals for negated primed literal *)
-  let actlits_n1 =
-    List.mapi
-      (fun i _ ->
-        mk_uf_symbol
-          (Format.asprintf "n1_%d" i)
-          |> (fun uf -> Term.mk_uf uf []))
-      literals
-  in
-
-  (* Return clause with activation literals *)
-  { clause_id; actlit_p0; actlits_n0; actlit_p1; actlits_n1; literals; source }
-
-
- 
 (* Copy clause with a fresh activation literal *)
 let copy_clause_block_prop ({ literals } as clause) =
   mk_clause_of_literals (CopyBlockProp clause) literals

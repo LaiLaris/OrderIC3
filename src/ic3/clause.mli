@@ -121,6 +121,9 @@ val ltr_weights_to_string : unit -> string
 val template_key : Term.t -> string option
 (** Return a normalized template key for a literal, if available *)
 
+val template_key_coarse : Term.t -> string option
+(** Return a coarse template key for a literal, if available *)
+
 (** {1 Activation Literals} *)
 
 val actlit_p0_of_clause : SMTSolver.t -> t -> Term.t
