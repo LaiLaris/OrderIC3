@@ -223,6 +223,8 @@ let term_identifiers t =
 let has_control_literal t =
   let s = term_text t in
   string_contains s "OK@"
+  || string_contains s "ok@"
+  || string_contains s "bad"
   || string_contains s "bump@"
   || string_contains s "call_"
 
@@ -308,10 +310,9 @@ let sort_literals_for_compactness literals =
     (fun l1 l2 ->
       let s1 = literal_score single_counts pair_counts l1 in
       let s2 = literal_score single_counts pair_counts l2 in
-      compare s2 s1)
-      (* match compare s2 s1 with
+      match compare s2 s1 with
       | 0 -> Term.compare l1 l2
-      | c -> c) *)
+      | c -> c)
     literals
 
 (* ************************************************************************ *)
@@ -1205,7 +1206,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                   (* Fold over clause literals and their activation literals *)
                   (C.actlits_n0_of_clause solver block_clause)
                   (C.literals_of_clause block_clause)
-                (* |> sort_literals_for_compactness *)
+                |> sort_literals_for_compactness
               in
 
               SMTSolver.trace_comment solver

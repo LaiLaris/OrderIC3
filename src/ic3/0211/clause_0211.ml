@@ -572,9 +572,65 @@ let actlits_n1_of_clause solver { clause_id; actlits_n1; literals } =
 
 (* Create a clause of literals *)
 let mk_clause_of_literals source literals =
-  
-  let literals = Term.TermSet.(of_list literals |> elements) in
 
+  (* Sort and eliminate duplicate literals *)
+  let use_string_tiebreak = ref false in
+  let tmpl_occ = Term.TermHashtbl.create 251 in
+  let tmpl_cnt = Hashtbl.create 251 in
+  let add_key lit key =
+    let c = try Hashtbl.find tmpl_cnt key with Not_found -> 0 in
+    let c' = c + 1 in
+    Hashtbl.replace tmpl_cnt key c';
+    Term.TermHashtbl.replace tmpl_occ lit c'
+  in
+  List.iter
+    (fun lit ->
+      (if !use_template_fine then
+         match template_key lit with
+         | None -> ()
+         | Some key -> add_key lit ("fine:" ^ key));
+      if !use_template_coarse then
+        match template_key_coarse lit with
+        | None -> ()
+        | Some key -> add_key lit ("coarse:" ^ key))
+    literals;
+  (* Stable tie-breaker using string form of term. *)
+  let compare_literals l1 l2 =
+    let s1 = ltr_score l1 in
+    let s2 = ltr_score l2 in
+    let occ1 =
+      try Term.TermHashtbl.find tmpl_occ l1 with Not_found -> 0
+    in
+    let occ2 =
+      try Term.TermHashtbl.find tmpl_occ l2 with Not_found -> 0
+    in
+    let s1 = s1 -. (!ltr_template_penalty *. float_of_int occ1) in
+    let s2 = s2 -. (!ltr_template_penalty *. float_of_int occ2) in
+    let c = if s1 < s2 then 1 else if s1 > s2 then -1 else 0 in
+    if c <> 0 then c
+    else
+      let w1 = lit_weight l1 in
+      let w2 = lit_weight l2 in
+      let cw = if w1 < w2 then 1 else if w1 > w2 then -1 else 0 in
+      if cw <> 0 then cw
+      else
+        let t1 = if !use_string_tiebreak then Term.string_of_term l1 else "" in
+        let t2 = if !use_string_tiebreak then Term.string_of_term l2 else "" in
+        Stdlib.compare t1 t2
+  in
+  let literals =
+    if Flags.IC3QE.ltr_sort () then
+      Term.TermSet.(of_list literals |> elements) |> List.sort compare_literals
+    else
+      Term.TermSet.(of_list literals |> elements)
+  in
+  (* if Flags.IC3QE.ltr_sort () && !ltr_debug_scores then
+    KEvent.log_uncond "@[<hv>LTR literal scores:@ @[<hv 1>{%a}@]@]"
+      (pp_print_list
+         (fun ppf lit ->
+           Format.fprintf ppf "%a:%g" Term.pp_print_term lit (ltr_score lit))
+         ";@ ")
+      literals; *)
   
   (* Next unique identifier for clause *)
   let clause_id = next_clause_id () in

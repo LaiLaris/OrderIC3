@@ -220,6 +220,180 @@ let term_identifiers t =
   in
   collect 0 [] |> List.sort_uniq String.compare
 
+type lit_kind =
+  | BoolGuard
+  | UnaryCmp
+  | DiffCmp
+  | OtherCmp
+  | Other
+
+let var_keep_count : int StateVar.StateVarHashtbl.t =
+  StateVar.StateVarHashtbl.create 251
+
+let lit_keep_count : int Term.TermHashtbl.t =
+  Term.TermHashtbl.create 251
+
+let incr_var_keep_count sv =
+  let prev =
+    match StateVar.StateVarHashtbl.find_opt var_keep_count sv with
+    | Some n -> n
+    | None -> 0
+  in
+  StateVar.StateVarHashtbl.replace var_keep_count sv (prev + 1)
+
+let var_keep_hits sv =
+  match StateVar.StateVarHashtbl.find_opt var_keep_count sv with
+  | Some n -> n
+  | None -> 0
+
+let vars_of_lit t =
+  Term.state_vars_of_term t |> StateVar.StateVarSet.elements
+
+let is_user_var sv =
+  List.mem "usr" (StateVar.scope_of_state_var sv)
+
+let numeral_sign t =
+  if Term.is_numeral t then
+    let n = Term.numeral_of_term t in
+    if Numeral.equal n Numeral.one then Some 1
+    else if Numeral.equal n (Numeral.neg Numeral.one) then Some (-1)
+    else None
+  else None
+
+let state_var_of_term t =
+  match Term.destruct t with
+  | Term.T.Var v when Var.is_state_var_instance v ->
+      Some (Var.state_var_of_state_var_instance v)
+  | _ -> None
+
+let rec collect_linear_terms t =
+  match Term.destruct t with
+  | Term.T.App (s, args) when s == Symbol.s_plus -> (
+      let rec loop acc = function
+        | [] -> Some acc
+        | a :: rest -> (
+            match collect_linear_terms a with
+            | None -> None
+            | Some lits -> loop (List.rev_append lits acc) rest)
+      in
+      loop [] args)
+  | Term.T.App (s, [ a; b ]) when s == Symbol.s_minus -> (
+      match collect_linear_terms a, collect_linear_terms b with
+      | Some la, Some lb ->
+          let lb' = List.map (fun (sv, sign) -> (sv, -sign)) lb in
+          Some (List.rev_append lb' la)
+      | _ -> None)
+  | Term.T.App (s, [ a ]) when s == Symbol.s_minus -> (
+      match collect_linear_terms a with
+      | Some la -> Some (List.map (fun (sv, sign) -> (sv, -sign)) la)
+      | None -> None)
+  | Term.T.App (s, [ a; b ]) when s == Symbol.s_times -> (
+      match (numeral_sign a, state_var_of_term b) with
+      | Some sign, Some sv -> Some [ (sv, sign) ]
+      | _ -> (
+          match (numeral_sign b, state_var_of_term a) with
+          | Some sign, Some sv -> Some [ (sv, sign) ]
+          | _ -> if Term.is_numeral a || Term.is_numeral b then Some [] else None))
+  | _ -> (
+      match state_var_of_term t with
+      | Some sv -> Some [ (sv, 1) ]
+      | None -> if Term.is_numeral t then Some [] else None)
+
+let comparison_symbol = function
+  | s -> (
+      match Symbol.node_of_symbol s with
+      | `LT | `GT | `LEQ | `GEQ | `EQ -> true
+      | _ -> false)
+  | _ -> false
+
+type lit_polarity = Pos | Neg
+type normalized_lit = { polarity : lit_polarity; body : Term.t }
+
+let normalize_literal t =
+  match Term.destruct t with
+  | Term.T.App (s, [ t' ]) when s == Symbol.s_not ->
+      let rec strip polarity t =
+        match Term.destruct t with
+        | Term.T.App (s, [ t' ]) when s == Symbol.s_not ->
+            strip (match polarity with Pos -> Neg | Neg -> Pos) t'
+        | _ -> { polarity; body = t }
+      in
+      strip Neg t'
+  | _ -> { polarity = Pos; body = t }
+
+let incr_lit_keep_count lit =
+  let key = (normalize_literal lit).body in
+  let prev =
+    match Term.TermHashtbl.find_opt lit_keep_count key with
+    | Some n -> n
+    | None -> 0
+  in
+  Term.TermHashtbl.replace lit_keep_count key (prev + 1)
+
+let lit_keep_hits lit =
+  let key = (normalize_literal lit).body in
+  match Term.TermHashtbl.find_opt lit_keep_count key with
+  | Some n -> n
+  | None -> 0
+
+let comparison_view t =
+  match Term.T.node_of_t (normalize_literal t).body with
+  | Term.T.Node (s, [ a; b ]) when comparison_symbol s -> Some (s, a, b)
+  | _ -> None
+
+let positive_comparison_view t =
+  let norm = normalize_literal t in
+  match norm.polarity, Term.T.node_of_t norm.body with
+  | Pos, Term.T.Node (s, [ a; b ]) when comparison_symbol s -> Some (s, a, b)
+  | _ -> None
+
+let is_bool_guard t =
+  let { body; _ } = normalize_literal t in
+  Term.is_atom body && comparison_view t = None
+
+let diffcmp_of_operands lhs rhs =
+  match collect_linear_terms lhs, collect_linear_terms rhs with
+  | Some ll, Some rr ->
+      let rr_neg = List.map (fun (sv, sign) -> (sv, -sign)) rr in
+      let terms = List.rev_append rr_neg ll in
+      let pos = List.exists (fun (_, sign) -> sign > 0) terms in
+      let neg = List.exists (fun (_, sign) -> sign < 0) terms in
+      pos && neg
+  | _ -> false
+
+let literal_kind t =
+  if is_bool_guard t then BoolGuard
+  else
+    match comparison_view t with
+    | Some (_, lhs, rhs) -> (
+        match vars_of_lit t with
+        | [ _ ] -> UnaryCmp
+        | [ _; _ ] -> if diffcmp_of_operands lhs rhs then DiffCmp else OtherCmp
+        | _ -> OtherCmp)
+    | None -> Other
+
+let record_kept_literal lit =
+  incr_lit_keep_count lit;
+  List.iter
+    (fun sv -> incr_var_keep_count sv)
+    (vars_of_lit lit)
+
+let adaptive_interaction lit =
+  match vars_of_lit lit with
+  | [] -> 0
+  | vars ->
+      if List.exists is_user_var vars then 2
+      else
+        match positive_comparison_view lit with
+        | Some (s, _, _) -> (
+            match Symbol.node_of_symbol s with
+            | `EQ ->
+                if lit_keep_hits lit > 2 then 2 else 0
+            | `LT | `GT | `LEQ | `GEQ ->
+                if lit_keep_hits lit > 5 then 2 else 0
+            | _ -> 0)
+        | None -> 0
+
 let has_control_literal t =
   let s = term_text t in
   string_contains s "OK@"
@@ -270,7 +444,9 @@ let literal_score single_counts pair_counts lit =
     else if var_count = 2 && arithmetic_depth_hint lit <= 10 then 2
     else 0
   in
-  let interaction = if has_control_literal lit then 2 else 0 in
+  let interaction = 
+    (* if has_control_literal lit then 2 else 0 in *)
+    adaptive_interaction lit in
   let staircase_penalty =
     let single_key, pair_key = staircase_keys lit in
     let single_penalty =
@@ -308,10 +484,9 @@ let sort_literals_for_compactness literals =
     (fun l1 l2 ->
       let s1 = literal_score single_counts pair_counts l1 in
       let s2 = literal_score single_counts pair_counts l2 in
-      compare s2 s1)
-      (* match compare s2 s1 with
+      match compare s2 s1 with
       | 0 -> Term.compare l1 l2
-      | c -> c) *)
+      | c -> c)
     literals
 
 (* ************************************************************************ *)
@@ -513,6 +688,8 @@ let ind_generalize solver prop_set frame clause literals =
 
           (* Deactivate activation literal of parent clause *)
           C.deactivate_clause solver clause;
+
+          List.iter record_kept_literal kept;
 
           (* New clause with generalized clause as parent *)
           let clause' = C.mk_clause_of_literals (C.IndGen clause) kept in
@@ -1205,7 +1382,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                   (* Fold over clause literals and their activation literals *)
                   (C.actlits_n0_of_clause solver block_clause)
                   (C.literals_of_clause block_clause)
-                (* |> sort_literals_for_compactness *)
+                |> sort_literals_for_compactness
               in
 
               SMTSolver.trace_comment solver

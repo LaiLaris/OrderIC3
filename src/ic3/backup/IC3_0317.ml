@@ -262,6 +262,21 @@ let staircase_keys t =
     else (None, None)
   else (None, None)
 
+let build_literal_score_tables literals =
+  let single_counts = Hashtbl.create 17 in
+  let pair_counts = Hashtbl.create 17 in
+  let bump_count tbl key =
+    let prev = Hashtbl.find_opt tbl key |> Option.value ~default:0 in
+    Hashtbl.replace tbl key (prev + 1)
+  in
+  List.iter
+    (fun lit ->
+      let single_key, pair_key = staircase_keys lit in
+      (match single_key with Some key -> bump_count single_counts key | None -> ());
+      match pair_key with Some key -> bump_count pair_counts key | None -> ())
+    literals;
+  (single_counts, pair_counts)
+
 let literal_score single_counts pair_counts lit =
   let ids = term_identifiers lit in
   let var_count = List.length ids in
@@ -291,19 +306,21 @@ let literal_score single_counts pair_counts lit =
   in
   simplicity + interaction - staircase_penalty
 
+let pp_print_clause_literals_with_scores_from_lookup score_of ppf literals =
+  pp_print_list
+    (fun ppf lit ->
+      Format.fprintf ppf "%a [score=%d]" Term.pp_print_term lit
+        (score_of lit))
+    ";@ " ppf literals
+
+let pp_print_clause_literals_with_scores ppf literals =
+  let single_counts, pair_counts = build_literal_score_tables literals in
+  pp_print_clause_literals_with_scores_from_lookup
+    (literal_score single_counts pair_counts)
+    ppf literals
+
 let sort_literals_for_compactness literals =
-  let single_counts = Hashtbl.create 17 in
-  let pair_counts = Hashtbl.create 17 in
-  let bump_count tbl key =
-    let prev = Hashtbl.find_opt tbl key |> Option.value ~default:0 in
-    Hashtbl.replace tbl key (prev + 1)
-  in
-  List.iter
-    (fun lit ->
-      let single_key, pair_key = staircase_keys lit in
-      (match single_key with Some key -> bump_count single_counts key | None -> ());
-      match pair_key with Some key -> bump_count pair_counts key | None -> ())
-    literals;
+  let single_counts, pair_counts = build_literal_score_tables literals in
   List.stable_sort
     (fun l1 l2 ->
       let s1 = literal_score single_counts pair_counts l1 in
@@ -311,6 +328,7 @@ let sort_literals_for_compactness literals =
       compare s2 s1)
       (* match compare s2 s1 with
       | 0 -> Term.compare l1 l2
+      (* | 0 -> String.compare (Term.string_of_term l1) (Term.string_of_term l2) *)
       | c -> c) *)
     literals
 
@@ -490,6 +508,12 @@ let deactivate_subsumed solver (subsumed, frame') =
    relatively inductive to [frame] and initial. *)
 let ind_generalize solver prop_set frame clause literals =
   let literals = sort_literals_for_compactness literals in
+  let sorted_single_counts, sorted_pair_counts =
+    build_literal_score_tables literals
+  in
+  let sorted_literal_score lit =
+    literal_score sorted_single_counts sorted_pair_counts lit
+  in
   (* Linearly traverse the list of literals in the clause, and remove
      a literal the clause without the literal remains relatively
      inductive and initial
@@ -522,7 +546,8 @@ let ind_generalize solver prop_set frame clause literals =
                "@[<hv>New clause from inductive generalization of #%d:@ #%d \
                 @[<hv 1>{%a}@]@]"
                (C.id_of_clause clause) (C.id_of_clause clause')
-               (pp_print_list Term.pp_print_term ";@ ")
+               (pp_print_clause_literals_with_scores_from_lookup
+                  sorted_literal_score)
                (C.literals_of_clause clause'));
           (* cex_clauses := clause :: !cex_clauses;
           generalized_clauses := clause' :: !generalized_clauses;
@@ -1025,7 +1050,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                 (Format.asprintf
                    "@[<hv>New clause at frontier:@ #%d @[<hv 1>{%a}@]@]"
                    (C.id_of_clause clause)
-                   (pp_print_list Term.pp_print_term ";@ ")
+                   pp_print_clause_literals_with_scores
                    (C.literals_of_clause clause));
 
               (*根节点随便给了一个好拿到的C.t,id为3*)
@@ -1205,7 +1230,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                   (* Fold over clause literals and their activation literals *)
                   (C.actlits_n0_of_clause solver block_clause)
                   (C.literals_of_clause block_clause)
-                (* |> sort_literals_for_compactness *)
+                |> sort_literals_for_compactness
               in
 
               SMTSolver.trace_comment solver
@@ -1262,9 +1287,9 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                           block_clause_gen_literals
                           (pp_print_list
                              (fun ppf (k, c) ->
-                               Format.fprintf ppf "@[<hv 1>{%a}@ =@ %a"
-                                 (pp_print_list Term.pp_print_term ";@ ")
-                                 k Term.pp_print_term (C.term_of_clause c))
+                                Format.fprintf ppf "@[<hv 1>{%a}@ =@ %a"
+                                  (pp_print_list Term.pp_print_term ";@ ")
+                                  k Term.pp_print_term (C.term_of_clause c))
                              ",@ ")
                           (F.bindings r_i));
 
@@ -1437,7 +1462,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                        (List.length trace)
                        (C.id_of_clause block_clause)
                        (C.id_of_clause block_clause')
-                       (pp_print_list Term.pp_print_term ";@ ")
+                       pp_print_clause_literals_with_scores
                        (C.literals_of_clause block_clause'));
                   let block_clause_pre =
                     find_copyblock_pre_clause block_clause
