@@ -121,6 +121,115 @@ let rec collect_linear_terms t =
       | Some sv -> Some [ (sv, 1) ]
       | None -> if Term.is_numeral t then Some [] else None)
 
+let add_coeff key coeff acc =
+  let prev =
+    match Term.TermMap.find_opt key acc with
+    | Some v -> v
+    | None -> Numeral.zero
+  in
+  let next = Numeral.add prev coeff in
+  if Numeral.equal next Numeral.zero then Term.TermMap.remove key acc
+  else Term.TermMap.add key next acc
+
+let merge_linear_forms (coeffs1, const1) (coeffs2, const2) =
+  let coeffs =
+    Term.TermMap.fold
+      (fun key coeff acc -> add_coeff key coeff acc)
+      coeffs2 coeffs1
+  in
+  (coeffs, Numeral.add const1 const2)
+
+let scale_linear_form k (coeffs, const) =
+  if Numeral.equal k Numeral.zero then (Term.TermMap.empty, Numeral.zero)
+  else
+    ( Term.TermMap.fold
+        (fun key coeff acc ->
+          add_coeff key (Numeral.mult k coeff) acc)
+        coeffs Term.TermMap.empty,
+      Numeral.mult k const )
+
+let is_constant_form (coeffs, _) = Term.TermMap.is_empty coeffs
+
+let rec collect_linear_int_expr t =
+  match Term.destruct t with
+  | Term.T.App (s, args) when s == Symbol.s_plus ->
+      List.fold_left
+        (fun acc arg ->
+          match acc, collect_linear_int_expr arg with
+          | Some acc, Some expr -> Some (merge_linear_forms acc expr)
+          | _ -> None)
+        (Some (Term.TermMap.empty, Numeral.zero))
+        args
+  | Term.T.App (s, [a; b]) when s == Symbol.s_minus -> (
+      match collect_linear_int_expr a, collect_linear_int_expr b with
+      | Some lhs, Some rhs ->
+          Some (merge_linear_forms lhs (scale_linear_form (Numeral.neg Numeral.one) rhs))
+      | _ -> None)
+  | Term.T.App (s, [a]) when s == Symbol.s_minus -> (
+      match collect_linear_int_expr a with
+      | Some expr -> Some (scale_linear_form (Numeral.neg Numeral.one) expr)
+      | None -> None)
+  | Term.T.App (s, [a; b]) when s == Symbol.s_times -> (
+      match collect_linear_int_expr a, collect_linear_int_expr b with
+      | Some lhs, Some rhs when is_constant_form lhs ->
+          Some (scale_linear_form (snd lhs) rhs)
+      | Some lhs, Some rhs when is_constant_form rhs ->
+          Some (scale_linear_form (snd rhs) lhs)
+      | _ -> None)
+  | _ when Term.is_numeral t -> Some (Term.TermMap.empty, Term.numeral_of_term t)
+  | _ when Term.type_of_term t == Type.t_int ->
+      Some (Term.TermMap.singleton t Numeral.one, Numeral.zero)
+  | _ -> None
+
+let canonical_linear_eq expr =
+  let coeffs, const = expr in
+  if Term.TermMap.is_empty coeffs then
+    if Numeral.equal const Numeral.zero then Term.t_true else Term.t_false
+  else (
+    let coeffs, const =
+      match Term.TermMap.bindings coeffs with
+      | (_, coeff) :: _ when Numeral.compare coeff Numeral.zero < 0 ->
+          ( scale_linear_form (Numeral.neg Numeral.one) (coeffs, const) )
+      | _ -> (coeffs, const)
+    in
+    let terms =
+      Term.TermMap.bindings coeffs
+      |> List.map (fun (var_term, coeff) ->
+             if Numeral.equal coeff Numeral.one then var_term
+             else Term.mk_times [Term.mk_num coeff; var_term])
+    in
+    let terms =
+      if Numeral.equal const Numeral.zero then terms
+      else terms @ [Term.mk_num const]
+    in
+    let lhs =
+      match terms with
+      | [] -> Term.mk_num Numeral.zero
+      | [term] -> term
+      | _ -> Term.mk_plus terms
+    in
+    Term.mk_eq [lhs; Term.mk_num Numeral.zero])
+
+let canonicalize_eq_literal lit =
+  let rebuild neg body =
+    match neg, body with
+    | false, _ -> body
+    | true, body when Term.equal body Term.t_true -> Term.t_false
+    | true, body when Term.equal body Term.t_false -> Term.t_true
+    | true, _ -> Term.mk_not body
+  in
+  let neg, body =
+    match Term.destruct lit with
+    | Term.T.App (s, [arg]) when s == Symbol.s_not -> (true, arg)
+    | _ -> (false, lit)
+  in
+  match Term.destruct body with
+  | Term.T.App (s, [lhs; rhs]) when s == Symbol.s_eq -> (
+      match collect_linear_int_expr (Term.mk_minus [lhs; rhs]) with
+      | Some expr -> rebuild neg (canonical_linear_eq expr)
+      | None -> lit)
+  | _ -> lit
+
 let lin_diff_score t =
   match collect_linear_terms t with
   | None -> 0.0
@@ -572,8 +681,11 @@ let actlits_n1_of_clause solver { clause_id; actlits_n1; literals } =
 
 (* Create a clause of literals *)
 let mk_clause_of_literals source literals =
-  
-  let literals = Term.TermSet.(of_list literals |> elements) in
+  let literals =
+    literals
+    |> List.map canonicalize_eq_literal
+    |> Term.TermSet.of_list |> Term.TermSet.elements
+  in
 
   
   (* Next unique identifier for clause *)

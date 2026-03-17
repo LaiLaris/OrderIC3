@@ -866,7 +866,7 @@ module IC3QE = struct
           fwd_prop_subsume_default)
 
   let fwd_prop_subsume () = !fwd_prop_subsume
-  let ltr_sort_default = true
+  let ltr_sort_default = false
   let ltr_sort = ref ltr_sort_default
 
   let _ =

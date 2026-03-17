@@ -291,7 +291,7 @@ let literal_score single_counts pair_counts lit =
   in
   simplicity + interaction - staircase_penalty
 
-let sort_literals_for_compactness literals =
+let compactness_score_tables literals =
   let single_counts = Hashtbl.create 17 in
   let pair_counts = Hashtbl.create 17 in
   let bump_count tbl key =
@@ -304,6 +304,15 @@ let sort_literals_for_compactness literals =
       (match single_key with Some key -> bump_count single_counts key | None -> ());
       match pair_key with Some key -> bump_count pair_counts key | None -> ())
     literals;
+  (single_counts, pair_counts)
+
+let pp_print_literal_with_score single_counts pair_counts ppf lit =
+  Format.fprintf ppf "[%d] %a"
+    (literal_score single_counts pair_counts lit)
+    Term.pp_print_term lit
+
+let sort_literals_for_compactness literals =
+  let single_counts, pair_counts = compactness_score_tables literals in
   List.stable_sort
     (fun l1 l2 ->
       let s1 = literal_score single_counts pair_counts l1 in
@@ -490,6 +499,15 @@ let deactivate_subsumed solver (subsumed, frame') =
    relatively inductive to [frame] and initial. *)
 let ind_generalize solver prop_set frame clause literals =
   let literals = sort_literals_for_compactness literals in
+  let single_counts, pair_counts = compactness_score_tables literals in
+  SMTSolver.trace_comment solver
+    (Format.asprintf
+       "@[<hv>Sorted literals for clause #%d:@ @[<hv 1>{%a}@]@]"
+       (C.id_of_clause clause)
+       (pp_print_list
+          (pp_print_literal_with_score single_counts pair_counts)
+          ";@ ")
+       literals);
   (* Linearly traverse the list of literals in the clause, and remove
      a literal the clause without the literal remains relatively
      inductive and initial

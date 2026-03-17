@@ -8,10 +8,25 @@ Expected log filename format:
   <case_name>_l1l2.log
   <case_name>_l2l1.log
 
+
 Example:
   python3 scripts/analyze_invariant_clause_correlation.py \
     --log-root /home/lyh/kind2-exp/OrderIC3/log_pre_exp/FMCAD08/Int \
     --output-csv /tmp/fmcad08_invariant_clause_time.csv
+    
+细节：
+  - 扫描日志目录，按 *_original.log、*_l1l2.log、*_l2l1.log 三类文件分组，组成同一个 case 的三次运行记录：
+    analyze_invariant_clause_correlation.py:45
+  - 从日志里提取验证耗时，匹配 <Success>、<Failure> 或 <Done> 行：analyze_invariant_clause_correlation.py:58
+  - 判断状态是 safe、unsaf 或 unknown：analyze_invariant_clause_correlation.py:71
+  - 找出日志中的 Inductive invariant: 块，并统计最外层 { ... } 里有多少个子句，统计方式基本是数分号 ;：
+    analyze_invariant_clause_correlation.py:79 和 analyze_invariant_clause_correlation.py:101
+  - 最后按 case 输出一行 CSV，字段包括：
+    case_id, status, original_time, original_inv_num, l1l2_time, l1l2_num, l2l1_time, l2l1_num：
+    analyze_invariant_clause_correlation.py:123
+
+  另外它还会检查三种配置的结论是否一致。如果 original/l1l2/l2l1 的状态不一致，就把这个 case 标成 mismatch，并放到 CSV 的后
+  面，同时在终端打印出来：analyze_invariant_clause_correlation.py:159
 """
 
 from __future__ import annotations
