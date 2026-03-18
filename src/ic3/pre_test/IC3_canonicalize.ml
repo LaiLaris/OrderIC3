@@ -114,85 +114,6 @@ let find_copyblock_pre_clause block_clause =
   in
   loop block_clause
 
-(* small = [2, 5]    (要检查的集合)
-big   = [1, 2, 3, 5, 7]  (候选集合)
-
-Step 1: 比较 2 vs 1 → 2 > 1 → 跳过 big 的 1
-Step 2: 比较 2 vs 2 → 相等 → 两者都前进
-Step 3: 比较 5 vs 3 → 5 > 3 → 跳过 big 的 3  
-Step 4: 比较 5 vs 5 → 相等 → 完成
-结果: true (2,5 都在 big 中) *)
-
-let rec literals_subset_sorted small big =
-  match (small, big) with
-  | [], _ -> true
-  | _, [] -> false
-  | hs :: ts, hb :: tb -> (
-      match Term.compare hs hb with
-      | 0 -> literals_subset_sorted ts tb
-      | c when c > 0 -> literals_subset_sorted small tb
-      | _ -> false)
-
-(* Return a parent clause from the previous frame whose literals are a subset of
-   the current clause. For the initial refer-skipping baseline, prefer the
-   largest such subset, which is the closest structural match to the current
-   clause. *)
-let get_parentnode frame clause_literals =
-  F.values frame
-  |> List.fold_left
-       (fun best candidate ->
-         let candidate_literals = C.literals_of_clause candidate in
-         if literals_subset_sorted candidate_literals clause_literals then
-           match best with
-           | None -> Some candidate
-           | Some prev
-             when C.length_of_clause candidate > C.length_of_clause prev ->
-               Some candidate
-           | _ -> best
-         else best)
-       None
-
-(* Small local sanity test for get_parentnode.
-   Expected:
-   - [selected_largest_subset] = true
-   - [missing_parent_is_none] = true *)
-(* let debug_test_get_parentnode () =
-  let fresh_bool_lit () = Var.mk_fresh_var Type.t_bool |> Term.mk_var in
-  let a = fresh_bool_lit () in
-  let b = fresh_bool_lit () in
-  let c = fresh_bool_lit () in
-  let d = fresh_bool_lit () in
-  let e = fresh_bool_lit () in
-  let mk_clause lits = C.mk_clause_of_literals C.PropSet lits in
-  let p1 = mk_clause [a; c] in
-  let p2 = mk_clause [a; e] in
-  let p3 = mk_clause [a; b; d] in
-  let p4 = mk_clause [c; e] in
-  let frame =
-    F.empty
-    |> F.add (C.literals_of_clause p1) p1
-    |> F.add (C.literals_of_clause p2) p2
-    |> F.add (C.literals_of_clause p3) p3
-    |> F.add (C.literals_of_clause p4) p4
-  in
-  let cur = mk_clause [a; b; c; d] |> C.literals_of_clause in
-  let selected_largest_subset =
-    match get_parentnode frame cur with
-    | Some parent -> C.id_of_clause parent = C.id_of_clause p3
-    | None -> false
-  in
-  let missing_parent_is_none =
-    let no_parent_frame =
-      let q1 = mk_clause [a; e] in
-      let q2 = mk_clause [b; e] in
-      F.empty
-      |> F.add (C.literals_of_clause q1) q1
-      |> F.add (C.literals_of_clause q2) q2
-    in
-    match get_parentnode no_parent_frame cur with None -> true | Some _ -> false
-  in
-  (selected_largest_subset, missing_parent_is_none) *)
-
 (* ********************************************************************** *)
 (* Exception raised in proof process                                      *)
 (* ********************************************************************** *)
@@ -262,6 +183,145 @@ let frame_sizes_block frames trace =
   let frames' = List.rev_append (List.map snd trace) frames in
 
   frame_sizes frames'
+
+let string_contains s sub =
+  let ls = String.length s and lsub = String.length sub in
+  let rec loop i =
+    i + lsub <= ls
+    &&
+    ((String.sub s i lsub = sub) || loop (i + 1))
+  in
+  lsub = 0 || loop 0
+
+let is_digit c = c >= '0' && c <= '9'
+
+let is_ident_char = function
+  | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '.' | '@' -> true
+  | _ -> false
+
+let term_text t = Format.asprintf "%a" Term.pp_print_term t
+
+let term_identifiers t =
+  let s = term_text t in
+  let len = String.length s in
+  let rec collect i acc =
+    if i >= len then acc
+    else if is_ident_char s.[i] then
+      let j = ref i in
+      while !j < len && is_ident_char s.[!j] do
+        incr j
+      done;
+      let tok = String.sub s i (!j - i) in
+      let acc' =
+        if String.contains tok '@' then tok :: acc else acc
+      in
+      collect !j acc'
+    else collect (i + 1) acc
+  in
+  collect 0 [] |> List.sort_uniq String.compare
+
+let has_control_literal t =
+  let s = term_text t in
+  string_contains s "OK@"
+  || string_contains s "bump@"
+  || string_contains s "call_"
+
+let arithmetic_depth_hint t =
+  let s = term_text t in
+  let rec loop i depth max_depth =
+    if i >= String.length s then max_depth
+    else
+      match s.[i] with
+      | '(' -> loop (i + 1) (depth + 1) (max max_depth (depth + 1))
+      | ')' -> loop (i + 1) (max 0 (depth - 1)) max_depth
+      | _ -> loop (i + 1) depth max_depth
+  in
+  loop 0 0 0
+
+let comparison_like t =
+  let s = term_text t in
+  string_contains s "(>"
+  || string_contains s "(<"
+  || string_contains s "(="
+  || string_contains s "(<="
+  || string_contains s "(>="
+
+let term_has_numeric_threshold t =
+  let s = term_text t in
+  let rec loop i =
+    i < String.length s && (is_digit s.[i] || loop (i + 1))
+  in
+  loop 0
+
+let staircase_keys t =
+  let ids = term_identifiers t in
+  let n = List.length ids in
+  if comparison_like t && term_has_numeric_threshold t then
+    if n = 1 then (Some (String.concat "|" ids), None)
+    else if n = 2 then (None, Some (String.concat "|" ids))
+    else (None, None)
+  else (None, None)
+
+let literal_score single_counts pair_counts lit =
+  let ids = term_identifiers lit in
+  let var_count = List.length ids in
+  let simplicity =
+    if var_count <= 1 && arithmetic_depth_hint lit <= 8 then 3
+    else if var_count = 2 && arithmetic_depth_hint lit <= 10 then 2
+    else 0
+  in
+  let interaction = if has_control_literal lit then 2 else 0 in
+  let staircase_penalty =
+    let single_key, pair_key = staircase_keys lit in
+    let single_penalty =
+      match single_key with
+      | Some key when Hashtbl.find_opt single_counts key |> Option.value ~default:0 > 2
+        ->
+          3
+      | _ -> 0
+    in
+    let pair_penalty =
+      match pair_key with
+      | Some key when Hashtbl.find_opt pair_counts key |> Option.value ~default:0 > 2
+        ->
+          4
+      | _ -> 0
+    in
+    single_penalty + pair_penalty
+  in
+  simplicity + interaction - staircase_penalty
+
+let compactness_score_tables literals =
+  let single_counts = Hashtbl.create 17 in
+  let pair_counts = Hashtbl.create 17 in
+  let bump_count tbl key =
+    let prev = Hashtbl.find_opt tbl key |> Option.value ~default:0 in
+    Hashtbl.replace tbl key (prev + 1)
+  in
+  List.iter
+    (fun lit ->
+      let single_key, pair_key = staircase_keys lit in
+      (match single_key with Some key -> bump_count single_counts key | None -> ());
+      match pair_key with Some key -> bump_count pair_counts key | None -> ())
+    literals;
+  (single_counts, pair_counts)
+
+let pp_print_literal_with_score single_counts pair_counts ppf lit =
+  Format.fprintf ppf "[%d] %a"
+    (literal_score single_counts pair_counts lit)
+    Term.pp_print_term lit
+
+let sort_literals_for_compactness literals =
+  let single_counts, pair_counts = compactness_score_tables literals in
+  List.stable_sort
+    (fun l1 l2 ->
+      let s1 = literal_score single_counts pair_counts l1 in
+      let s2 = literal_score single_counts pair_counts l2 in
+      compare s2 s1)
+      (* match compare s2 s1 with
+      | 0 -> Term.compare l1 l2
+      | c -> c) *)
+    literals
 
 (* ************************************************************************ *)
 (* Soundness check                                                          *)
@@ -438,6 +498,16 @@ let deactivate_subsumed solver (subsumed, frame') =
    initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
 let ind_generalize solver prop_set frame clause literals =
+  (* let literals = sort_literals_for_compactness literals in
+  let single_counts, pair_counts = compactness_score_tables literals in
+  SMTSolver.trace_comment solver
+    (Format.asprintf
+       "@[<hv>Sorted literals for clause #%d:@ @[<hv 1>{%a}@]@]"
+       (C.id_of_clause clause)
+       (pp_print_list
+          (pp_print_literal_with_score single_counts pair_counts)
+          ";@ ")
+       literals); *)
   (* Linearly traverse the list of literals in the clause, and remove
      a literal the clause without the literal remains relatively
      inductive and initial
@@ -1909,6 +1979,7 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
         | _ -> false)
       (C.props_of_prop_set prop_set)
   in
+
   (* Current k is length of trace *)
   let ic3_k = succ (List.length frames) in
 
@@ -2406,9 +2477,6 @@ let bmc_checks solver input_sys aparam trans_sys props bound =
 
 *)
 let main_ic3 input_sys aparam trans_sys =
-  (* let a, b = debug_test_get_parentnode () in
-  Format.printf "get_parentnode test: (%b, %b)@." a b; *)
-
   (* IC3 solving starts now *)
   Stat.start_timer Stat.ic3_total_time;
 
