@@ -437,7 +437,29 @@ let deactivate_subsumed solver (subsumed, frame') =
    Assuming that [clause] is relatively inductive to [frame] and
    initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
-let ind_generalize solver prop_set frame clause literals =
+let ind_generalize solver prop_set frame parent_frame clause literals =
+  let parent_clause_opt, req =
+    match parent_frame with
+    | None -> (None, [])
+    | Some parent_frame -> (
+        match get_parentnode parent_frame (C.literals_of_clause clause) with
+        | None -> (None, [])
+        | Some parent -> (Some parent, C.literals_of_clause parent))
+  in
+  (match parent_clause_opt with
+  | None -> ()
+  | Some parent ->
+      SMTSolver.trace_comment solver
+        (Format.asprintf
+           "@[<hv>refer-skipping: clause #%d uses parent #%d, skipping literals \
+            @[<hv 1>{%a}@]@]"
+           (C.id_of_clause clause)
+           (C.id_of_clause parent)
+           (pp_print_list Term.pp_print_term ";@ ")
+           req));
+  let total_literals = List.length literals in
+  let skipped_literals = ref 0 in
+  let attempted_drops = ref 0 in
   (* Linearly traverse the list of literals in the clause, and remove
      a literal the clause without the literal remains relatively
      inductive and initial
@@ -448,6 +470,18 @@ let ind_generalize solver prop_set frame clause literals =
   let rec linear_search kept = function
     (* All literals considered, return literals that had to be kept *)
     | [] ->
+        (match parent_clause_opt with
+        | None -> ()
+        | Some parent ->
+            SMTSolver.trace_comment solver
+              (Format.asprintf
+                 "@[<hv>refer-skipping summary: clause #%d parent #%d total=%d \
+                  skipped=%d attempted=%d@]"
+                 (C.id_of_clause clause)
+                 (C.id_of_clause parent)
+                 total_literals
+                 !skipped_literals
+                 !attempted_drops));
         (* Could we drop literals? *)
         if List.length kept = C.length_of_clause clause then
           (* if not (List.mem clause !cex_clauses) then
@@ -476,10 +510,19 @@ let ind_generalize solver prop_set frame clause literals =
           generalized_clauses := clause' :: !generalized_clauses;
           generalization_pairs := (clause, clause') :: !generalization_pairs; *)
           clause')
+    | l :: tl when List.exists (Term.equal l) req ->
+        incr skipped_literals;
+        SMTSolver.trace_comment solver
+          (Format.asprintf
+             "@[<hv>refer-skipping: keep literal@ %a@ in clause #%d@]"
+             Term.pp_print_term l
+             (C.id_of_clause clause));
+        linear_search (l :: kept) tl
     (* Do not try to generalize to the empty clause, this should not
        be possible in a sound transition system *)
     | l :: [] when kept = [] -> linear_search [ l ] []
     | l :: tl ->
+        incr attempted_drops;
         (* Clause without current literal *)
         let clause' = kept @ tl |> Term.mk_or in
 
@@ -1014,13 +1057,14 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
 
            Get clauses in R_i..R_k from [trace], R_i-1 is first frame
            in [frames]. *)
-          let clauses_r_pred_i, actlits_p0_r_pred_i =
+          let parent_frame_opt, clauses_r_pred_i, actlits_p0_r_pred_i =
             (* May be empty *)
             match frames with
             (* Special case: R_0 = I *)
-            | [] -> ([], [ C.actlit_of_frame 0 ])
+            | [] -> (None, [], [ C.actlit_of_frame 0 ])
             | r_pred_i :: _ ->
-                List.fold_left
+                let clauses_r_pred_i, actlits_p0_r_pred_i =
+                  List.fold_left
                   (* Join lists of clauses *)
                   (fun (ac, al) (_, r) ->
                     ( F.values r @ ac,
@@ -1032,6 +1076,8 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                          (C.actlit_p0_of_clause solver)
                          (F.values r_pred_i) )
                   trace
+                in
+                (Some r_pred_i, clauses_r_pred_i, actlits_p0_r_pred_i)
           in
 
           (* Inductively generalize clauses propagated for blocking to
@@ -1044,6 +1090,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                 let block_clause =
                   Stat.time_fun Stat.ic3_ind_gen_time (fun () ->
                       ind_generalize solver prop_set actlits_p0_r_pred_i
+                        None
                         block_clause_orig
                         (C.literals_of_clause block_clause_orig))
                 in
@@ -1168,6 +1215,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
               let block_clause_gen =
                 Stat.time_fun Stat.ic3_ind_gen_time (fun () ->
                     ind_generalize solver prop_set actlits_p0_r_pred_i
+                      parent_frame_opt
                       block_clause block_clause_literals_core)
               in
 
@@ -1573,6 +1621,7 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
         Stat.time_fun Stat.ic3_ind_gen_time (fun () ->
             ind_generalize solver prop_set
               (F.values a |> List.map (C.actlit_p0_of_clause solver))
+              None
               c (C.literals_of_clause c))
       else
         (* Propagate clause as it is *)
@@ -1662,7 +1711,7 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
               List.map
                 (fun c ->
                   Stat.time_fun Stat.ic3_ind_gen_time (fun () ->
-                      ind_generalize solver empty_prop_set [] c
+                      ind_generalize solver empty_prop_set [] None c
                         (C.literals_of_clause c)))
                 inductive_clauses
             in
