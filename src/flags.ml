@@ -876,6 +876,26 @@ module IC3QE = struct
           fmt_bool ltr_sort_default)
 
   let ltr_sort () = !ltr_sort
+  let refer_skipping_default = true
+  let refer_skipping = ref refer_skipping_default
+
+  let _ =
+    add_spec "--ic3qe_refer_skipping" (bool_arg refer_skipping) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Enable refer-skipping during inductive generalization@ Default: %a@]"
+          fmt_bool refer_skipping_default)
+
+  let refer_skipping () = !refer_skipping
+  let branching_reward_default = true
+  let branching_reward = ref branching_reward_default
+
+  let _ =
+    add_spec "--ic3qe_branching_reward" (bool_arg branching_reward) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Enable branching reward updates for i-good lemmas@ Default: %a@]"
+          fmt_bool branching_reward_default)
+
+  let branching_reward () = !branching_reward
   let use_invgen_default = true
   let use_invgen = ref use_invgen_default
 

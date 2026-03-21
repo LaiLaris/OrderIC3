@@ -152,6 +152,95 @@ let get_parentnode frame clause_literals =
          else best)
        None
 
+
+(* Branching variable-score table (paper S[v]) *)
+let branching_decay = 0.99
+
+let branching_reward = 1.0
+
+type variable_score_tbl = float StateVar.StateVarHashtbl.t
+
+let branching_scores : variable_score_tbl =
+  StateVar.StateVarHashtbl.create 251
+
+let create_variable_score_tbl ?(size = 251) () =
+  StateVar.StateVarHashtbl.create size
+
+let get_variable_score score_tbl sv =
+  try StateVar.StateVarHashtbl.find score_tbl sv with Not_found -> 0.0
+
+let set_variable_score score_tbl sv score =
+  StateVar.StateVarHashtbl.replace score_tbl sv score
+
+let state_vars_of_literals literals =
+  List.fold_left
+    (fun acc lit -> StateVar.StateVarSet.union acc (Term.state_vars_of_term lit))
+    StateVar.StateVarSet.empty literals
+
+let score_of_term score_tbl term =
+  StateVar.StateVarSet.fold
+    (fun sv acc -> acc +. get_variable_score score_tbl sv)
+    (Term.state_vars_of_term term) 0.0
+
+let score_of_literals score_tbl literals =
+  StateVar.StateVarSet.fold
+    (fun sv acc -> acc +. get_variable_score score_tbl sv)
+    (state_vars_of_literals literals) 0.0
+
+let decay_variable_scores score_tbl =
+  let updates = ref [] in
+  StateVar.StateVarHashtbl.iter
+    (fun sv score -> updates := (sv, score *. branching_decay) :: !updates)
+    score_tbl;
+  List.iter
+    (fun (sv, score) -> set_variable_score score_tbl sv score)
+    !updates
+
+let reward_literals score_tbl literals =
+  decay_variable_scores score_tbl;
+  state_vars_of_literals literals
+  |> StateVar.StateVarSet.iter (fun sv ->
+         let score = get_variable_score score_tbl sv in
+         set_variable_score score_tbl sv (score +. branching_reward))
+
+let reward_clause score_tbl clause =
+  reward_literals score_tbl (C.literals_of_clause clause)
+
+let compare_literals_by_score_asc score_tbl l1 l2 =
+  match compare (score_of_term score_tbl l1) (score_of_term score_tbl l2) with
+  | 0 -> Term.compare l1 l2
+  | c -> c
+
+let compare_literals_by_score_desc score_tbl l1 l2 =
+  match compare_literals_by_score_asc score_tbl l1 l2 with
+  | 0 -> 0
+  | c -> -c
+
+let sort_literals_by_score_asc score_tbl literals =
+  literals
+  |> List.mapi (fun idx lit -> (idx, lit))
+  |> List.sort (fun (idx1, l1) (idx2, l2) ->
+         match compare (score_of_term score_tbl l1) (score_of_term score_tbl l2) with
+         | 0 -> compare idx1 idx2
+         | c -> c)
+  |> List.map snd
+
+let sort_literals_by_score_desc score_tbl literals =
+  literals
+  |> List.mapi (fun idx lit -> (idx, lit))
+  |> List.sort (fun (idx1, l1) (idx2, l2) ->
+         match compare (score_of_term score_tbl l2) (score_of_term score_tbl l1) with
+         | 0 -> compare idx1 idx2
+         | c -> c)
+  |> List.map snd
+
+let pp_print_literal_scores score_tbl ppf literals =
+  pp_print_list
+    (fun ppf lit ->
+      Format.fprintf ppf "%a [score=%g]" Term.pp_print_term lit
+        (score_of_term score_tbl lit))
+    ";@ " ppf literals
+
 (* Small local sanity test for get_parentnode.
    Expected:
    - [selected_largest_subset] = true
@@ -444,19 +533,36 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
     | Some parent_frame -> (
         match get_parentnode parent_frame (C.literals_of_clause clause) with
         | None -> (None, [])
-        | Some parent -> (Some parent, C.literals_of_clause parent))
+        | Some parent ->
+            let req =
+              if Flags.IC3QE.refer_skipping () then C.literals_of_clause parent
+              else []
+            in
+            (Some parent, req))
   in
-  (match parent_clause_opt with
-  | None -> ()
-  | Some parent ->
-      SMTSolver.trace_comment solver
-        (Format.asprintf
-           "@[<hv>refer-skipping: clause #%d uses parent #%d, skipping literals \
-            @[<hv 1>{%a}@]@]"
-           (C.id_of_clause clause)
-           (C.id_of_clause parent)
-           (pp_print_list Term.pp_print_term ";@ ")
-           req));
+  (if Flags.IC3QE.refer_skipping () then
+     match parent_clause_opt with
+     | None -> ()
+     | Some parent ->
+         SMTSolver.trace_comment solver
+           (Format.asprintf
+              "@[<hv>refer-skipping: clause #%d uses parent #%d, skipping literals \
+               @[<hv 1>{%a}@]@]"
+              (C.id_of_clause clause)
+              (C.id_of_clause parent)
+              (pp_print_list Term.pp_print_term ";@ ")
+              req));
+  SMTSolver.trace_comment solver
+    (Format.asprintf
+       "@[<hv>branching order before: clause #%d @[<hv 1>{%a}@]@]"
+       (C.id_of_clause clause)
+       (pp_print_literal_scores branching_scores) literals);
+  let literals = sort_literals_by_score_asc branching_scores literals in
+  SMTSolver.trace_comment solver
+    (Format.asprintf
+       "@[<hv>branching order after: clause #%d @[<hv 1>{%a}@]@]"
+       (C.id_of_clause clause)
+       (pp_print_literal_scores branching_scores) literals);
   let total_literals = List.length literals in
   let skipped_literals = ref 0 in
   let attempted_drops = ref 0 in
@@ -470,18 +576,19 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
   let rec linear_search kept = function
     (* All literals considered, return literals that had to be kept *)
     | [] ->
-        (match parent_clause_opt with
-        | None -> ()
-        | Some parent ->
-            SMTSolver.trace_comment solver
-              (Format.asprintf
-                 "@[<hv>refer-skipping summary: clause #%d parent #%d total=%d \
-                  skipped=%d attempted=%d@]"
-                 (C.id_of_clause clause)
-                 (C.id_of_clause parent)
-                 total_literals
-                 !skipped_literals
-                 !attempted_drops));
+        (if Flags.IC3QE.refer_skipping () then
+           match parent_clause_opt with
+           | None -> ()
+           | Some parent ->
+               SMTSolver.trace_comment solver
+                 (Format.asprintf
+                    "@[<hv>refer-skipping summary: clause #%d parent #%d total=%d \
+                     skipped=%d attempted=%d@]"
+                    (C.id_of_clause clause)
+                    (C.id_of_clause parent)
+                    total_literals
+                    !skipped_literals
+                    !attempted_drops));
         (* Could we drop literals? *)
         if List.length kept = C.length_of_clause clause then
           (* if not (List.mem clause !cex_clauses) then
@@ -499,6 +606,17 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
           (* New clause with generalized clause as parent *)
           let clause' = C.mk_clause_of_literals (C.IndGen clause) kept in
 
+          (if Flags.IC3QE.branching_reward () then
+             match parent_clause_opt with
+             | None -> ()
+             | Some parent ->
+                 reward_clause branching_scores clause';
+                 SMTSolver.trace_comment solver
+                   (Format.asprintf
+                      "@[<hv>branching reward: generalized clause #%d matched parent #%d@]"
+                      (C.id_of_clause clause')
+                      (C.id_of_clause parent)));
+
           SMTSolver.trace_comment solver
             (Format.asprintf
                "@[<hv>New clause from inductive generalization of #%d:@ #%d \
@@ -510,7 +628,7 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
           generalized_clauses := clause' :: !generalized_clauses;
           generalization_pairs := (clause, clause') :: !generalization_pairs; *)
           clause')
-    | l :: tl when List.exists (Term.equal l) req ->
+    | l :: tl when Flags.IC3QE.refer_skipping () && List.exists (Term.equal l) req ->
         incr skipped_literals;
         SMTSolver.trace_comment solver
           (Format.asprintf
@@ -1805,6 +1923,16 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
           partition_fwd_prop solver trans_sys prop_set frames_tl_full
             (F.values frame')
         in
+
+        (if Flags.IC3QE.branching_reward () then
+           List.iter
+             (fun c ->
+               reward_clause branching_scores c;
+               SMTSolver.trace_comment solver
+                 (Format.asprintf
+                    "@[<hv>branching reward: forward-propagated clause #%d@]"
+                    (C.id_of_clause c)))
+             fwd);
 
         (* Update statistics *)
         Stat.incr ~by:(List.length fwd) Stat.ic3_fwd_propagated;

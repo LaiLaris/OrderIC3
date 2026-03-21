@@ -419,6 +419,12 @@ module IC3QE : sig
   val ltr_sort : unit -> bool
   (** Enable LTR-based heuristic literal ordering. *)
 
+  val refer_skipping : unit -> bool
+  (** Enable refer-skipping during inductive generalization. *)
+
+  val branching_reward : unit -> bool
+  (** Enable branching reward updates for i-good lemmas. *)
+
   val use_invgen : unit -> bool
   (** Use invariants from invariant generators. *)
 
