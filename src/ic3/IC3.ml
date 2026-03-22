@@ -163,6 +163,48 @@ type variable_score_tbl = float StateVar.StateVarHashtbl.t
 let branching_scores : variable_score_tbl =
   StateVar.StateVarHashtbl.create 251
 
+(* Last finalized clause-literal core from the block phase, used as a
+   local Intersection-style reference for later generalization ordering. *)
+let last_intersection_core_literals : Term.t list ref = ref []
+
+let get_last_intersection_core_literals () = !last_intersection_core_literals
+
+let set_last_intersection_core_literals literals =
+  last_intersection_core_literals := literals
+
+let partition_literals_by_reference reference_literals literals =
+  let reference_set = Term.TermSet.of_list reference_literals in
+  List.fold_right
+    (fun lit (non_intersection, intersection) ->
+      if Term.TermSet.mem lit reference_set then
+        (non_intersection, lit :: intersection)
+      else
+        (lit :: non_intersection, intersection))
+    literals ([], [])
+
+let reorder_literals_by_last_intersection_core literals =
+  let non_intersection, intersection =
+    partition_literals_by_reference !last_intersection_core_literals literals
+  in
+  non_intersection @ intersection
+
+let partition_literal_actlit_pairs_by_reference reference_literals pairs =
+  let reference_set = Term.TermSet.of_list reference_literals in
+  List.fold_right
+    (fun ((lit, _) as pair) (non_intersection, intersection) ->
+      if Term.TermSet.mem lit reference_set then
+        (non_intersection, pair :: intersection)
+      else
+        (pair :: non_intersection, intersection))
+    pairs ([], [])
+
+let reorder_literal_actlit_pairs_by_last_intersection_core pairs =
+  let non_intersection, intersection =
+    partition_literal_actlit_pairs_by_reference
+      !last_intersection_core_literals pairs
+  in
+  non_intersection @ intersection
+
 let create_variable_score_tbl ?(size = 251) () =
   StateVar.StateVarHashtbl.create size
 
@@ -552,17 +594,23 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
               (C.id_of_clause parent)
               (pp_print_list Term.pp_print_term ";@ ")
               req));
-  SMTSolver.trace_comment solver
-    (Format.asprintf
-       "@[<hv>branching order before: clause #%d @[<hv 1>{%a}@]@]"
-       (C.id_of_clause clause)
-       (pp_print_literal_scores branching_scores) literals);
-  let literals = sort_literals_by_score_asc branching_scores literals in
-  SMTSolver.trace_comment solver
-    (Format.asprintf
-       "@[<hv>branching order after: clause #%d @[<hv 1>{%a}@]@]"
-       (C.id_of_clause clause)
-       (pp_print_literal_scores branching_scores) literals);
+  (if Flags.IC3QE.branching () then
+     SMTSolver.trace_comment solver
+       (Format.asprintf
+          "@[<hv>branching order before: clause #%d @[<hv 1>{%a}@]@]"
+          (C.id_of_clause clause)
+          (pp_print_literal_scores branching_scores) literals));
+  let literals =
+    if Flags.IC3QE.branching () then
+      sort_literals_by_score_asc branching_scores literals
+    else literals
+  in
+  (if Flags.IC3QE.branching () then
+     SMTSolver.trace_comment solver
+       (Format.asprintf
+          "@[<hv>branching order after: clause #%d @[<hv 1>{%a}@]@]"
+          (C.id_of_clause clause)
+          (pp_print_literal_scores branching_scores) literals));
   let total_literals = List.length literals in
   let skipped_literals = ref 0 in
   let attempted_drops = ref 0 in
@@ -606,7 +654,7 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
           (* New clause with generalized clause as parent *)
           let clause' = C.mk_clause_of_literals (C.IndGen clause) kept in
 
-          (if Flags.IC3QE.branching_reward () then
+          (if Flags.IC3QE.branching () then
              match parent_clause_opt with
              | None -> ()
              | Some parent ->
@@ -1230,6 +1278,36 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                "block: Is blocking clause relative inductive to R_%d?"
                (List.length frames));
 
+          let block_clause_lits_n1 = C.literals_of_clause block_clause in
+          let block_clause_actlits_n1 = C.actlits_n1_of_clause solver block_clause in
+          let block_clause_pairs_n1 =
+            List.combine block_clause_lits_n1 block_clause_actlits_n1
+          in
+          let block_clause_pairs_n1 =
+            if Flags.IC3QE.intersection () then
+              reorder_literal_actlit_pairs_by_last_intersection_core
+                block_clause_pairs_n1
+            else block_clause_pairs_n1
+          in
+          let block_clause_lits_n1, block_clause_actlits_n1 =
+            List.split block_clause_pairs_n1
+          in
+          let _, block_clause_intersection_lits =
+            partition_literals_by_reference
+              (get_last_intersection_core_literals ()) block_clause_lits_n1
+          in
+          (if Flags.IC3QE.intersection () then
+             SMTSolver.trace_comment solver
+               (Format.asprintf
+                  "@[<v>intersection strategy: clause #%d@,ref         @[<hv 1>{%a}@]@,intersection set @[<hv 1>{%a}@]@,reordered   @[<hv 1>{%a}@]@]"
+                  (C.id_of_clause block_clause)
+                  (pp_print_list Term.pp_print_term ";@ ")
+                  (get_last_intersection_core_literals ())
+                  (pp_print_list Term.pp_print_term ";@ ")
+                  block_clause_intersection_lits
+                  (pp_print_list Term.pp_print_term ";@ ")
+                  block_clause_lits_n1));
+
           match
             (* Check P[x] & R_i-1[x] & C[x] & T[x,x'] |= C[x'] *)
             SMTSolver.check_sat_assuming_ab solver
@@ -1247,8 +1325,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
               (* Get unsat core from unsatisfiable query *)
               (fun _ -> SMTSolver.get_unsat_core_lits solver)
               (C.actlit_p0_of_clause solver block_clause
-               :: C.actlits_n1_of_clause solver block_clause
-              @ actlits_p0_r_pred_i)
+               :: block_clause_actlits_n1 @ actlits_p0_r_pred_i)
           with
           (* If unsat: clause is relative inductive and bad state is
               not reachable *)
@@ -1295,9 +1372,8 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                     else a)
                   (* Start with empty clause *)
                   []
-                  (* Fold over clause literals and their activation literals *)
-                  (C.actlits_n1_of_clause solver block_clause)
-                  (C.literals_of_clause block_clause)
+                  (* Fold over the reordered clause literals and their activation literals *)
+                  block_clause_actlits_n1 block_clause_lits_n1
               in
 
               (* Reduce clause to unsat core of I |= C *)
@@ -1336,6 +1412,14 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                       parent_frame_opt
                       block_clause block_clause_literals_core)
               in
+              set_last_intersection_core_literals block_clause_literals_core;
+              (if Flags.IC3QE.intersection () then
+                 SMTSolver.trace_comment solver
+                   (Format.asprintf
+                      "@[<hv>intersection cache update: clause #%d core @[<hv 1>{%a}@]@]"
+                      (C.id_of_clause block_clause)
+                      (pp_print_list Term.pp_print_term ";@ ")
+                      block_clause_literals_core));
 
               (* begin
               match is_block_copy with
@@ -1924,7 +2008,7 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
             (F.values frame')
         in
 
-        (if Flags.IC3QE.branching_reward () then
+        (if Flags.IC3QE.branching () then
            List.iter
              (fun c ->
                reward_clause branching_scores c;

@@ -422,8 +422,11 @@ module IC3QE : sig
   val refer_skipping : unit -> bool
   (** Enable refer-skipping during inductive generalization. *)
 
-  val branching_reward : unit -> bool
-  (** Enable branching reward updates for i-good lemmas. *)
+  val branching : unit -> bool
+  (** Enable branching for i-good lemmas. *)
+
+  val intersection : unit -> bool
+  (** Enable Intersection-style auxiliary state and debug output. *)
 
   val use_invgen : unit -> bool
   (** Use invariants from invariant generators. *)

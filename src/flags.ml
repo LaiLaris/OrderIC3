@@ -876,7 +876,7 @@ module IC3QE = struct
           fmt_bool ltr_sort_default)
 
   let ltr_sort () = !ltr_sort
-  let refer_skipping_default = true
+  let refer_skipping_default = false
   let refer_skipping = ref refer_skipping_default
 
   let _ =
@@ -886,16 +886,26 @@ module IC3QE = struct
           fmt_bool refer_skipping_default)
 
   let refer_skipping () = !refer_skipping
-  let branching_reward_default = true
-  let branching_reward = ref branching_reward_default
+  let branching_default = false
+  let branching = ref branching_default
 
   let _ =
-    add_spec "--ic3qe_branching_reward" (bool_arg branching_reward) (fun fmt ->
+    add_spec "--ic3qe_branching" (bool_arg branching) (fun fmt ->
         Format.fprintf fmt
-          "@[<v>Enable branching reward updates for i-good lemmas@ Default: %a@]"
-          fmt_bool branching_reward_default)
+          "@[<v>Enable branching for i-good lemmas@ Default: %a@]"
+          fmt_bool branching_default)
 
-  let branching_reward () = !branching_reward
+  let branching () = !branching
+  let intersection_default = false
+  let intersection = ref intersection_default
+
+  let _ =
+    add_spec "--ic3qe_intersection" (bool_arg intersection) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Enable Intersection-style auxiliary state and debug output@ Default: %a@]"
+          fmt_bool intersection_default)
+
+  let intersection () = !intersection
   let use_invgen_default = true
   let use_invgen = ref use_invgen_default
 
