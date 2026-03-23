@@ -419,6 +419,9 @@ module IC3QE : sig
   val ltr_sort : unit -> bool
   (** Enable LTR-based heuristic literal ordering. *)
 
+  val eq_canonicalize : unit -> bool
+  (** Canonicalize equality literals before clause deduplication. *)
+
   val refer_skipping : unit -> bool
   (** Enable refer-skipping during inductive generalization. *)
 
@@ -427,6 +430,9 @@ module IC3QE : sig
 
   val intersection : unit -> bool
   (** Enable Intersection-style auxiliary state and debug output. *)
+
+  val intersection_limit : unit -> int
+  (** Number of recent finalized cores used by Intersection/CoreLocality-style ordering. *)
 
   val use_invgen : unit -> bool
   (** Use invariants from invariant generators. *)

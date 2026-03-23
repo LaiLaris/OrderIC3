@@ -709,13 +709,15 @@ let actlits_n1_of_clause solver { clause_id; actlits_n1; literals } =
 
 (* Create a clause of literals *)
 let mk_clause_of_literals source literals =
-  (* let literals =
-    literals
-    |> List.map canonicalize_eq_literal
-    (* |> List.filter (fun lit -> not (Term.equal lit Term.t_false)) *)
-    |> Term.TermSet.of_list |> Term.TermSet.elements
-  in *)
-  let literals = Term.TermSet.(of_list literals |> elements) in
+  let literals =
+    if Flags.IC3QE.eq_canonicalize () then
+      literals
+      |> List.map canonicalize_eq_literal
+      (* |> List.filter (fun lit -> not (Term.equal lit Term.t_false)) *)
+      |> Term.TermSet.of_list |> Term.TermSet.elements
+    else
+      Term.TermSet.(of_list literals |> elements)
+  in
 
   
   (* Next unique identifier for clause *)

@@ -876,6 +876,16 @@ module IC3QE = struct
           fmt_bool ltr_sort_default)
 
   let ltr_sort () = !ltr_sort
+  let eq_canonicalize_default = false
+  let eq_canonicalize = ref eq_canonicalize_default
+
+  let _ =
+    add_spec "--ic3qe_eq_canonicalize" (bool_arg eq_canonicalize) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Canonicalize equality literals before clause deduplication@ Default: %a@]"
+          fmt_bool eq_canonicalize_default)
+
+  let eq_canonicalize () = !eq_canonicalize
   let refer_skipping_default = false
   let refer_skipping = ref refer_skipping_default
 
@@ -906,6 +916,16 @@ module IC3QE = struct
           fmt_bool intersection_default)
 
   let intersection () = !intersection
+  let intersection_limit_default = 1
+  let intersection_limit = ref intersection_limit_default
+
+  let _ =
+    add_spec "--ic3qe_intersection_limit" (Arg.Int (fun n -> intersection_limit := n)) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Number of recent finalized cores used by Intersection/CoreLocality-style ordering@ Default: %d@]"
+          intersection_limit_default)
+
+  let intersection_limit () = !intersection_limit
   let use_invgen_default = true
   let use_invgen = ref use_invgen_default
 

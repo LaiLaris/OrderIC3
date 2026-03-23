@@ -163,14 +163,25 @@ type variable_score_tbl = float StateVar.StateVarHashtbl.t
 let branching_scores : variable_score_tbl =
   StateVar.StateVarHashtbl.create 251
 
-(* Last finalized clause-literal core from the block phase, used as a
-   local Intersection-style reference for later generalization ordering. *)
-let last_intersection_core_literals : Term.t list ref = ref []
+(* Recent finalized clause-literal cores from the block phase.
+   The head is the most recent core; at most
+   [Flags.IC3QE.intersection_limit ()] cores are retained. *)
+let recent_intersection_cores : Term.t list list ref = ref []
 
-let get_last_intersection_core_literals () = !last_intersection_core_literals
+let get_recent_intersection_cores () = !recent_intersection_cores
+
+let get_last_intersection_core_literals () =
+  match !recent_intersection_cores with hd :: _ -> hd | [] -> []
 
 let set_last_intersection_core_literals literals =
-  last_intersection_core_literals := literals
+  let rec take n xs =
+    match (n, xs) with
+    | n, _ when n <= 0 -> []
+    | _, [] -> []
+    | n, x :: tl -> x :: take (n - 1) tl
+  in
+  let limit = max 1 (Flags.IC3QE.intersection_limit ()) in
+  recent_intersection_cores := take limit (literals :: !recent_intersection_cores)
 
 let partition_literals_by_reference reference_literals literals =
   let reference_set = Term.TermSet.of_list reference_literals in
@@ -184,7 +195,7 @@ let partition_literals_by_reference reference_literals literals =
 
 let reorder_literals_by_last_intersection_core literals =
   let non_intersection, intersection =
-    partition_literals_by_reference !last_intersection_core_literals literals
+    partition_literals_by_reference (get_last_intersection_core_literals ()) literals
   in
   non_intersection @ intersection
 
@@ -201,9 +212,30 @@ let partition_literal_actlit_pairs_by_reference reference_literals pairs =
 let reorder_literal_actlit_pairs_by_last_intersection_core pairs =
   let non_intersection, intersection =
     partition_literal_actlit_pairs_by_reference
-      !last_intersection_core_literals pairs
+      (get_last_intersection_core_literals ()) pairs
   in
   non_intersection @ intersection
+
+let partition_literal_actlit_pairs_by_recent_references references pairs =
+  let rec loop refs remaining buckets =
+    match refs with
+    | [] -> (List.rev buckets, remaining)
+    | ref_literals :: tl ->
+        let remaining_non_hit, hit =
+          partition_literal_actlit_pairs_by_reference ref_literals remaining
+        in
+        loop tl remaining_non_hit (hit :: buckets)
+  in
+  loop references pairs []
+
+let reorder_literal_actlit_pairs_by_recent_intersection_cores pairs =
+  let refs =
+    get_recent_intersection_cores () |> List.filter (fun lits -> lits <> [])
+  in
+  let buckets, remaining =
+    partition_literal_actlit_pairs_by_recent_references refs pairs
+  in
+  List.concat buckets @ remaining
 
 let create_variable_score_tbl ?(size = 251) () =
   StateVar.StateVarHashtbl.create size
@@ -1283,28 +1315,47 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
           let block_clause_pairs_n1 =
             List.combine block_clause_lits_n1 block_clause_actlits_n1
           in
+          let recent_intersection_refs =
+            get_recent_intersection_cores () |> List.filter (fun lits -> lits <> [])
+          in
+          let block_clause_pair_buckets, block_clause_remaining_pairs =
+            if Flags.IC3QE.intersection () then
+              partition_literal_actlit_pairs_by_recent_references
+                recent_intersection_refs block_clause_pairs_n1
+            else ([], block_clause_pairs_n1)
+          in
           let block_clause_pairs_n1 =
             if Flags.IC3QE.intersection () then
-              reorder_literal_actlit_pairs_by_last_intersection_core
-                block_clause_pairs_n1
+              List.concat block_clause_pair_buckets @ block_clause_remaining_pairs
             else block_clause_pairs_n1
           in
           let block_clause_lits_n1, block_clause_actlits_n1 =
             List.split block_clause_pairs_n1
           in
-          let _, block_clause_intersection_lits =
-            partition_literals_by_reference
-              (get_last_intersection_core_literals ()) block_clause_lits_n1
+          let block_clause_intersection_buckets =
+            List.map (fun bucket -> List.map fst bucket) block_clause_pair_buckets
           in
           (if Flags.IC3QE.intersection () then
+             let pp_refs ppf refs =
+               pp_print_list
+                 (fun ppf (idx, lits) ->
+                   Format.fprintf ppf "ref[%d]          @[<hv 1>{%a}@]" idx
+                     (pp_print_list Term.pp_print_term ";@ ") lits)
+                 "@," ppf refs
+             in
+             let pp_hits ppf hits =
+               pp_print_list
+                 (fun ppf (idx, lits) ->
+                   Format.fprintf ppf "intersection[%d] @[<hv 1>{%a}@]" idx
+                     (pp_print_list Term.pp_print_term ";@ ") lits)
+                 "@," ppf hits
+             in
              SMTSolver.trace_comment solver
                (Format.asprintf
-                  "@[<v>intersection strategy: clause #%d@,ref         @[<hv 1>{%a}@]@,intersection set @[<hv 1>{%a}@]@,reordered   @[<hv 1>{%a}@]@]"
+                  "@[<v>intersection strategy: clause #%d@,%a@,%a@,reordered      @[<hv 1>{%a}@]@]"
                   (C.id_of_clause block_clause)
-                  (pp_print_list Term.pp_print_term ";@ ")
-                  (get_last_intersection_core_literals ())
-                  (pp_print_list Term.pp_print_term ";@ ")
-                  block_clause_intersection_lits
+                  pp_refs (List.mapi (fun i lits -> (i + 1, lits)) recent_intersection_refs)
+                  pp_hits (List.mapi (fun i lits -> (i + 1, lits)) block_clause_intersection_buckets)
                   (pp_print_list Term.pp_print_term ";@ ")
                   block_clause_lits_n1));
 
