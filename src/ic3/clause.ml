@@ -74,6 +74,8 @@ let term_size t =
       1 + List.fold_left (fun a b -> a + b) 0 sub_sizes)
     t
 
+let neg_one = Numeral.neg Numeral.one
+
 let numeral_sign t =
   if Term.is_numeral t then
     let n = Term.numeral_of_term t in
@@ -88,26 +90,27 @@ let state_var_of_term t =
       Some (Var.state_var_of_state_var_instance v)
   | _ -> None
 
+let negate_linear_terms terms =
+  List.map (fun (sv, sign) -> (sv, -sign)) terms
+
+let rec collect_all_terms collect acc = function
+  | [] -> Some acc
+  | term :: rest -> (
+      match collect term with
+      | None -> None
+      | Some terms -> collect_all_terms collect (List.rev_append terms acc) rest)
+
 let rec collect_linear_terms t =
   match Term.destruct t with
   | Term.T.App (s, args) when s == Symbol.s_plus -> (
-      let rec loop acc = function
-        | [] -> Some acc
-        | a :: rest -> (
-            match collect_linear_terms a with
-            | None -> None
-            | Some lits -> loop (List.rev_append lits acc) rest)
-      in
-      loop [] args)
+      collect_all_terms collect_linear_terms [] args)
   | Term.T.App (s, [a; b]) when s == Symbol.s_minus -> (
       match collect_linear_terms a, collect_linear_terms b with
-      | Some la, Some lb ->
-          let lb' = List.map (fun (sv, sign) -> (sv, -sign)) lb in
-          Some (List.rev_append lb' la)
+      | Some la, Some lb -> Some (List.rev_append (negate_linear_terms lb) la)
       | _ -> None)
   | Term.T.App (s, [a]) when s == Symbol.s_minus -> (
       match collect_linear_terms a with
-      | Some la -> Some (List.map (fun (sv, sign) -> (sv, -sign)) la)
+      | Some la -> Some (negate_linear_terms la)
       | None -> None)
   | Term.T.App (s, [a; b]) when s == Symbol.s_times -> (
       match (numeral_sign a, state_var_of_term b) with
@@ -163,11 +166,11 @@ let rec collect_linear_int_expr t =
   | Term.T.App (s, [a; b]) when s == Symbol.s_minus -> (
       match collect_linear_int_expr a, collect_linear_int_expr b with
       | Some lhs, Some rhs ->
-          Some (merge_linear_forms lhs (scale_linear_form (Numeral.neg Numeral.one) rhs))
+          Some (merge_linear_forms lhs (scale_linear_form neg_one rhs))
       | _ -> None)
   | Term.T.App (s, [a]) when s == Symbol.s_minus -> (
       match collect_linear_int_expr a with
-      | Some expr -> Some (scale_linear_form (Numeral.neg Numeral.one) expr)
+      | Some expr -> Some (scale_linear_form neg_one expr)
       | None -> None)
   | Term.T.App (s, [a; b]) when s == Symbol.s_times -> (
       match collect_linear_int_expr a, collect_linear_int_expr b with
@@ -218,7 +221,7 @@ let flip_cmp = function
 let normalize_linear_form_sign cmp (coeffs, const) =
   match Term.TermMap.bindings coeffs with
   | (_, coeff) :: _ when Numeral.compare coeff Numeral.zero < 0 ->
-      (flip_cmp cmp, scale_linear_form (Numeral.neg Numeral.one) (coeffs, const))
+      (flip_cmp cmp, scale_linear_form neg_one (coeffs, const))
   | _ -> (cmp, (coeffs, const))
 
 let canonical_linear_comparison cmp expr =
@@ -244,13 +247,14 @@ let eval_constant_cmp symbol lhs rhs =
   | `LEQ -> Some (if diff <= 0 then Term.t_true else Term.t_false)
   | _ -> None
 
+let is_comparison_symbol symbol =
+  match Symbol.node_of_symbol symbol with
+  | `EQ | `GT | `LT | `GEQ | `LEQ -> true
+  | _ -> false
+
 let eval_constant_comparison body =
   match Term.destruct body with
-  | Term.T.App (symbol, [lhs; rhs])
-    when
-      match Symbol.node_of_symbol symbol with
-      | `EQ | `GT | `LT | `GEQ | `LEQ -> true
-      | _ -> false -> (
+  | Term.T.App (symbol, [lhs; rhs]) when is_comparison_symbol symbol -> (
       match collect_linear_int_expr lhs, collect_linear_int_expr rhs with
       | Some (lhs_coeffs, lhs_const), Some (rhs_coeffs, rhs_const)
         when Term.TermMap.is_empty lhs_coeffs && Term.TermMap.is_empty rhs_coeffs
@@ -313,33 +317,50 @@ let eq_canonicalization_has_blocking_keyword term =
     | Term.T.Leaf symbol -> blocked_symbol symbol
     | Term.T.Node (symbol, args) ->
         blocked_symbol symbol || List.exists loop args
-    | Term.T.Let (_, args) -> true || List.exists loop args
-    | Term.T.Exists _ | Term.T.Forall _ -> true
+    | Term.T.Let _ | Term.T.Exists _ | Term.T.Forall _ -> true
     | Term.T.Annot (term, _) -> loop term
   in
   loop term
+
+let destruct_negated_literal lit =
+  match Term.destruct lit with
+  | Term.T.App (s, [arg]) when s == Symbol.s_not -> (true, arg)
+  | _ -> (false, lit)
+
+let fold_constant_comparison ~rebuild neg body fallback =
+  match eval_constant_comparison body with
+  | Some folded -> rebuild neg folded
+  | None -> fallback
+
+let normalize_ineq_difference neg cmp lhs rhs =
+  match cmp with
+  | `GT ->
+      ( (if neg then Term.mk_minus [rhs; lhs] else Term.mk_minus [lhs; rhs]),
+        if neg then Leq else Gt )
+  | `GEQ ->
+      ( (if neg then Term.mk_minus [rhs; lhs] else Term.mk_minus [lhs; rhs]),
+        if neg then Lt else Geq )
+  | `LT ->
+      ( (if neg then Term.mk_minus [lhs; rhs] else Term.mk_minus [rhs; lhs]),
+        if neg then Leq else Gt )
+  | `LEQ ->
+      ( (if neg then Term.mk_minus [lhs; rhs] else Term.mk_minus [rhs; lhs]),
+        if neg then Lt else Geq )
+  | _ -> invalid_arg "normalize_ineq_difference"
 
 let canonicalize_eq_literal lit =
   let rebuild neg body =
     if neg then Term.negate_simplify body else body
   in
-  let neg, body =
-    match Term.destruct lit with
-    | Term.T.App (s, [arg]) when s == Symbol.s_not -> (true, arg)
-    | _ -> (false, lit)
-  in
+  let neg, body = destruct_negated_literal lit in
   match Term.destruct body with
   | Term.T.Const symb -> (
       match Symbol.node_of_symbol symb with
       | `TRUE | `FALSE -> rebuild neg body
-      | _ -> (
-          match eval_constant_comparison body with
-          | Some folded -> rebuild neg folded
-          | None -> lit))
-  | _ -> (
-      match eval_constant_comparison body with
-      | Some folded -> rebuild neg folded
-      | None -> (
+      | _ -> fold_constant_comparison ~rebuild neg body lit)
+  | _ ->
+      fold_constant_comparison ~rebuild neg body
+        (
           match Term.destruct body with
           | Term.T.App (s, [lhs; rhs]) when s == Symbol.s_eq -> (
               if is_simple_var_const_comparison lhs rhs then
@@ -351,109 +372,40 @@ let canonicalize_eq_literal lit =
               then
                 lit
               else
-                  match collect_linear_int_expr (Term.mk_minus [lhs; rhs]) with
-                  | Some expr -> rebuild neg (canonical_linear_comparison Eq expr)
-                  | None -> lit)
-          | _ -> lit))
+                match collect_linear_int_expr (Term.mk_minus [lhs; rhs]) with
+                | Some expr -> rebuild neg (canonical_linear_comparison Eq expr)
+                | None -> lit)
+          | _ -> lit)
 
 let canonicalize_ineq_literal lit =
   let rebuild neg body =
     if neg then Term.mk_not body else body
   in
-  let neg, body =
-    match Term.destruct lit with
-    | Term.T.App (s, [arg]) when s == Symbol.s_not -> (true, arg)
-    | _ -> (false, lit)
-  in
+  let neg, body = destruct_negated_literal lit in
   match Term.destruct body with
   | Term.T.Const symb -> (
       match Symbol.node_of_symbol symb with
       | `TRUE | `FALSE -> rebuild neg body
-      | _ -> (
-          match eval_constant_comparison body with
-          | Some folded -> rebuild neg folded
-          | None -> lit))
-  | Term.T.App (s, [lhs; rhs]) -> (
-      match eval_constant_comparison body with
-      | Some folded -> rebuild neg folded
-      | None -> (
+      | _ -> fold_constant_comparison ~rebuild neg body lit)
+  | Term.T.App (s, [lhs; rhs]) ->
+      fold_constant_comparison ~rebuild neg body
+        (
           match Symbol.node_of_symbol s with
           | `GT | `GEQ | `LT | `LEQ
             when is_simple_var_const_comparison lhs rhs ->
-                rebuild neg (rebuild_simple_comparison s lhs rhs)
-          | `GT -> (
-              match
-                collect_linear_int_expr
-                  (if neg then Term.mk_minus [rhs; lhs]
-                   else Term.mk_minus [lhs; rhs])
-              with
-              | Some expr ->
-                  canonical_linear_comparison (if neg then Leq else Gt) expr
+              rebuild neg (rebuild_simple_comparison s lhs rhs)
+          | `GT | `GEQ | `LT | `LEQ -> (
+              let diff_term, cmp =
+                normalize_ineq_difference neg (Symbol.node_of_symbol s) lhs rhs
+              in
+              match collect_linear_int_expr diff_term with
+              | Some expr -> canonical_linear_comparison cmp expr
               | None -> lit)
-          | `GEQ -> (
-              match
-                collect_linear_int_expr
-                  (if neg then Term.mk_minus [rhs; lhs]
-                   else Term.mk_minus [lhs; rhs])
-              with
-              | Some expr ->
-                  canonical_linear_comparison (if neg then Lt else Geq) expr
-              | None -> lit)
-          | `LT -> (
-              match
-                collect_linear_int_expr
-                  (if neg then Term.mk_minus [lhs; rhs]
-                   else Term.mk_minus [rhs; lhs])
-              with
-              | Some expr ->
-                  canonical_linear_comparison (if neg then Leq else Gt) expr
-              | None -> lit)
-          | `LEQ -> (
-              match
-                collect_linear_int_expr
-                  (if neg then Term.mk_minus [lhs; rhs]
-                   else Term.mk_minus [rhs; lhs])
-              with
-              | Some expr ->
-                  canonical_linear_comparison (if neg then Lt else Geq) expr
-              | None -> lit)
-          | _ -> lit))
+          | _ -> lit)
   | _ -> lit
 
 let canonicalize_literal lit =
   lit |> canonicalize_eq_literal |> canonicalize_ineq_literal
-
-let dedup_literals_stable literals =
-  let rec loop seen acc = function
-    | [] -> List.rev acc
-    | lit :: tl when Term.TermSet.mem lit seen -> loop seen acc tl
-    | lit :: tl -> loop (Term.TermSet.add lit seen) (lit :: acc) tl
-  in
-  loop Term.TermSet.empty [] literals
-
-let simplify_bool_literal lit =
-  match Term.destruct lit with
-  | Term.T.Const symb -> (
-      match Symbol.node_of_symbol symb with
-      | `TRUE -> Term.t_true
-      | `FALSE -> Term.t_false
-      | _ -> lit)
-  | Term.T.App (s, [arg]) when s == Symbol.s_not -> (
-      match Term.destruct arg with
-      | Term.T.Const symb -> (
-          match Symbol.node_of_symbol symb with
-          | `TRUE -> Term.t_false
-          | `FALSE -> Term.t_true
-          | _ -> lit)
-      | _ -> lit)
-  | _ -> lit
-
-let simplify_bool_literals_for_clause literals =
-  let literals = List.map simplify_bool_literal literals in
-  if List.exists (fun lit -> Term.equal lit Term.t_true) literals then
-    [Term.t_true]
-  else
-    List.filter (fun lit -> not (Term.equal lit Term.t_false)) literals
 
 let lin_diff_score t =
   match collect_linear_terms t with

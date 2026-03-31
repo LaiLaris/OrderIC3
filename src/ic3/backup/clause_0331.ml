@@ -272,13 +272,52 @@ let int_constant_of_term t =
   | Some (coeffs, const) when Term.TermMap.is_empty coeffs -> Some const
   | _ -> None
 
-let canonical_simple_eq lhs rhs =
+let is_simple_var_const_comparison lhs rhs =
   match simple_int_var_of_term lhs, int_constant_of_term rhs with
-  | Some var_term, Some const -> Some (Term.mk_eq [var_term; Term.mk_num const])
+  | Some _, Some _ -> true
   | _ -> (
       match int_constant_of_term lhs, simple_int_var_of_term rhs with
-      | Some const, Some var_term -> Some (Term.mk_eq [var_term; Term.mk_num const])
-      | _ -> None)
+      | Some _, Some _ -> true
+      | _ -> false)
+
+let normalize_simple_int_term t =
+  match simple_int_var_of_term t with
+  | Some var_term -> var_term
+  | None -> (
+      match int_constant_of_term t with
+      | Some n -> Term.mk_num n
+      | None -> t)
+
+let rebuild_simple_comparison symbol lhs rhs =
+  let lhs = normalize_simple_int_term lhs in
+  let rhs = normalize_simple_int_term rhs in
+  match Symbol.node_of_symbol symbol with
+  | `GT -> Term.mk_gt [lhs; rhs]
+  | `GEQ -> Term.mk_geq [lhs; rhs]
+  | `LT -> Term.mk_lt [lhs; rhs]
+  | `LEQ -> Term.mk_leq [lhs; rhs]
+  | _ -> invalid_arg "rebuild_simple_comparison"
+
+let eq_canonicalization_blocked_symbols =
+  [ `DIV; `INTDIV ]
+
+let eq_canonicalization_has_blocking_keyword term =
+  let blocked_symbol symbol =
+    List.exists
+      (fun blocked -> Symbol.node_of_symbol symbol = blocked)
+      eq_canonicalization_blocked_symbols
+  in
+  let rec loop term =
+    match Term.T.node_of_t term with
+    | Term.T.FreeVar _ | Term.T.BoundVar _ -> false
+    | Term.T.Leaf symbol -> blocked_symbol symbol
+    | Term.T.Node (symbol, args) ->
+        blocked_symbol symbol || List.exists loop args
+    | Term.T.Let (_, args) -> true || List.exists loop args
+    | Term.T.Exists _ | Term.T.Forall _ -> true
+    | Term.T.Annot (term, _) -> loop term
+  in
+  loop term
 
 let canonicalize_eq_literal lit =
   let rebuild neg body =
@@ -303,15 +342,24 @@ let canonicalize_eq_literal lit =
       | None -> (
           match Term.destruct body with
           | Term.T.App (s, [lhs; rhs]) when s == Symbol.s_eq -> (
-              match canonical_simple_eq lhs rhs with
-              | Some eq -> rebuild neg eq
-              | None -> (
+              if is_simple_var_const_comparison lhs rhs then
+                (* Keep var/const equality form exactly as written. *)
+                rebuild neg body
+              else if
+                eq_canonicalization_has_blocking_keyword lhs
+                || eq_canonicalization_has_blocking_keyword rhs
+              then
+                lit
+              else
                   match collect_linear_int_expr (Term.mk_minus [lhs; rhs]) with
                   | Some expr -> rebuild neg (canonical_linear_comparison Eq expr)
-                  | None -> lit))
+                  | None -> lit)
           | _ -> lit))
 
 let canonicalize_ineq_literal lit =
+  let rebuild neg body =
+    if neg then Term.mk_not body else body
+  in
   let neg, body =
     match Term.destruct lit with
     | Term.T.App (s, [arg]) when s == Symbol.s_not -> (true, arg)
@@ -320,18 +368,19 @@ let canonicalize_ineq_literal lit =
   match Term.destruct body with
   | Term.T.Const symb -> (
       match Symbol.node_of_symbol symb with
-      | `TRUE | `FALSE -> if neg then Term.negate_simplify body else body
+      | `TRUE | `FALSE -> rebuild neg body
       | _ -> (
           match eval_constant_comparison body with
-          | Some folded ->
-              if neg then Term.negate_simplify folded else folded
+          | Some folded -> rebuild neg folded
           | None -> lit))
   | Term.T.App (s, [lhs; rhs]) -> (
       match eval_constant_comparison body with
-      | Some folded ->
-          if neg then Term.negate_simplify folded else folded
+      | Some folded -> rebuild neg folded
       | None -> (
           match Symbol.node_of_symbol s with
+          | `GT | `GEQ | `LT | `LEQ
+            when is_simple_var_const_comparison lhs rhs ->
+                rebuild neg (rebuild_simple_comparison s lhs rhs)
           | `GT -> (
               match
                 collect_linear_int_expr
