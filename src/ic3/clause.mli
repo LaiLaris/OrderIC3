@@ -118,6 +118,15 @@ val ltr_update : kept:Term.t list -> removed:Term.t list -> unit
 val ltr_weights_to_string : unit -> string
 (** Return current learning-to-rank weights for debugging *)
 
+val canonicalize_eq_literal : Term.t -> Term.t
+(** Canonicalize linear equality literals to a stable representative. *)
+
+val canonicalize_ineq_literal : Term.t -> Term.t
+(** Canonicalize linear inequality literals to a stable representative. *)
+
+val canonicalize_literal : Term.t -> Term.t
+(** Canonicalize linear arithmetic literals to a stable representative. *)
+
 val template_key : Term.t -> string option
 (** Return a normalized template key for a literal, if available *)
 

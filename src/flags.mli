@@ -419,9 +419,6 @@ module IC3QE : sig
   val ltr_sort : unit -> bool
   (** Enable LTR-based heuristic literal ordering. *)
 
-  val eq_canonicalize : unit -> bool
-  (** Canonicalize equality literals before clause deduplication. *)
-
   val refer_skipping : unit -> bool
   (** Enable refer-skipping during inductive generalization. *)
 
@@ -459,6 +456,15 @@ module QE : sig
 
   val set_qe_method : qe_method -> unit
   (** Set [qe_method]. *)
+
+  val generalize_eq_canonicalize : unit -> bool
+  (** Canonicalize equality literals before returning from [QE.generalize]. *)
+
+  val generalize_ineq_canonicalize : unit -> bool
+  (** Canonicalize inequality literals before returning from [QE.generalize]. *)
+
+  val generalize_canonicalize : unit -> bool
+  (** Deprecated compatibility alias for enabling both QE literal canonicalizations. *)
 
   type extract = [ `First | `Vars ]
   (** Supported heuristics for extraction of implicants. *)
