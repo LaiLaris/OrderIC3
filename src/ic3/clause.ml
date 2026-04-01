@@ -237,6 +237,33 @@ let canonical_linear_comparison cmp expr =
     | Lt -> Term.mk_lt [lhs; Term.mk_num Numeral.zero]
     | Leq -> Term.mk_leq [lhs; Term.mk_num Numeral.zero]
 
+(* (not (< (+ x (- 2)) 0))会变成(not (< x 2))，
+但是涉及到子句的关系过于复杂的时候，只改某些简单的句子会导致和其他子句的形式不统一，这样反而会增加求解难度
+子句的形式越统一越好*)
+
+(* let canonical_linear_comparison cmp expr =
+  let cmp, (coeffs, const) = normalize_linear_form_sign cmp expr in
+  if Term.TermMap.is_empty coeffs then
+    eval_constant_normalized_cmp cmp const
+  else
+    match Term.TermMap.bindings coeffs with
+    | [var_term, coeff] when Numeral.equal coeff Numeral.one -> (
+        let rhs = Term.mk_num (Numeral.neg const) in
+        match cmp with
+        | Eq -> Term.mk_eq [var_term; rhs]
+        | Gt -> Term.mk_gt [var_term; rhs]
+        | Geq -> Term.mk_geq [var_term; rhs]
+        | Lt -> Term.mk_lt [var_term; rhs]
+        | Leq -> Term.mk_leq [var_term; rhs])
+    | _ ->
+        let lhs = build_linear_term (coeffs, const) in
+        match cmp with
+        | Eq -> Term.mk_eq [lhs; Term.mk_num Numeral.zero]
+        | Gt -> Term.mk_gt [lhs; Term.mk_num Numeral.zero]
+        | Geq -> Term.mk_geq [lhs; Term.mk_num Numeral.zero]
+        | Lt -> Term.mk_lt [lhs; Term.mk_num Numeral.zero]
+        | Leq -> Term.mk_leq [lhs; Term.mk_num Numeral.zero] *)
+
 let eval_constant_cmp symbol lhs rhs =
   let diff = Numeral.compare lhs rhs in
   match Symbol.node_of_symbol symbol with

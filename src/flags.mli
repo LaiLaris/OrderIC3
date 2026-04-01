@@ -431,6 +431,9 @@ module IC3QE : sig
   val intersection_limit : unit -> int
   (** Number of recent finalized cores used by Intersection/CoreLocality-style ordering. *)
 
+  val cluster_conflict_sort : unit -> bool
+  (** Reorder clause literals before unsat-core extraction by variable-overlap conflict clusters. *)
+
   val use_invgen : unit -> bool
   (** Use invariants from invariant generators. *)
 

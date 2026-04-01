@@ -916,6 +916,18 @@ module IC3QE = struct
           intersection_limit_default)
 
   let intersection_limit () = !intersection_limit
+  let cluster_conflict_sort_default = false
+  let cluster_conflict_sort = ref cluster_conflict_sort_default
+
+  let _ =
+    add_spec "--ic3qe_cluster_conflict_sort"
+      (bool_arg cluster_conflict_sort)
+      (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Reorder clause literals before unsat-core extraction by variable-overlap conflict clusters@ Default: %a@]"
+          fmt_bool cluster_conflict_sort_default)
+
+  let cluster_conflict_sort () = !cluster_conflict_sort
   let use_invgen_default = true
   let use_invgen = ref use_invgen_default
 

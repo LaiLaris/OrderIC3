@@ -133,26 +133,6 @@ let rec literals_subset_sorted small big =
       | c when c > 0 -> literals_subset_sorted small tb
       | _ -> false)
 
-(* Return a parent clause from the previous frame whose literals are a subset of
-   the current clause. For the initial refer-skipping baseline, prefer the
-   largest such subset, which is the closest structural match to the current
-   clause. *)
-let get_parentnode frame clause_literals =
-  F.values frame
-  |> List.fold_left
-       (fun best candidate ->
-         let candidate_literals = C.literals_of_clause candidate in
-         if literals_subset_sorted candidate_literals clause_literals then
-           match best with
-           | None -> Some candidate
-           | Some prev
-             when C.length_of_clause candidate > C.length_of_clause prev ->
-               Some candidate
-           | _ -> best
-         else best)
-       None
-
-
 (* Branching variable-score table (paper S[v]) *)
 let branching_decay = 0.99
 
@@ -228,6 +208,48 @@ let partition_literal_actlit_pairs_by_recent_references references pairs =
   in
   loop references pairs []
 
+let literal_overlap_score annotated_pairs target_idx target_vars =
+  List.fold_left
+    (fun acc (idx, _, vars) ->
+      if idx = target_idx then acc
+      else
+        let overlap =
+          StateVar.StateVarSet.inter target_vars vars
+          |> StateVar.StateVarSet.cardinal
+        in
+        acc + overlap)
+    0 annotated_pairs
+
+let sort_literal_actlit_pairs_by_var_overlap pairs =
+  let annotated_pairs =
+    List.mapi
+      (fun idx ((lit, _) as pair) ->
+        (idx, pair, Term.state_vars_of_term lit))
+      pairs
+  in
+  annotated_pairs
+  |> List.map (fun (idx, pair, vars) ->
+         let score = literal_overlap_score annotated_pairs idx vars in
+         (idx, score, pair))
+  |> List.stable_sort (fun (idx1, score1, _) (idx2, score2, _) ->
+         match compare score2 score1 with
+         | 0 -> compare idx1 idx2
+         | c -> c)
+  |> List.map (fun (_, _, pair) -> pair)
+
+let pp_print_literal_overlap_scores ppf pairs =
+  let annotated_pairs =
+    List.mapi
+      (fun idx ((lit, _) as pair) ->
+        (idx, pair, Term.state_vars_of_term lit))
+      pairs
+  in
+  pp_print_list
+    (fun ppf (idx, (lit, _), vars) ->
+      let score = literal_overlap_score annotated_pairs idx vars in
+      Format.fprintf ppf "%a [overlap=%d]" Term.pp_print_term lit score)
+    ";@ " ppf annotated_pairs
+
 let reorder_literal_actlit_pairs_by_recent_intersection_cores pairs =
   let refs =
     get_recent_intersection_cores () |> List.filter (fun lits -> lits <> [])
@@ -299,14 +321,14 @@ let sort_literals_by_score_asc score_tbl literals =
          | c -> c)
   |> List.map snd
 
-let sort_literals_by_score_desc score_tbl literals =
-  literals
-  |> List.mapi (fun idx lit -> (idx, lit))
-  |> List.sort (fun (idx1, l1) (idx2, l2) ->
+let sort_literal_actlit_pairs_by_score_desc score_tbl pairs =
+  pairs
+  |> List.mapi (fun idx ((lit, _) as pair) -> (idx, lit, pair))
+  |> List.sort (fun (idx1, l1, _) (idx2, l2, _) ->
          match compare (score_of_term score_tbl l2) (score_of_term score_tbl l1) with
          | 0 -> compare idx1 idx2
          | c -> c)
-  |> List.map snd
+  |> List.map (fun (_, _, pair) -> pair)
 
 let pp_print_literal_scores score_tbl ppf literals =
   pp_print_list
@@ -314,6 +336,29 @@ let pp_print_literal_scores score_tbl ppf literals =
       Format.fprintf ppf "%a [score=%g]" Term.pp_print_term lit
         (score_of_term score_tbl lit))
     ";@ " ppf literals
+
+(* Return a parent clause from the previous frame whose literals are a subset of
+   the current clause. When several subset candidates exist, prefer the one
+   with the highest branching score; ties keep the first candidate encountered. *)
+let get_parentnode frame clause_literals =
+  F.values frame
+  |> List.fold_left
+       (fun best candidate ->
+         let candidate_literals = C.literals_of_clause candidate in
+         if literals_subset_sorted candidate_literals clause_literals then
+           match best with
+           | None -> Some candidate
+           | Some prev ->
+               let candidate_score =
+                 score_of_literals branching_scores candidate_literals
+               in
+               let prev_score =
+                 score_of_literals branching_scores (C.literals_of_clause prev)
+               in
+               if compare candidate_score prev_score > 0 then Some candidate
+               else best
+         else best)
+       None
 
 (* Small local sanity test for get_parentnode.
    Expected:
@@ -1327,6 +1372,40 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
           let block_clause_pairs_n1 =
             if Flags.IC3QE.intersection () then
               List.concat block_clause_pair_buckets @ block_clause_remaining_pairs
+            else block_clause_pairs_n1
+          in
+          let block_clause_pairs_n1 =
+            if Flags.IC3QE.cluster_conflict_sort () then
+              let reordered_pairs =
+                sort_literal_actlit_pairs_by_var_overlap block_clause_pairs_n1
+              in
+              SMTSolver.trace_comment solver
+                (Format.asprintf
+                   "@[<v>cluster-conflict-sort: clause #%d@,before         @[<hv 1>{%a}@]@,after          @[<hv 1>{%a}@]@]"
+                   (C.id_of_clause block_clause)
+                   pp_print_literal_overlap_scores block_clause_pairs_n1
+                   pp_print_literal_overlap_scores reordered_pairs);
+              reordered_pairs
+            else block_clause_pairs_n1
+          in
+          let block_clause_pairs_n1 =
+            if Flags.IC3QE.branching () then
+              let reordered_pairs =
+                sort_literal_actlit_pairs_by_score_desc branching_scores
+                  block_clause_pairs_n1
+              in
+              let pp_score_lits ppf lits =
+                pp_print_literal_scores branching_scores ppf lits
+              in
+              SMTSolver.trace_comment solver
+                (Format.asprintf
+                   "@[<v>branching assumptions order: clause #%d@,before         @[<hv 1>{%a}@]@,after          @[<hv 1>{%a}@]@]"
+                   (C.id_of_clause block_clause)
+                   pp_score_lits
+                   (List.map fst block_clause_pairs_n1)
+                   pp_score_lits
+                   (List.map fst reordered_pairs));
+              reordered_pairs
             else block_clause_pairs_n1
           in
           let block_clause_lits_n1, block_clause_actlits_n1 =
