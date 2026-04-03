@@ -131,7 +131,12 @@ val template_key : Term.t -> string option
 (** Return a normalized template key for a literal, if available *)
 
 val template_key_coarse : Term.t -> string option
-(** Return a coarse template key for a literal, if available *)
+(** Return a JSON-style coarse template key.
+
+    For literals with identifiers this yields [vars(...)] using the printed
+    identifiers found in the literal text. For clause-shaped disjunctions it
+    yields a whole clause template [(or ... | ...)] built from per-literal
+    coarse templates. *)
 
 (** {1 Activation Literals} *)
 

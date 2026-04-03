@@ -26,6 +26,7 @@ module C = Clause
 
 (* Frame is a trie of clauses *)
 module F = Clause.ClauseTrie
+module IntSet = Set.Make (Int)
 
 (* Check to make sure invariants of IC3 hold *)
 let debug_assert = true
@@ -152,6 +153,256 @@ let get_recent_intersection_cores () = !recent_intersection_cores
 
 let get_last_intersection_core_literals () =
   match !recent_intersection_cores with hd :: _ -> hd | [] -> []
+
+let string_contains s sub =
+  let ls = String.length s and lsub = String.length sub in
+  let rec loop i =
+    i + lsub <= ls && ((String.sub s i lsub = sub) || loop (i + 1))
+  in
+  lsub = 0 || loop 0
+
+let is_digit c = c >= '0' && c <= '9'
+
+let is_ident_char = function
+  | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '.' | '@' -> true
+  | _ -> false
+
+let term_text t = Format.asprintf "%a" Term.pp_print_term t
+
+let term_identifiers t =
+  let s = term_text t in
+  let len = String.length s in
+  let rec collect i acc =
+    if i >= len then acc
+    else if is_ident_char s.[i] then
+      let j = ref i in
+      while !j < len && is_ident_char s.[!j] do
+        incr j
+      done;
+      let tok = String.sub s i (!j - i) in
+      let acc' = if String.contains tok '@' then tok :: acc else acc in
+      collect !j acc'
+    else collect (i + 1) acc
+  in
+  collect 0 [] |> List.sort_uniq String.compare
+
+let has_control_literal t =
+  let s = term_text t in
+  string_contains s "OK@" || string_contains s "bump@" || string_contains s "call_"
+
+let arithmetic_depth_hint t =
+  let s = term_text t in
+  let rec loop i depth max_depth =
+    if i >= String.length s then max_depth
+    else
+      match s.[i] with
+      | '(' -> loop (i + 1) (depth + 1) (max max_depth (depth + 1))
+      | ')' -> loop (i + 1) (max 0 (depth - 1)) max_depth
+      | _ -> loop (i + 1) depth max_depth
+  in
+  loop 0 0 0
+
+let comparison_like t =
+  let s = term_text t in
+  string_contains s "(>"
+  || string_contains s "(<"
+  || string_contains s "(="
+  || string_contains s "(<="
+  || string_contains s "(>="
+
+let term_has_numeric_threshold t =
+  let s = term_text t in
+  let rec loop i =
+    i < String.length s && (is_digit s.[i] || loop (i + 1))
+  in
+  loop 0
+
+let pp_print_clause_template_entry ppf clause =
+  let template =
+    match C.template_key_coarse (C.term_of_clause clause) with
+    | Some key -> key
+    | None -> "<no coarse template>"
+  in
+  Format.fprintf ppf "#%d %s" (C.id_of_clause clause) template
+
+let trace_frame_clause_summary solver title frames_desc =
+  if Flags.IC3QE.template () then
+    let pp_print_frame_clause_summary ppf frames_desc =
+      frames_desc
+      |> List.rev
+      |> List.mapi (fun index frame -> (index + 1, frame))
+      |> pp_print_list
+           (fun ppf (frame_idx, frame) ->
+             Format.fprintf ppf "@[<v 2>R%d:@,%a@]" frame_idx
+               (pp_print_list pp_print_clause_template_entry "@,")
+               (F.values frame))
+           "@,"
+           ppf
+    in
+    SMTSolver.trace_comment solver
+      (Format.asprintf "@[<v>%s:@,%a@]" title pp_print_frame_clause_summary
+         frames_desc)
+
+let trace_clause_frontier_summary solver title frame_clauses =
+  if Flags.IC3QE.template () then
+    SMTSolver.trace_comment solver
+      (Format.asprintf "@[<v>%s:@,%a@]" title
+         (pp_print_list
+            (fun ppf (frame_idx, clauses) ->
+              Format.fprintf ppf "@[<v 2>R%d:@,%a@]" frame_idx
+                (pp_print_list pp_print_clause_template_entry "@,")
+                clauses)
+            "@,")
+         frame_clauses)
+
+type forward_move_bucket = {
+  src_idx : int;
+  fwd_ids : int list;
+  fwd_prime_ids : int list;
+}
+
+let forward_move_summary : forward_move_bucket list ref = ref []
+
+let reset_forward_move_summary () = forward_move_summary := []
+
+let record_forward_move kind src_idx clauses =
+  let clause_ids = List.map C.id_of_clause clauses in
+  let rec update = function
+    | [] ->
+        [
+          match kind with
+          | `Fwd -> { src_idx; fwd_ids = clause_ids; fwd_prime_ids = [] }
+          | `FwdPrime -> { src_idx; fwd_ids = []; fwd_prime_ids = clause_ids }
+        ]
+    | bucket :: tl when bucket.src_idx = src_idx ->
+        let updated =
+          match kind with
+          | `Fwd ->
+              { bucket with fwd_ids = bucket.fwd_ids @ clause_ids }
+          | `FwdPrime ->
+              { bucket with fwd_prime_ids = bucket.fwd_prime_ids @ clause_ids }
+        in
+        updated :: tl
+    | hd :: tl -> hd :: update tl
+  in
+  forward_move_summary := update !forward_move_summary
+
+let trace_forward_move_summary solver =
+  if Flags.IC3QE.template () && !forward_move_summary <> [] then
+    let sorted_moves =
+      List.sort (fun left right -> compare left.src_idx right.src_idx)
+        !forward_move_summary
+    in
+    let pp_print_id_line label ppf clause_ids =
+      if clause_ids = [] then Format.fprintf ppf "%s (none)" label
+      else
+        Format.fprintf ppf "%s %a" label
+          (pp_print_list
+             (fun ppf clause_id -> Format.fprintf ppf "#%d" clause_id)
+             "@ ")
+          clause_ids
+    in
+    let pp_print_move_row ppf bucket =
+      Format.fprintf ppf "@[<v 2>R%d -> R%d:@,%a@,%a@]" bucket.src_idx
+        (bucket.src_idx + 1)
+        (pp_print_id_line "fwd:")
+        bucket.fwd_ids
+        (pp_print_id_line "fwd':")
+        bucket.fwd_prime_ids
+    in
+    SMTSolver.trace_comment solver
+      (Format.asprintf "@[<v>Forward-propagation move summary:@,%a@]"
+         (pp_print_list pp_print_move_row "@,")
+         sorted_moves)
+
+let seen_block_frontier_summaries = ref IntSet.empty
+
+let reset_block_frontier_summaries () =
+  seen_block_frontier_summaries := IntSet.empty;
+  reset_forward_move_summary ()
+
+let should_trace_block_frontier_summary frontier =
+  if IntSet.mem frontier !seen_block_frontier_summaries then false
+  else (
+    seen_block_frontier_summaries :=
+      IntSet.add frontier !seen_block_frontier_summaries;
+    true)
+
+let staircase_keys t =
+  let ids = term_identifiers t in
+  let n = List.length ids in
+  if comparison_like t && term_has_numeric_threshold t then
+    if n = 1 then (Some (String.concat "|" ids), None)
+    else if n = 2 then (None, Some (String.concat "|" ids))
+    else (None, None)
+  else (None, None)
+
+let literal_compactness_score single_counts pair_counts lit =
+  let ids = term_identifiers lit in
+  let var_count = List.length ids in
+  let simplicity =
+    if var_count <= 1 && arithmetic_depth_hint lit <= 8 then 3
+    else if var_count = 2 && arithmetic_depth_hint lit <= 10 then 2
+    else 0
+  in
+  let interaction = if has_control_literal lit then 2 else 0 in
+  let staircase_penalty =
+    let single_key, pair_key = staircase_keys lit in
+    let single_penalty =
+      match single_key with
+      | Some key when Hashtbl.find_opt single_counts key |> Option.value ~default:0 > 2 ->
+          3
+      | _ -> 0
+    in
+    let pair_penalty =
+      match pair_key with
+      | Some key when Hashtbl.find_opt pair_counts key |> Option.value ~default:0 > 2 ->
+          4
+      | _ -> 0
+    in
+    single_penalty + pair_penalty
+  in
+  simplicity + interaction - staircase_penalty
+
+let sort_literals_by_compactness literals =
+  let single_counts = Hashtbl.create 17 in
+  let pair_counts = Hashtbl.create 17 in
+  let bump_count tbl key =
+    let prev = Hashtbl.find_opt tbl key |> Option.value ~default:0 in
+    Hashtbl.replace tbl key (prev + 1)
+  in
+  List.iter
+    (fun lit ->
+      let single_key, pair_key = staircase_keys lit in
+      (match single_key with Some key -> bump_count single_counts key | None -> ());
+      match pair_key with Some key -> bump_count pair_counts key | None -> ())
+    literals;
+  List.stable_sort
+    (fun l1 l2 ->
+      let s1 = literal_compactness_score single_counts pair_counts l1 in
+      let s2 = literal_compactness_score single_counts pair_counts l2 in
+      compare s1 s2)
+    literals
+
+let sort_literal_actlit_pairs_by_compactness_desc pairs =
+  let single_counts = Hashtbl.create 17 in
+  let pair_counts = Hashtbl.create 17 in
+  let bump_count tbl key =
+    let prev = Hashtbl.find_opt tbl key |> Option.value ~default:0 in
+    Hashtbl.replace tbl key (prev + 1)
+  in
+  List.iter
+    (fun (lit, _) ->
+      let single_key, pair_key = staircase_keys lit in
+      (match single_key with Some key -> bump_count single_counts key | None -> ());
+      match pair_key with Some key -> bump_count pair_counts key | None -> ())
+    pairs;
+  List.stable_sort
+    (fun (l1, _) (l2, _) ->
+      let s1 = literal_compactness_score single_counts pair_counts l1 in
+      let s2 = literal_compactness_score single_counts pair_counts l2 in
+      compare s2 s1)
+    pairs
 
 let set_last_intersection_core_literals literals =
   let rec take n xs =
@@ -671,18 +922,26 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
               (C.id_of_clause parent)
               (pp_print_list Term.pp_print_term ";@ ")
               req));
-  (if Flags.IC3QE.branching () then
+  (if Flags.IC3QE.branching () && not (Flags.IC3QE.simple_sort ()) then
      SMTSolver.trace_comment solver
        (Format.asprintf
           "@[<hv>branching order before: clause #%d @[<hv 1>{%a}@]@]"
           (C.id_of_clause clause)
           (pp_print_literal_scores branching_scores) literals));
   let literals =
-    if Flags.IC3QE.branching () then
+    if Flags.IC3QE.simple_sort () then
+      sort_literals_by_compactness literals
+    else if Flags.IC3QE.branching () then
       sort_literals_by_score_asc branching_scores literals
     else literals
   in
-  (if Flags.IC3QE.branching () then
+  (if Flags.IC3QE.simple_sort () then
+     SMTSolver.trace_comment solver
+       (Format.asprintf
+          "@[<hv>simple-sort order: clause #%d @[<hv 1>{%a}@]@]"
+          (C.id_of_clause clause)
+          (pp_print_list Term.pp_print_term ";@ ") literals));
+  (if Flags.IC3QE.branching () && not (Flags.IC3QE.simple_sort ()) then
      SMTSolver.trace_comment solver
        (Format.asprintf
           "@[<hv>branching order after: clause #%d @[<hv 1>{%a}@]@]"
@@ -735,12 +994,15 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
              match parent_clause_opt with
              | None -> ()
              | Some parent ->
-                 reward_clause branching_scores clause';
-                 SMTSolver.trace_comment solver
-                   (Format.asprintf
-                      "@[<hv>branching reward: generalized clause #%d matched parent #%d@]"
-                      (C.id_of_clause clause')
-                      (C.id_of_clause parent)));
+                 let parent_literals = C.literals_of_clause parent in
+                 let clause'_literals = C.literals_of_clause clause' in
+                 if literals_subset_sorted clause'_literals parent_literals then (
+                   reward_clause branching_scores clause';
+                   SMTSolver.trace_comment solver
+                     (Format.asprintf
+                        "@[<hv>branching reward: generalized clause #%d matched parent #%d@]"
+                        (C.id_of_clause clause')
+                        (C.id_of_clause parent))));
 
           SMTSolver.trace_comment solver
             (Format.asprintf
@@ -749,6 +1011,16 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
                (C.id_of_clause clause) (C.id_of_clause clause')
                (pp_print_list Term.pp_print_term ";@ ")
                (C.literals_of_clause clause'));
+          if Flags.IC3QE.template () then
+            SMTSolver.trace_comment solver
+              (Format.asprintf
+                 "@[<hv>New coarse template from inductive generalization of #%d:@ \
+                  #%d @[<hv 1>{%s}@]@]"
+                 (C.id_of_clause clause)
+                 (C.id_of_clause clause')
+                 (match C.template_key_coarse (C.term_of_clause clause') with
+                 | Some template -> template
+                 | None -> "<none>"));
           (* cex_clauses := clause :: !cex_clauses;
           generalized_clauses := clause' :: !generalized_clauses;
           generalization_pairs := (clause, clause') :: !generalization_pairs; *)
@@ -1178,6 +1450,12 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
           handle_events solver input_sys aparam trans_sys
             (C.props_of_prop_set prop_set);
 
+          if should_trace_block_frontier_summary (List.length frames) then (
+            trace_forward_move_summary solver;
+            trace_frame_clause_summary solver "Forward-propagation clause summary"
+              frames;
+            reset_forward_move_summary ());
+
           SMTSolver.trace_comment solver
             (Format.sprintf
                "block: Check if all successors of frontier R_%d are safe."
@@ -1277,6 +1555,11 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
               SMTSolver.trace_comment solver
                 (Format.sprintf "block: All successors of R_%d are safe."
                    (List.length frames));
+
+              let () =
+                trace_frame_clause_summary solver "Blocked-frame clause summary"
+                  frames
+              in
               (* Return frames *)
               (frames, predicates)))
   (* No more cubes to block in R_i *)
@@ -1408,9 +1691,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
               reordered_pairs
             else block_clause_pairs_n1
           in
-          let block_clause_lits_n1, block_clause_actlits_n1 =
-            List.split block_clause_pairs_n1
-          in
+          let block_clause_lits_n1 = List.map fst block_clause_pairs_n1 in
           let block_clause_intersection_buckets =
             List.map (fun bucket -> List.map fst bucket) block_clause_pair_buckets
           in
@@ -1437,6 +1718,26 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                   pp_hits (List.mapi (fun i lits -> (i + 1, lits)) block_clause_intersection_buckets)
                   (pp_print_list Term.pp_print_term ";@ ")
                   block_clause_lits_n1));
+          let block_clause_pairs_n1 =
+            if Flags.IC3QE.simple_sort () then
+              let reordered_pairs =
+                sort_literal_actlit_pairs_by_compactness_desc
+                  block_clause_pairs_n1
+              in
+              SMTSolver.trace_comment solver
+                (Format.asprintf
+                   "@[<v>simple-sort assumptions order: clause #%d@,before         @[<hv 1>{%a}@]@,after          @[<hv 1>{%a}@]@]"
+                   (C.id_of_clause block_clause)
+                   (pp_print_list Term.pp_print_term ";@ ")
+                   (List.map fst block_clause_pairs_n1)
+                   (pp_print_list Term.pp_print_term ";@ ")
+                   (List.map fst reordered_pairs));
+              reordered_pairs
+            else block_clause_pairs_n1
+          in
+          let block_clause_lits_n1, block_clause_actlits_n1 =
+            List.split block_clause_pairs_n1
+          in
 
           match
             (* Check P[x] & R_i-1[x] & C[x] & T[x,x'] |= C[x'] *)
@@ -2138,6 +2439,8 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
             (F.values frame')
         in
 
+        record_forward_move `Fwd (succ (List.length frames)) fwd;
+
         (if Flags.IC3QE.branching () then
            List.iter
              (fun c ->
@@ -2163,6 +2466,20 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
         (* All clauses propagate? *)
         if keep = [] then (
           Stat.set (List.length frames |> succ) Stat.ic3_fwd_fixpoint;
+
+          let frontier_frame_index = succ (succ (List.length frames)) in
+          let ind_inv_frames =
+            match frames_tl with
+            | next_frame :: rest ->
+                (frontier_frame_index, fwd @ F.values next_frame)
+                :: List.mapi
+                     (fun offset frame ->
+                       (frontier_frame_index + offset + 1, F.values frame))
+                     rest
+            | [] -> [ (frontier_frame_index, fwd) ]
+          in
+          trace_clause_frontier_summary solver
+            "Inductive invariant clause frontiers" ind_inv_frames;
 
           (* Extract inductive invariant *)
           let ind_inv =
@@ -2259,6 +2576,8 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
                   (frames_tl_full @ keep @ fwd)
                   keep_before_gen
               in
+
+              record_forward_move `FwdPrime (succ (List.length frames)) fwd';
 
               (* Deactivate activation literals of not propagating
                      clauses *)
@@ -2535,6 +2854,7 @@ let rec restart_loop solver input_sys aparam trans_sys props predicates =
         let root = C.clause_of_prop_set prop_set in
         let root_node = { node_clause = root; children = [] } in
         add_root_to_tree root_node;
+        reset_block_frontier_summaries ();
 
         (* Run IC3 procedure *)
         ic3 solver input_sys aparam trans_sys prop_set [] predicates

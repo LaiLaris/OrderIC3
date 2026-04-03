@@ -765,6 +765,16 @@ module IC3QE = struct
           cex_inv_map_default)
 
   let cex_inv_map () = !cex_inv_map
+  let template_default = false
+  let template = ref template_default
+
+  let _ =
+    add_spec "--ic3qe_template" (bool_arg template) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Enable template-related IC3QE output, including coarse-template logs and inductive-invariant frontier templates@ Default: %a@]"
+          fmt_bool template_default)
+
+  let template () = !template
   let check_inductive_default = true
   let check_inductive = ref check_inductive_default
 
@@ -886,6 +896,16 @@ module IC3QE = struct
           fmt_bool refer_skipping_default)
 
   let refer_skipping () = !refer_skipping
+  let simple_sort_default = false
+  let simple_sort = ref simple_sort_default
+
+  let _ =
+    add_spec "--ic3qe_simple_sort" (bool_arg simple_sort) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Enable simple compactness-based literal ordering during inductive generalization@ Default: %a@]"
+          fmt_bool simple_sort_default)
+
+  let simple_sort () = !simple_sort
   let branching_default = false
   let branching = ref branching_default
 

@@ -494,18 +494,60 @@ let template_key t =
       Some (String.concat "|" keys)
 
 let template_key_coarse t =
-  let svs = Term.state_vars_of_term t |> StateVar.StateVarSet.elements in
-  let sv_id sv =
-    let scope = StateVar.scope_of_state_var sv |> String.concat "." in
-    scope ^ "/" ^ StateVar.name_of_state_var sv
+  let is_ident_char = function
+    | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '.' | '@' -> true
+    | _ -> false
   in
-  match svs with
-  | [] -> None
-  | _ ->
-      let key =
-        svs |> List.map sv_id |> List.sort String.compare |> String.concat ","
+  let is_numeric_token tok =
+    let len = String.length tok in
+    len > 0
+    &&
+    let start = if tok.[0] = '-' then 1 else 0 in
+    start < len
+    &&
+    let rec all_digits i =
+      if i >= len then true
+      else
+        match tok.[i] with
+        | '0' .. '9' -> all_digits (i + 1)
+        | _ -> false
+    in
+    all_digits start
+  in
+  let term_text t = Format.asprintf "%a" Term.pp_print_term t in
+  let term_identifiers t =
+    let s = term_text t in
+    let len = String.length s in
+    let rec collect i acc =
+      if i >= len then acc
+      else if is_ident_char s.[i] then
+        let j = ref i in
+        while !j < len && is_ident_char s.[!j] do
+          incr j
+        done;
+        let tok = String.sub s i (!j - i) in
+        let acc' =
+          if (not (is_numeric_token tok)) && String.contains tok '.' then tok :: acc
+          else acc
+        in
+        collect !j acc'
+      else collect (i + 1) acc
+    in
+    collect 0 [] |> List.sort_uniq String.compare
+  in
+  let literal_template_key_coarse lit =
+    match term_identifiers lit with
+    | [] -> term_text lit
+    | ids -> "vars(" ^ String.concat ", " ids ^ ")"
+  in
+  match Term.destruct t with
+  | Term.T.App (s, args) when s == Symbol.s_or ->
+      let literal_templates =
+        List.map literal_template_key_coarse args |> List.sort String.compare
       in
-      Some ("vars:" ^ key)
+      Some
+        ("(or " ^ String.concat " | " literal_templates ^ ")")
+  | _ -> Some (literal_template_key_coarse t)
 
 let term_var_class t =
   let svs = Term.state_vars_of_term t in

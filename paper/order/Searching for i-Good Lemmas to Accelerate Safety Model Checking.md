@@ -191,9 +191,17 @@ S[v] := S[v] + 1
 
 如果前一层有多个可作为 parent/reference 的候选，论文选择：
 
-- 分数最高的那个。
+- 分数最高的那个，搜索highest就可以在原文中找到。
+代码中也这么实现。
+
+论文中两处描述不一致：
+In order to determine whether generalize produced an i-good lemma, we also use the function get parentnode(c), which returns a cube p in frame i−1 such that p ⊆c when c belongs to frame i. (If multiple such p exist, the one with the highest score is returned).
+
+但是原文中还有一句：In general, there might be multiple references for a given lemma. Currently, our strategy in refer-skipping is to just pick the one first found.
 
 这里的“分数最高”本质上还是偏向包含更多高分变量的 reference。
+
+但是我觉得这个策略在kind2-IC3中应该比较弱，因为kind2-IC3中基本上都是先求UC再drop的。
 
 ---
 

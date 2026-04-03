@@ -389,6 +389,9 @@ end
 module IC3QE : sig
   val cex_inv_map : unit -> bool
 
+  val template : unit -> bool
+  (** Enable template-related IC3QE output. *)
+
   val check_inductive : unit -> bool
   (** Check inductiveness of blocking clauses. *)
 
@@ -421,6 +424,9 @@ module IC3QE : sig
 
   val refer_skipping : unit -> bool
   (** Enable refer-skipping during inductive generalization. *)
+
+  val simple_sort : unit -> bool
+  (** Enable simple compactness-based literal ordering during inductive generalization. *)
 
   val branching : unit -> bool
   (** Enable branching for i-good lemmas. *)
