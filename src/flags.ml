@@ -906,6 +906,36 @@ module IC3QE = struct
           fmt_bool simple_sort_default)
 
   let simple_sort () = !simple_sort
+  let ast_desc_default = false
+  let ast_desc = ref ast_desc_default
+
+  let _ =
+    add_spec "--ic3qe_ast_desc" (bool_arg ast_desc) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Enable descending AST-complexity-based literal ordering during inductive generalization@ Default: %a@]"
+          fmt_bool ast_desc_default)
+
+  let ast_desc () = !ast_desc
+  let ast_asc_default = false
+  let ast_asc = ref ast_asc_default
+
+  let _ =
+    add_spec "--ic3qe_ast_asc" (bool_arg ast_asc) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Enable ascending AST-complexity-based literal ordering during inductive generalization@ Default: %a@]"
+          fmt_bool ast_asc_default)
+
+  let ast_asc () = !ast_asc
+  let block_growth_guard_default = false
+  let block_growth_guard = ref block_growth_guard_default
+
+  let _ =
+    add_spec "--ic3qe_block_growth_guard" (bool_arg block_growth_guard) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Enable blocking-chain template-growth guard for IC3QE@ Default: %a@]"
+          fmt_bool block_growth_guard_default)
+
+  let block_growth_guard () = !block_growth_guard
   let branching_default = false
   let branching = ref branching_default
 
@@ -1081,7 +1111,7 @@ module QE = struct
   let generalize_eq_canonicalize_flag = ref generalize_eq_canonicalize_default
 
   let _ =
-    add_spec "--ic3qe_generalize_eq_canonicalize"
+    add_spec "--ic3qe_ge_eq_can"
       (bool_arg generalize_eq_canonicalize_flag)
       (fun fmt ->
         Format.fprintf fmt
@@ -1094,7 +1124,7 @@ module QE = struct
   let generalize_ineq_canonicalize_flag = ref generalize_ineq_canonicalize_default
 
   let _ =
-    add_spec "--ic3qe_generalize_ineq_canonicalize"
+    add_spec "--ic3qe_ge_ineq_can"
       (bool_arg generalize_ineq_canonicalize_flag)
       (fun fmt ->
         Format.fprintf fmt
@@ -1107,7 +1137,7 @@ module QE = struct
   let generalize_canonicalize = ref generalize_canonicalize_default
 
   let _ =
-    add_spec "--ic3qe_generalize_canonicalize"
+    add_spec "--ic3qe_ge_can"
       (Arg.Bool (fun b ->
            generalize_canonicalize := b;
            generalize_eq_canonicalize_flag := b;

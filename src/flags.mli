@@ -428,6 +428,15 @@ module IC3QE : sig
   val simple_sort : unit -> bool
   (** Enable simple compactness-based literal ordering during inductive generalization. *)
 
+  val ast_desc : unit -> bool
+  (** Enable descending AST-complexity-based literal ordering during inductive generalization. *)
+
+  val ast_asc : unit -> bool
+  (** Enable ascending AST-complexity-based literal ordering during inductive generalization. *)
+
+  val block_growth_guard : unit -> bool
+  (** Enable a local blocking-chain guard that suppresses repeated template-growth obligations. *)
+
   val branching : unit -> bool
   (** Enable branching for i-good lemmas. *)
 

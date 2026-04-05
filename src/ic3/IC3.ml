@@ -404,6 +404,36 @@ let sort_literal_actlit_pairs_by_compactness_desc pairs =
       compare s2 s1)
     pairs
 
+let rec literal_ast_complexity term =
+  match Term.destruct term with
+  | Term.T.Const _ | Term.T.Var _ -> 1
+  | Term.T.App (_, args) ->
+      1
+      + List.fold_left
+          (fun acc arg -> acc + literal_ast_complexity arg)
+          0 args
+
+let compare_literals_by_ast_desc l1 l2 =
+  let c =
+    compare (literal_ast_complexity l2) (literal_ast_complexity l1)
+  in
+  if c <> 0 then c
+  else
+    String.compare (Term.string_of_term l1) (Term.string_of_term l2)
+
+let compare_literals_by_ast_asc l1 l2 =
+  let c =
+    compare (literal_ast_complexity l1) (literal_ast_complexity l2)
+  in
+  if c <> 0 then c
+  else
+    String.compare (Term.string_of_term l1) (Term.string_of_term l2)
+
+let sort_literals_by_ast_complexity_desc literals =
+  List.sort compare_literals_by_ast_desc literals
+
+let sort_literals_by_ast_complexity_asc literals =
+  List.sort compare_literals_by_ast_asc literals
 let set_last_intersection_core_literals literals =
   let rec take n xs =
     match (n, xs) with
@@ -922,26 +952,66 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
               (C.id_of_clause parent)
               (pp_print_list Term.pp_print_term ";@ ")
               req));
-  (if Flags.IC3QE.branching () && not (Flags.IC3QE.simple_sort ()) then
+  (if
+     Flags.IC3QE.branching ()
+     && not
+          (Flags.IC3QE.simple_sort ()
+          || Flags.IC3QE.ast_desc ()
+          || Flags.IC3QE.ast_asc ())
+   then
      SMTSolver.trace_comment solver
        (Format.asprintf
           "@[<hv>branching order before: clause #%d @[<hv 1>{%a}@]@]"
           (C.id_of_clause clause)
           (pp_print_literal_scores branching_scores) literals));
   let literals =
-    if Flags.IC3QE.simple_sort () then
+    if Flags.IC3QE.ast_desc () then
+      sort_literals_by_ast_complexity_desc literals
+    else if Flags.IC3QE.ast_asc () then
+      sort_literals_by_ast_complexity_asc literals
+    else if Flags.IC3QE.simple_sort () then
       sort_literals_by_compactness literals
     else if Flags.IC3QE.branching () then
       sort_literals_by_score_asc branching_scores literals
     else literals
   in
+  (if Flags.IC3QE.ast_desc () then
+     SMTSolver.trace_comment solver
+       (Format.asprintf
+          "@[<hv>ast-desc order: clause #%d @[<hv 1>{%a}@]@]"
+          (C.id_of_clause clause)
+          (pp_print_list
+             (fun ppf lit ->
+               Format.fprintf ppf "%a(score=%d)"
+                 Term.pp_print_term lit
+                 (literal_ast_complexity lit))
+             ";@ ")
+          literals));
+  (if Flags.IC3QE.ast_asc () then
+     SMTSolver.trace_comment solver
+       (Format.asprintf
+          "@[<hv>ast-asc order: clause #%d @[<hv 1>{%a}@]@]"
+          (C.id_of_clause clause)
+          (pp_print_list
+             (fun ppf lit ->
+               Format.fprintf ppf "%a(score=%d)"
+                 Term.pp_print_term lit
+                 (literal_ast_complexity lit))
+             ";@ ")
+          literals));
   (if Flags.IC3QE.simple_sort () then
      SMTSolver.trace_comment solver
        (Format.asprintf
           "@[<hv>simple-sort order: clause #%d @[<hv 1>{%a}@]@]"
           (C.id_of_clause clause)
           (pp_print_list Term.pp_print_term ";@ ") literals));
-  (if Flags.IC3QE.branching () && not (Flags.IC3QE.simple_sort ()) then
+  (if
+     Flags.IC3QE.branching ()
+     && not
+          (Flags.IC3QE.simple_sort ()
+          || Flags.IC3QE.ast_desc ()
+          || Flags.IC3QE.ast_asc ())
+   then
      SMTSolver.trace_comment solver
        (Format.asprintf
           "@[<hv>branching order after: clause #%d @[<hv 1>{%a}@]@]"
