@@ -27,6 +27,7 @@ module C = Clause
 (* Frame is a trie of clauses *)
 module F = Clause.ClauseTrie
 module IntSet = Set.Make (Int)
+module StringMap = Map.Make (String)
 
 (* Check to make sure invariants of IC3 hold *)
 let debug_assert = true
@@ -413,6 +414,64 @@ let rec literal_ast_complexity term =
           (fun acc arg -> acc + literal_ast_complexity arg)
           0 args
 
+let ast_sort_is_ident_char = function
+  | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '.' | '@' -> true
+  | _ -> false
+
+let ast_sort_is_numeric_token tok =
+  let len = String.length tok in
+  len > 0
+  &&
+  let start = if tok.[0] = '-' then 1 else 0 in
+  start < len
+  &&
+  let rec all_digits i =
+    if i >= len then true
+    else
+      match tok.[i] with
+      | '0' .. '9' -> all_digits (i + 1)
+      | _ -> false
+  in
+  all_digits start
+
+let literal_shape_key lit =
+  let canonical = C.canonicalize_literal lit in
+  let text = Format.asprintf "%a" Term.pp_print_term canonical in
+  let len = String.length text in
+  let buf = Buffer.create len in
+  let rec loop i =
+    if i >= len then ()
+    else if ast_sort_is_ident_char text.[i] then
+      let j = ref i in
+      while !j < len && ast_sort_is_ident_char text.[!j] do
+        incr j
+      done;
+      let tok = String.sub text i (!j - i) in
+      if ast_sort_is_numeric_token tok then Buffer.add_char buf '#'
+      else Buffer.add_string buf tok;
+      loop !j
+    else (
+      Buffer.add_char buf text.[i];
+      loop (i + 1))
+  in
+  loop 0;
+  Buffer.contents buf
+
+let literal_shape_counts literals =
+  List.fold_left
+    (fun counts lit ->
+      let key = literal_shape_key lit in
+      let prev =
+        match StringMap.find_opt key counts with Some n -> n | None -> 0
+      in
+      StringMap.add key (prev + 1) counts)
+    StringMap.empty literals
+
+let literal_shape_count counts lit =
+  match StringMap.find_opt (literal_shape_key lit) counts with
+  | Some n -> n
+  | None -> 0
+
 let compare_literals_by_ast_desc l1 l2 =
   let c =
     compare (literal_ast_complexity l2) (literal_ast_complexity l1)
@@ -430,7 +489,14 @@ let compare_literals_by_ast_asc l1 l2 =
     String.compare (Term.string_of_term l1) (Term.string_of_term l2)
 
 let sort_literals_by_ast_complexity_desc literals =
-  List.sort compare_literals_by_ast_desc literals
+  let shape_counts = literal_shape_counts literals in
+  List.stable_sort
+    (fun l1 l2 ->
+      let repeated1 = literal_shape_count shape_counts l1 > 1 in
+      let repeated2 = literal_shape_count shape_counts l2 > 1 in
+      let c = compare repeated1 repeated2 in
+      if c <> 0 then c else compare_literals_by_ast_desc l1 l2)
+    literals
 
 let sort_literals_by_ast_complexity_asc literals =
   List.sort compare_literals_by_ast_asc literals
@@ -975,6 +1041,10 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
       sort_literals_by_score_asc branching_scores literals
     else literals
   in
+  let ast_desc_shape_counts =
+    if Flags.IC3QE.ast_desc () then Some (literal_shape_counts literals)
+    else None
+  in
   (if Flags.IC3QE.ast_desc () then
      SMTSolver.trace_comment solver
        (Format.asprintf
@@ -982,9 +1052,15 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
           (C.id_of_clause clause)
           (pp_print_list
              (fun ppf lit ->
-               Format.fprintf ppf "%a(score=%d)"
+               let shape_count =
+                 match ast_desc_shape_counts with
+                 | Some counts -> literal_shape_count counts lit
+                 | None -> 0
+               in
+               Format.fprintf ppf "%a(score=%d,shape=%d)"
                  Term.pp_print_term lit
-                 (literal_ast_complexity lit))
+                 (literal_ast_complexity lit)
+                 shape_count)
              ";@ ")
           literals));
   (if Flags.IC3QE.ast_asc () then
@@ -1344,27 +1420,196 @@ let extrapolate trans_sys state f g =
 (* Block unreachable generalized counterexamples to induction               *)
 (* ************************************************************************ *)
 
+let growth_is_ident_char = function
+  | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '.' | '@' -> true
+  | _ -> false
+
+let growth_is_numeric_token tok =
+  let len = String.length tok in
+  len > 0
+  &&
+  let start = if tok.[0] = '-' then 1 else 0 in
+  start < len
+  &&
+  let rec all_digits i =
+    if i >= len then true
+    else
+      match tok.[i] with
+      | '0' .. '9' -> all_digits (i + 1)
+      | _ -> false
+  in
+  all_digits start
+
+let growth_literal_shape lit =
+  let canonical = C.canonicalize_literal lit in
+  let text = Format.asprintf "%a" Term.pp_print_term canonical in
+  let len = String.length text in
+  let buf = Buffer.create len in
+  let rec loop i =
+    if i >= len then ()
+    else if growth_is_ident_char text.[i] then
+      let j = ref i in
+      while !j < len && growth_is_ident_char text.[!j] do
+        incr j
+      done;
+      let tok = String.sub text i (!j - i) in
+      if growth_is_numeric_token tok then Buffer.add_char buf '#'
+      else Buffer.add_string buf tok;
+      loop !j
+    else (
+      Buffer.add_char buf text.[i];
+      loop (i + 1))
+  in
+  loop 0;
+  Buffer.contents buf
+
+let clause_growth_profile clause =
+  List.fold_left
+    (fun acc lit ->
+      let shape = growth_literal_shape lit in
+      let prev = match StringMap.find_opt shape acc with Some n -> n | None -> 0 in
+      StringMap.add shape (prev + 1) acc)
+    StringMap.empty (C.literals_of_clause clause)
+
+let compact_growth_shape shape =
+  let len = String.length shape in
+  let buf = Buffer.create len in
+  let rec loop i prev_space =
+    if i >= len then ()
+    else
+      match shape.[i] with
+      | ' ' | '\n' | '\r' | '\t' ->
+          if prev_space then loop (i + 1) true
+          else (
+            Buffer.add_char buf ' ';
+            loop (i + 1) true)
+      | c ->
+          Buffer.add_char buf c;
+          loop (i + 1) false
+  in
+  loop 0 true;
+  Buffer.contents buf |> String.trim
+
+let pp_print_growth_profile ppf profile =
+  let items = StringMap.bindings profile in
+  pp_print_list
+    (fun ppf (shape, count) ->
+      Format.fprintf ppf "%s x%d" (compact_growth_shape shape) count)
+    ";@ " ppf items
+
+let string_of_growth_profile profile =
+  Format.asprintf "%a" pp_print_growth_profile profile
+
+let same_growth_profile p1 p2 = StringMap.equal Int.equal p1 p2
+
+type growth_relation =
+  | GrowthSame
+  | GrowthCandidateExtends
+  | GrowthCandidateSubsumed
+
+let string_of_growth_relation = function
+  | GrowthSame -> "same-profile"
+  | GrowthCandidateExtends -> "candidate-extends-related"
+  | GrowthCandidateSubsumed -> "candidate-subsumed-by-related"
+
+let growth_profile_extends base candidate =
+  let strict = ref false in
+  try
+    StringMap.iter
+      (fun shape base_count ->
+        let cand_count =
+          match StringMap.find_opt shape candidate with
+          | Some count -> count
+          | None -> raise Exit
+        in
+        if cand_count < base_count then raise Exit;
+        if cand_count > base_count then strict := true)
+      base;
+    if StringMap.cardinal base <> StringMap.cardinal candidate then false
+    else !strict
+  with Exit -> false
+
+let clause_has_growth_relation left right =
+  let left_profile = clause_growth_profile left in
+  let right_profile = clause_growth_profile right in
+  if same_growth_profile left_profile right_profile then Some GrowthSame
+  else if growth_profile_extends left_profile right_profile then
+    Some GrowthCandidateSubsumed
+  else if growth_profile_extends right_profile left_profile then
+    Some GrowthCandidateExtends
+  else None
+
+let find_growth_related_clause candidate clauses =
+  List.find_map
+    (fun clause ->
+      match clause_has_growth_relation clause candidate with
+      | Some relation -> Some (clause, relation)
+      | None -> None)
+    clauses
+
+let skipped_growth_sources : (string, unit) Hashtbl.t = Hashtbl.create 251
+
+let skipped_growth_source_key depth clause =
+  Printf.sprintf "%d|%s" depth
+    (string_of_growth_profile (clause_growth_profile clause))
+
+let remember_skipped_growth_source depth clause =
+  Hashtbl.replace skipped_growth_sources
+    (skipped_growth_source_key depth clause)
+    ()
+
+let is_skipped_growth_source depth clause =
+  Hashtbl.mem skipped_growth_sources
+    (skipped_growth_source_key depth clause)
+
 (* Add cube to block in future frames *)
 let add_to_block_tl solver block_clause block_trace = function
   (* Last frame has no successors *)
   | [] -> []
   (* Add cube as proof obligation in next frame *)
   | (block_clauses, r_succ_i) :: block_clauses_tl ->
-      (* (block_clauses @ [C.copy_clause solver block_clause, block_trace], r_succ_i) :: block_clauses_tl *)
-      let block_clause' = C.copy_clause_block_prop block_clause in
+      let growth_related =
+        if Flags.IC3QE.block_growth_guard () then
+          find_growth_related_clause block_clause
+            (List.map fst block_clauses @ block_trace)
+        else None
+      in
+      match growth_related with
+      | Some (related, relation) ->
+          SMTSolver.trace_comment solver
+            (Format.asprintf
+               "@[<hv>block-growth-guard: skip future blocking copy of clause #%d at depth %d because it matched clause #%d (%s)@,\
+                candidate profile: @[<hv 1>{%a}@]@,\
+                related profile: @[<hv 1>{%a}@]@,\
+                candidate literals: @[<hv 1>{%a}@]@,\
+                related literals: @[<hv 1>{%a}@]@]"
+               (C.id_of_clause block_clause)
+               (List.length block_clauses_tl)
+               (C.id_of_clause related)
+               (string_of_growth_relation relation)
+               pp_print_growth_profile
+               (clause_growth_profile block_clause)
+               pp_print_growth_profile
+               (clause_growth_profile related)
+               (pp_print_list Term.pp_print_term ";@ ")
+               (C.literals_of_clause block_clause)
+               (pp_print_list Term.pp_print_term ";@ ")
+               (C.literals_of_clause related));
+          (block_clauses, r_succ_i) :: block_clauses_tl
+      | None ->
+          let block_clause' = C.copy_clause_block_prop block_clause in
 
-      SMTSolver.trace_comment solver
-        (Format.asprintf
-           "@[<hv>Copied clause #%d for blocking at depth %d:@ #%d @[<hv \
-            1>{%a}@]@]"
-           (C.id_of_clause block_clause)
-           (List.length block_clauses_tl)
-           (C.id_of_clause block_clause')
-           (pp_print_list Term.pp_print_term ";@ ")
-           (C.literals_of_clause block_clause'));
+          SMTSolver.trace_comment solver
+            (Format.asprintf
+               "@[<hv>Copied clause #%d for blocking at depth %d:@ #%d @[<hv 1>{%a}@]@]"
+               (C.id_of_clause block_clause)
+               (List.length block_clauses_tl)
+               (C.id_of_clause block_clause')
+               (pp_print_list Term.pp_print_term ";@ ")
+               (C.literals_of_clause block_clause'));
 
-      ((block_clause', block_trace) :: block_clauses, r_succ_i)
-      :: block_clauses_tl
+          ((block_clause', block_trace) :: block_clauses, r_succ_i)
+          :: block_clauses_tl
 (* (block_clauses @ [block_clause', block_trace], r_succ_i) :: block_clauses_tl *)
 
 (* ************************************************************************ *)
@@ -1698,6 +1943,26 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
             (* Clause is an actual blocking clause *)
             | _ -> (block_clause_orig, trace)
           in
+
+          if
+            Flags.IC3QE.block_growth_guard ()
+            && is_skipped_growth_source (List.length trace) block_clause
+          then (
+            SMTSolver.trace_comment solver
+              (Format.asprintf
+                 "@[<hv>block-growth-guard: skip reprocessing clause #%d at depth %d because this source profile was already exhausted earlier@,\
+                  source profile: @[<hv 1>{%a}@]@,\
+                  source literals: @[<hv 1>{%a}@]@]"
+                 (C.id_of_clause block_clause)
+                 (List.length trace)
+                 pp_print_growth_profile
+                 (clause_growth_profile block_clause)
+                 (pp_print_list Term.pp_print_term ";@ ")
+                 (C.literals_of_clause block_clause));
+            block solver input_sys aparam trans_sys prop_set term_tbl predicates
+              ((block_clauses_tl, r_i) :: block_tl)
+              frames)
+          else (
 
           (* Receive and assert new invariants *)
           handle_events solver input_sys aparam trans_sys
@@ -2131,25 +2396,57 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
 
                   SMTSolver.trace_comment solver
                     (Format.asprintf
-                       "@[<hv>New clause at depth %d to block #%d:@ #%d @[<hv \
-                        1>{%a}@]@]"
+                       "@[<hv>New clause at depth %d to block #%d:@ #%d @[<hv 1>{%a}@]@]"
                        (List.length trace)
                        (C.id_of_clause block_clause)
                        (C.id_of_clause block_clause')
                        (pp_print_list Term.pp_print_term ";@ ")
                        (C.literals_of_clause block_clause'));
-                  let block_clause_pre =
-                    find_copyblock_pre_clause block_clause
+                  let growth_related =
+                    if Flags.IC3QE.block_growth_guard () then
+                      find_growth_related_clause block_clause'
+                        (block_clause :: block_trace)
+                    else None
                   in
-                  add_node_to_tree
-                    (C.id_of_clause block_clause_pre)
-                    block_clause';
-                  Stat.incr Stat.ic3_neg_state;
-                  block solver input_sys aparam trans_sys prop_set term_tbl
-                    predicates
-                    (([ (block_clause', block_clause :: block_trace) ], r_pred_i)
-                    :: trace)
-                    frames_tl)))
+                  match growth_related with
+                  | Some (related, relation) ->
+                      remember_skipped_growth_source (List.length trace)
+                        block_clause;
+                      SMTSolver.trace_comment solver
+                        (Format.asprintf
+                           "@[<hv>block-growth-guard: skip predecessor clause #%d because it matched clause #%d in the current blocking chain (%s)@,\
+                            candidate profile: @[<hv 1>{%a}@]@,\
+                            related profile: @[<hv 1>{%a}@]@,\
+                            candidate literals: @[<hv 1>{%a}@]@,\
+                            related literals: @[<hv 1>{%a}@]@]"
+                           (C.id_of_clause block_clause')
+                           (C.id_of_clause related)
+                           (string_of_growth_relation relation)
+                           pp_print_growth_profile
+                           (clause_growth_profile block_clause')
+                           pp_print_growth_profile
+                           (clause_growth_profile related)
+                           (pp_print_list Term.pp_print_term ";@ ")
+                           (C.literals_of_clause block_clause')
+                           (pp_print_list Term.pp_print_term ";@ ")
+                           (C.literals_of_clause related));
+                      block solver input_sys aparam trans_sys prop_set term_tbl
+                        predicates
+                        ((block_clauses_tl, r_i) :: block_tl)
+                        frames
+                  | None ->
+                      let block_clause_pre =
+                        find_copyblock_pre_clause block_clause
+                      in
+                      add_node_to_tree
+                        (C.id_of_clause block_clause_pre)
+                        block_clause';
+                      Stat.incr Stat.ic3_neg_state;
+                      block solver input_sys aparam trans_sys prop_set term_tbl
+                        predicates
+                        (([ (block_clause', block_clause :: block_trace) ], r_pred_i)
+                        :: trace)
+                        frames_tl))))
 
 (* ************************************************************************ *)
 (* Forward propagation                                                      *)
