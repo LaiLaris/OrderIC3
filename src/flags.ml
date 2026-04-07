@@ -946,6 +946,16 @@ module IC3QE = struct
           fmt_bool branching_default)
 
   let branching () = !branching
+  let ic3ref_branching_default = false
+  let ic3ref_branching = ref ic3ref_branching_default
+
+  let _ =
+    add_spec "--ic3qe_ic3ref_branching" (bool_arg ic3ref_branching) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Enable IC3ref-style learned-clause frequency ordering@ Default: %a@]"
+          fmt_bool ic3ref_branching_default)
+
+  let ic3ref_branching () = !ic3ref_branching
   let intersection_default = false
   let intersection = ref intersection_default
 

@@ -145,6 +145,19 @@ type variable_score_tbl = float StateVar.StateVarHashtbl.t
 let branching_scores : variable_score_tbl =
   StateVar.StateVarHashtbl.create 251
 
+let ic3ref_branching_scores : variable_score_tbl =
+  StateVar.StateVarHashtbl.create 251
+
+let use_any_branching_scores () =
+  Flags.IC3QE.branching () || Flags.IC3QE.ic3ref_branching ()
+
+let active_branching_scores () =
+  if Flags.IC3QE.ic3ref_branching () then ic3ref_branching_scores
+  else branching_scores
+
+let active_branching_name () =
+  if Flags.IC3QE.ic3ref_branching () then "ic3ref-branching" else "branching"
+
 (* Recent finalized clause-literal cores from the block phase.
    The head is the most recent core; at most
    [Flags.IC3QE.intersection_limit ()] cores are retained. *)
@@ -688,6 +701,7 @@ let pp_print_literal_scores score_tbl ppf literals =
    the current clause. When several subset candidates exist, prefer the one
    with the highest branching score; ties keep the first candidate encountered. *)
 let get_parentnode frame clause_literals =
+  let score_tbl = active_branching_scores () in
   F.values frame
   |> List.fold_left
        (fun best candidate ->
@@ -696,12 +710,8 @@ let get_parentnode frame clause_literals =
            match best with
            | None -> Some candidate
            | Some prev ->
-               let candidate_score =
-                 score_of_literals branching_scores candidate_literals
-               in
-               let prev_score =
-                 score_of_literals branching_scores (C.literals_of_clause prev)
-               in
+               let candidate_score = score_of_literals score_tbl candidate_literals in
+               let prev_score = score_of_literals score_tbl (C.literals_of_clause prev) in
                if compare candidate_score prev_score > 0 then Some candidate
                else best
          else best)
@@ -993,6 +1003,9 @@ let deactivate_subsumed solver (subsumed, frame') =
    initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
 let ind_generalize solver prop_set frame parent_frame clause literals =
+  let active_branching = use_any_branching_scores () in
+  let active_scores = active_branching_scores () in
+  let active_branching_label = active_branching_name () in
   let parent_clause_opt, req =
     match parent_frame with
     | None -> (None, [])
@@ -1019,7 +1032,7 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
               (pp_print_list Term.pp_print_term ";@ ")
               req));
   (if
-     Flags.IC3QE.branching ()
+     active_branching
      && not
           (Flags.IC3QE.simple_sort ()
           || Flags.IC3QE.ast_desc ()
@@ -1027,9 +1040,10 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
    then
      SMTSolver.trace_comment solver
        (Format.asprintf
-          "@[<hv>branching order before: clause #%d @[<hv 1>{%a}@]@]"
+          "@[<hv>%s order before: clause #%d @[<hv 1>{%a}@]@]"
+          active_branching_label
           (C.id_of_clause clause)
-          (pp_print_literal_scores branching_scores) literals));
+          (pp_print_literal_scores active_scores) literals));
   let literals =
     if Flags.IC3QE.ast_desc () then
       sort_literals_by_ast_complexity_desc literals
@@ -1037,8 +1051,8 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
       sort_literals_by_ast_complexity_asc literals
     else if Flags.IC3QE.simple_sort () then
       sort_literals_by_compactness literals
-    else if Flags.IC3QE.branching () then
-      sort_literals_by_score_asc branching_scores literals
+    else if active_branching then
+      sort_literals_by_score_asc active_scores literals
     else literals
   in
   let ast_desc_shape_counts =
@@ -1082,7 +1096,7 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
           (C.id_of_clause clause)
           (pp_print_list Term.pp_print_term ";@ ") literals));
   (if
-     Flags.IC3QE.branching ()
+     active_branching
      && not
           (Flags.IC3QE.simple_sort ()
           || Flags.IC3QE.ast_desc ()
@@ -1090,9 +1104,10 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
    then
      SMTSolver.trace_comment solver
        (Format.asprintf
-          "@[<hv>branching order after: clause #%d @[<hv 1>{%a}@]@]"
+          "@[<hv>%s order after: clause #%d @[<hv 1>{%a}@]@]"
+          active_branching_label
           (C.id_of_clause clause)
-          (pp_print_literal_scores branching_scores) literals));
+          (pp_print_literal_scores active_scores) literals));
   let total_literals = List.length literals in
   let skipped_literals = ref 0 in
   let attempted_drops = ref 0 in
@@ -1136,17 +1151,18 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
           (* New clause with generalized clause as parent *)
           let clause' = C.mk_clause_of_literals (C.IndGen clause) kept in
 
-          (if Flags.IC3QE.branching () then
+          (if active_branching then
              match parent_clause_opt with
              | None -> ()
              | Some parent ->
                  let parent_literals = C.literals_of_clause parent in
                  let clause'_literals = C.literals_of_clause clause' in
                  if literals_subset_sorted clause'_literals parent_literals then (
-                   reward_clause branching_scores clause';
+                   reward_clause active_scores clause';
                    SMTSolver.trace_comment solver
                      (Format.asprintf
-                        "@[<hv>branching reward: generalized clause #%d matched parent #%d@]"
+                        "@[<hv>%s reward: generalized clause #%d matched parent #%d@]"
+                        active_branching_label
                         (C.id_of_clause clause')
                         (C.id_of_clause parent))));
 
@@ -1200,7 +1216,6 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
           Term.mk_not clause'_actlit_n0 |> SMTSolver.assert_term solver;
           Term.mk_not clause'_actlit_n1 |> SMTSolver.assert_term solver;
           Stat.incr ~by:3 Stat.ic3_stale_activation_literals;
-
           linear_search (l :: kept) tl
         in
 
@@ -1211,7 +1226,6 @@ let ind_generalize solver prop_set frame parent_frame clause literals =
           Term.mk_not clause'_actlit_n0 |> SMTSolver.assert_term solver;
           Term.mk_not clause'_actlit_n1 |> SMTSolver.assert_term solver;
           Stat.incr ~by:3 Stat.ic3_stale_activation_literals;
-
           linear_search kept tl
         in
 
@@ -2007,17 +2021,19 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
             else block_clause_pairs_n1
           in
           let block_clause_pairs_n1 =
-            if Flags.IC3QE.branching () then
+            if use_any_branching_scores () then
               let reordered_pairs =
-                sort_literal_actlit_pairs_by_score_desc branching_scores
+                sort_literal_actlit_pairs_by_score_desc
+                  (active_branching_scores ())
                   block_clause_pairs_n1
               in
               let pp_score_lits ppf lits =
-                pp_print_literal_scores branching_scores ppf lits
+                pp_print_literal_scores (active_branching_scores ()) ppf lits
               in
               SMTSolver.trace_comment solver
                 (Format.asprintf
-                   "@[<v>branching assumptions order: clause #%d@,before         @[<hv 1>{%a}@]@,after          @[<hv 1>{%a}@]@]"
+                   "@[<v>%s assumptions order: clause #%d@,before         @[<hv 1>{%a}@]@,after          @[<hv 1>{%a}@]@]"
+                   (active_branching_name ())
                    (C.id_of_clause block_clause)
                    pp_score_lits
                    (List.map fst block_clause_pairs_n1)
@@ -2808,13 +2824,14 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
 
         record_forward_move `Fwd (succ (List.length frames)) fwd;
 
-        (if Flags.IC3QE.branching () then
+        (if use_any_branching_scores () then
            List.iter
              (fun c ->
-               reward_clause branching_scores c;
+               reward_clause (active_branching_scores ()) c;
                SMTSolver.trace_comment solver
                  (Format.asprintf
-                    "@[<hv>branching reward: forward-propagated clause #%d@]"
+                    "@[<hv>%s reward: forward-propagated clause #%d@]"
+                    (active_branching_name ())
                     (C.id_of_clause c)))
              fwd);
 

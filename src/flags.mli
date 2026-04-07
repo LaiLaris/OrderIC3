@@ -440,6 +440,9 @@ module IC3QE : sig
   val branching : unit -> bool
   (** Enable branching for i-good lemmas. *)
 
+  val ic3ref_branching : unit -> bool
+  (** Enable IC3ref-style learned-clause frequency ordering. *)
+
   val intersection : unit -> bool
   (** Enable Intersection-style auxiliary state and debug output. *)
 
