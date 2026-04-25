@@ -100,24 +100,6 @@ val literals_of_clause : t -> Term.t list
 val source_of_clause : t -> source
 (** Return the source of the clause *)
 
-val lit_weight : Term.t -> int
-(** Return weight of a literal based on inductive generalization frequency *)
-
-val incr_lit_weight : Term.t -> unit
-(** Increment weight of a literal based on inductive generalization *)
-
-val incr_lit_weight_by : Term.t -> int -> unit
-(** Increment weight of a literal by a given amount *)
-
-val ltr_score : Term.t -> float
-(** Return learning-to-rank score for a literal *)
-
-val ltr_update : kept:Term.t list -> removed:Term.t list -> unit
-(** Online update of learning-to-rank weights *)
-
-val ltr_weights_to_string : unit -> string
-(** Return current learning-to-rank weights for debugging *)
-
 val canonicalize_eq_literal : Term.t -> Term.t
 (** Canonicalize linear equality literals to a stable representative. *)
 
@@ -126,17 +108,6 @@ val canonicalize_ineq_literal : Term.t -> Term.t
 
 val canonicalize_literal : Term.t -> Term.t
 (** Canonicalize linear arithmetic literals to a stable representative. *)
-
-val template_key : Term.t -> string option
-(** Return a normalized template key for a literal, if available *)
-
-val template_key_coarse : Term.t -> string option
-(** Return a JSON-style coarse template key.
-
-    For literals with identifiers this yields [vars(...)] using the printed
-    identifiers found in the literal text. For clause-shaped disjunctions it
-    yields a whole clause template [(or ... | ...)] built from per-literal
-    coarse templates. *)
 
 (** {1 Activation Literals} *)
 

@@ -21,108 +21,79 @@ open Lib
 (* Prefix for name of activation literals to avoid name clashes *)
 let actlit_prefix = "__ic3"
 
-(* Literal weights based on inductive generalization frequency *)
-let lit_weight_tbl : int Term.TermHashtbl.t = Term.TermHashtbl.create 251
+(* Generate next unique identifier for clause *)
+let next_clause_id =
+  let r = ref 0 in
+  fun () ->
+    incr r;
+    !r
 
-let lit_weight term =
-  try Term.TermHashtbl.find lit_weight_tbl term with Not_found -> 0
+(* Source of a clause *)
+type source =
+  | PropSet (* Clause is a pseudo clause for property set *)
+  | BlockFrontier
+    (* Negation of clause reaches a state outside the property in one step *)
+  | BlockRec of t
+    (* Negtion of clause reaches a state outside the
+                     negation of the clause to block *)
+  | IndGen of t (* Clause is an inductive generalization of the clause *)
+  | CopyFwdProp of
+      t (* Clause is a copy of the clause from forward propagation *)
+  | CopyBlockProp of
+      t (* Clause is a copy of the clause from blocking in future frames *)
+  | Copy of t (* Clause is a copy of the clause for another reason *)
 
-let incr_lit_weight term =
-  let v = lit_weight term in
-  Term.TermHashtbl.replace lit_weight_tbl term (v + 1)
+(* Clause *)
+and t = {
+  (* Unique identifier for clause *)
+  clause_id : int;
+  (* One activation literal for the positive, unprimed clause *)
+  actlit_p0 : Term.t;
+  (* One activation literal for the positive, primed clause  *)
+  actlit_p1 : Term.t;
+  (* One activation literal for each negated unprimed literal in
+         clause *)
+  actlits_n0 : Term.t list;
+  (* One activation literal for each negated primed literal in
+         clause *)
+  actlits_n1 : Term.t list;
+  (* Literals in clause, to be treated as disjunction *)
+  literals : Term.t list;
+  (* Source of clause *)
+  source : source;
+}
 
-let incr_lit_weight_by term k =
-  if k > 0 then
-    let v = lit_weight term in
-    Term.TermHashtbl.replace lit_weight_tbl term (v + k)
+(*
+(* Compare clauses by their lexicographically comparing their (sorted
+   and duplicate-free lists of) literals *)
+let compare { literals = l1 } { literals = l2 } =
+  compare_lists Term.compare l1 l2
+    
+(* Clauses are equal if their (sorted and duplicate-free lists of)
+   literals are equal *)
+let equal { literals = l1 } { literals = l2 } =
+  List.length l1 = List.length l2 && List.for_all2 Term.equal l1 l2
+*)
 
-(* Online learning-to-rank configuration (initialization from manual rules). *)
-let use_user_aux = ref true
-(* Prefer literals containing user variables; demote aux vars (e.g. gklocal_...). *)
-let use_atomish = ref true
-(* Prefer atomic (or negated atomic) literals. *)
-let use_size = ref true
-(* Prefer smaller term size (AST node count). *)
-let use_lin_diff = ref false
-(* Prefer linear difference constraints (x - y [+ c]) with +/-1 coefficients. *)
-let use_template_coarse = ref true
-let use_template_fine = ref false
-let ltr_learning_rate = ref 0.1
-let ltr_debug_scores = ref false
-let ltr_template_penalty = ref 0.1
+(* A trie of clauses *)
+module ClauseTrie = Trie.Make (Term)
 
-(* Weights: [user_aux; atomish; size; lin_diff] *)
-let ltr_weights : float array =
-  [|
-    (if !use_user_aux then 1.0 else 0.0);
-    (if !use_atomish then 1.0 else 0.0);
-    (if !use_size then 1.0 else 0.0);
-    (if !use_lin_diff then 1.0 else 0.0);
-  |]
+(* Return disjunction of literals from a clause *)
+let term_of_clause { literals } = Term.mk_or literals
 
-let has_prefix s prefix =
-  let len_s = String.length s and len_p = String.length prefix in
-  len_s >= len_p && String.sub s 0 len_p = prefix
+(* Return literals from a clause *)
+let literals_of_clause { literals } = literals
 
-let is_atomish t =
-  let base = if Term.is_negated t then Term.unnegate t else t in
-  Term.is_atom base
+(* Return unique identifier of clause *)
+let id_of_clause { clause_id } = clause_id
 
-let term_size t =
-  Term.eval_t
-    (fun _ sub_sizes ->
-      1 + List.fold_left (fun a b -> a + b) 0 sub_sizes)
-    t
+(* Return number of literals in clause *)
+let length_of_clause { literals } = List.length literals
+
+(* Return source of clause *)
+let source_of_clause { source } = source
 
 let neg_one = Numeral.neg Numeral.one
-
-let numeral_sign t =
-  if Term.is_numeral t then
-    let n = Term.numeral_of_term t in
-    if Numeral.equal n Numeral.one then Some 1
-    else if Numeral.equal n (Numeral.neg Numeral.one) then Some (-1)
-    else None
-  else None
-
-let state_var_of_term t =
-  match Term.destruct t with
-  | Term.T.Var v when Var.is_state_var_instance v ->
-      Some (Var.state_var_of_state_var_instance v)
-  | _ -> None
-
-let negate_linear_terms terms =
-  List.map (fun (sv, sign) -> (sv, -sign)) terms
-
-let rec collect_all_terms collect acc = function
-  | [] -> Some acc
-  | term :: rest -> (
-      match collect term with
-      | None -> None
-      | Some terms -> collect_all_terms collect (List.rev_append terms acc) rest)
-
-let rec collect_linear_terms t =
-  match Term.destruct t with
-  | Term.T.App (s, args) when s == Symbol.s_plus -> (
-      collect_all_terms collect_linear_terms [] args)
-  | Term.T.App (s, [a; b]) when s == Symbol.s_minus -> (
-      match collect_linear_terms a, collect_linear_terms b with
-      | Some la, Some lb -> Some (List.rev_append (negate_linear_terms lb) la)
-      | _ -> None)
-  | Term.T.App (s, [a]) when s == Symbol.s_minus -> (
-      match collect_linear_terms a with
-      | Some la -> Some (negate_linear_terms la)
-      | None -> None)
-  | Term.T.App (s, [a; b]) when s == Symbol.s_times -> (
-      match (numeral_sign a, state_var_of_term b) with
-      | Some sign, Some sv -> Some [ (sv, sign) ]
-      | _ -> (
-          match (numeral_sign b, state_var_of_term a) with
-          | Some sign, Some sv -> Some [ (sv, sign) ]
-          | _ -> if Term.is_numeral a || Term.is_numeral b then Some [] else None))
-  | _ -> (
-      match state_var_of_term t with
-      | Some sv -> Some [ (sv, 1) ]
-      | None -> if Term.is_numeral t then Some [] else None)
 
 let add_coeff key coeff acc =
   let prev =
@@ -146,8 +117,7 @@ let scale_linear_form k (coeffs, const) =
   if Numeral.equal k Numeral.zero then (Term.TermMap.empty, Numeral.zero)
   else
     ( Term.TermMap.fold
-        (fun key coeff acc ->
-          add_coeff key (Numeral.mult k coeff) acc)
+        (fun key coeff acc -> add_coeff key (Numeral.mult k coeff) acc)
         coeffs Term.TermMap.empty,
       Numeral.mult k const )
 
@@ -237,33 +207,6 @@ let canonical_linear_comparison cmp expr =
     | Lt -> Term.mk_lt [lhs; Term.mk_num Numeral.zero]
     | Leq -> Term.mk_leq [lhs; Term.mk_num Numeral.zero]
 
-(* (not (< (+ x (- 2)) 0))会变成(not (< x 2))，
-但是涉及到子句的关系过于复杂的时候，只改某些简单的句子会导致和其他子句的形式不统一，这样反而会增加求解难度
-子句的形式越统一越好*)
-
-(* let canonical_linear_comparison cmp expr =
-  let cmp, (coeffs, const) = normalize_linear_form_sign cmp expr in
-  if Term.TermMap.is_empty coeffs then
-    eval_constant_normalized_cmp cmp const
-  else
-    match Term.TermMap.bindings coeffs with
-    | [var_term, coeff] when Numeral.equal coeff Numeral.one -> (
-        let rhs = Term.mk_num (Numeral.neg const) in
-        match cmp with
-        | Eq -> Term.mk_eq [var_term; rhs]
-        | Gt -> Term.mk_gt [var_term; rhs]
-        | Geq -> Term.mk_geq [var_term; rhs]
-        | Lt -> Term.mk_lt [var_term; rhs]
-        | Leq -> Term.mk_leq [var_term; rhs])
-    | _ ->
-        let lhs = build_linear_term (coeffs, const) in
-        match cmp with
-        | Eq -> Term.mk_eq [lhs; Term.mk_num Numeral.zero]
-        | Gt -> Term.mk_gt [lhs; Term.mk_num Numeral.zero]
-        | Geq -> Term.mk_geq [lhs; Term.mk_num Numeral.zero]
-        | Lt -> Term.mk_lt [lhs; Term.mk_num Numeral.zero]
-        | Leq -> Term.mk_leq [lhs; Term.mk_num Numeral.zero] *)
-
 let eval_constant_cmp symbol lhs rhs =
   let diff = Numeral.compare lhs rhs in
   match Symbol.node_of_symbol symbol with
@@ -329,8 +272,7 @@ let rebuild_simple_comparison symbol lhs rhs =
   | `LEQ -> Term.mk_leq [lhs; rhs]
   | _ -> invalid_arg "rebuild_simple_comparison"
 
-let eq_canonicalization_blocked_symbols =
-  [ `DIV; `INTDIV ]
+let eq_canonicalization_blocked_symbols = [`DIV; `INTDIV]
 
 let eq_canonicalization_has_blocking_keyword term =
   let blocked_symbol symbol =
@@ -362,17 +304,17 @@ let fold_constant_comparison ~rebuild neg body fallback =
 let normalize_ineq_difference neg cmp lhs rhs =
   match cmp with
   | `GT ->
-      ( (if neg then Term.mk_minus [rhs; lhs] else Term.mk_minus [lhs; rhs]),
-        if neg then Leq else Gt )
+      ((if neg then Term.mk_minus [rhs; lhs] else Term.mk_minus [lhs; rhs]),
+       if neg then Leq else Gt)
   | `GEQ ->
-      ( (if neg then Term.mk_minus [rhs; lhs] else Term.mk_minus [lhs; rhs]),
-        if neg then Lt else Geq )
+      ((if neg then Term.mk_minus [rhs; lhs] else Term.mk_minus [lhs; rhs]),
+       if neg then Lt else Geq)
   | `LT ->
-      ( (if neg then Term.mk_minus [lhs; rhs] else Term.mk_minus [rhs; lhs]),
-        if neg then Leq else Gt )
+      ((if neg then Term.mk_minus [lhs; rhs] else Term.mk_minus [rhs; lhs]),
+       if neg then Leq else Gt)
   | `LEQ ->
-      ( (if neg then Term.mk_minus [lhs; rhs] else Term.mk_minus [rhs; lhs]),
-        if neg then Lt else Geq )
+      ((if neg then Term.mk_minus [lhs; rhs] else Term.mk_minus [rhs; lhs]),
+       if neg then Lt else Geq)
   | _ -> invalid_arg "normalize_ineq_difference"
 
 let canonicalize_eq_literal lit =
@@ -391,7 +333,6 @@ let canonicalize_eq_literal lit =
           match Term.destruct body with
           | Term.T.App (s, [lhs; rhs]) when s == Symbol.s_eq -> (
               if is_simple_var_const_comparison lhs rhs then
-                (* Keep var/const equality form exactly as written. *)
                 rebuild neg body
               else if
                 eq_canonicalization_has_blocking_keyword lhs
@@ -433,266 +374,6 @@ let canonicalize_ineq_literal lit =
 
 let canonicalize_literal lit =
   lit |> canonicalize_eq_literal |> canonicalize_ineq_literal
-
-let lin_diff_score t =
-  match collect_linear_terms t with
-  | None -> 0.0
-  | Some lits ->
-      let pos = ref StateVar.StateVarSet.empty in
-      let neg = ref StateVar.StateVarSet.empty in
-      List.iter
-        (fun (sv, sign) ->
-          if sign >= 0 then
-            pos := StateVar.StateVarSet.add sv !pos
-          else neg := StateVar.StateVarSet.add sv !neg)
-        lits;
-      let p = StateVar.StateVarSet.cardinal !pos in
-      let n = StateVar.StateVarSet.cardinal !neg in
-      if p = 0 || n = 0 then 0.0 else float_of_int (min p n)
-
-let template_key t =
-  let cmp_linear_terms t =
-    match Term.destruct t with
-    | Term.T.App (s, [a; b])
-      when Symbol.(
-             s == s_lt || s == s_gt || s == s_leq || s == s_geq || s == s_eq)
-      -> (
-        match collect_linear_terms a, collect_linear_terms b with
-        | Some la, Some lb ->
-            let lb' = List.map (fun (sv, sign) -> (sv, -sign)) lb in
-            Some (List.rev_append lb' la)
-        | _ -> None)
-    | _ -> None
-  in
-  let rec collect acc t =
-    let acc =
-      match cmp_linear_terms t with
-      | Some lt -> lt :: acc
-      | None -> acc
-    in
-    match Term.destruct t with
-    | Term.T.App (_, args) -> List.fold_left collect acc args
-    | _ -> acc
-  in
-  let templates = collect [] t in
-  let sv_id sv =
-    let scope = StateVar.scope_of_state_var sv |> String.concat "." in
-    scope ^ "/" ^ StateVar.name_of_state_var sv
-  in
-  let norm_terms terms =
-    terms
-    |> List.sort (fun (sv1, s1) (sv2, s2) ->
-           let c = String.compare (sv_id sv1) (sv_id sv2) in
-           if c <> 0 then c else compare s1 s2)
-    |> List.map (fun (sv, sign) -> (if sign < 0 then "-" else "+") ^ sv_id sv)
-    |> String.concat ","
-  in
-  match templates with
-  | [] -> None
-  | _ ->
-      let keys = List.map norm_terms templates |> List.sort String.compare in
-      Some (String.concat "|" keys)
-
-let template_key_coarse t =
-  let is_ident_char = function
-    | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '.' | '@' -> true
-    | _ -> false
-  in
-  let is_numeric_token tok =
-    let len = String.length tok in
-    len > 0
-    &&
-    let start = if tok.[0] = '-' then 1 else 0 in
-    start < len
-    &&
-    let rec all_digits i =
-      if i >= len then true
-      else
-        match tok.[i] with
-        | '0' .. '9' -> all_digits (i + 1)
-        | _ -> false
-    in
-    all_digits start
-  in
-  let term_text t = Format.asprintf "%a" Term.pp_print_term t in
-  let term_identifiers t =
-    let s = term_text t in
-    let len = String.length s in
-    let rec collect i acc =
-      if i >= len then acc
-      else if is_ident_char s.[i] then
-        let j = ref i in
-        while !j < len && is_ident_char s.[!j] do
-          incr j
-        done;
-        let tok = String.sub s i (!j - i) in
-        let acc' =
-          if (not (is_numeric_token tok)) && String.contains tok '.' then tok :: acc
-          else acc
-        in
-        collect !j acc'
-      else collect (i + 1) acc
-    in
-    collect 0 [] |> List.sort_uniq String.compare
-  in
-  let literal_template_key_coarse lit =
-    match term_identifiers lit with
-    | [] -> term_text lit
-    | ids -> "vars(" ^ String.concat ", " ids ^ ")"
-  in
-  match Term.destruct t with
-  | Term.T.App (s, args) when s == Symbol.s_or ->
-      let literal_templates =
-        List.map literal_template_key_coarse args |> List.sort String.compare
-      in
-      Some
-        ("(or " ^ String.concat " | " literal_templates ^ ")")
-  | _ -> Some (literal_template_key_coarse t)
-
-let term_var_class t =
-  let svs = Term.state_vars_of_term t in
-  let has_user =
-    StateVar.StateVarSet.exists
-      (fun sv -> List.mem "usr" (StateVar.scope_of_state_var sv))
-      svs
-  in
-  let has_aux =
-    StateVar.StateVarSet.exists
-      (fun sv -> has_prefix (StateVar.name_of_state_var sv) "gklocal_")
-      svs
-  in
-  if has_user then 1.0 else if has_aux then -1.0 else 0.0
-
-let ltr_features t =
-  let size = float_of_int (term_size t) in
-  [|
-    term_var_class t;
-    (if is_atomish t then 1.0 else 0.0);
-    -. (log (1.0 +. size));
-    lin_diff_score t;
-  |]
-
-let ltr_score t =
-  if not (Flags.IC3QE.ltr_sort ()) then 0.0
-  else
-    let f = ltr_features t in
-    let s = ref 0.0 in
-    for i = 0 to Array.length ltr_weights - 1 do
-      s := !s +. ltr_weights.(i) *. f.(i)
-    done;
-    !s
-
-let ltr_update ~kept ~removed =
-  if not (Flags.IC3QE.ltr_sort ()) then ()
-  else
-    let avg_feat lits =
-      match lits with
-      | [] -> Array.make (Array.length ltr_weights) 0.0
-      | _ ->
-          let sum = Array.make (Array.length ltr_weights) 0.0 in
-          let n = float_of_int (List.length lits) in
-          List.iter
-            (fun t ->
-              let f = ltr_features t in
-              for i = 0 to Array.length sum - 1 do
-                sum.(i) <- sum.(i) +. f.(i)
-              done)
-            lits;
-          for i = 0 to Array.length sum - 1 do
-            sum.(i) <- sum.(i) /. n
-          done;
-          sum
-    in
-    let f_kept = avg_feat kept in
-    let f_rem = avg_feat removed in
-    for i = 0 to Array.length ltr_weights - 1 do
-      ltr_weights.(i) <-
-        ltr_weights.(i)
-        +. (!ltr_learning_rate *. (f_kept.(i) -. f_rem.(i)))
-    done
-
-let ltr_weights_to_string () =
-  let buf = Buffer.create 64 in
-  Buffer.add_string buf "[";
-  Array.iteri
-    (fun i w ->
-      if i > 0 then Buffer.add_string buf "; ";
-      Buffer.add_string buf (Printf.sprintf "%g" w))
-    ltr_weights;
-  Buffer.add_string buf "]";
-  Buffer.contents buf
-
-(* Generate next unique identifier for clause *)
-let next_clause_id =
-  let r = ref 0 in
-  fun () ->
-    incr r;
-    !r
-
-(* Source of a clause *)
-type source =
-  | PropSet (* Clause is a pseudo clause for property set *)
-  | BlockFrontier
-    (* Negation of clause reaches a state outside the property in one step *)
-  | BlockRec of t
-    (* Negtion of clause reaches a state outside the
-                     negation of the clause to block *)
-  | IndGen of t (* Clause is an inductive generalization of the clause *)
-  | CopyFwdProp of
-      t (* Clause is a copy of the clause from forward propagation *)
-  | CopyBlockProp of
-      t (* Clause is a copy of the clause from blocking in future frames *)
-  | Copy of t (* Clause is a copy of the clause for another reason *)
-
-(* Clause *)
-and t = {
-  (* Unique identifier for clause *)
-  clause_id : int;
-  (* One activation literal for the positive, unprimed clause *)
-  actlit_p0 : Term.t;
-  (* One activation literal for the positive, primed clause  *)
-  actlit_p1 : Term.t;
-  (* One activation literal for each negated unprimed literal in
-         clause *)
-  actlits_n0 : Term.t list;
-  (* One activation literal for each negated primed literal in
-         clause *)
-  actlits_n1 : Term.t list;
-  (* Literals in clause, to be treated as disjunction *)
-  literals : Term.t list;
-  (* Source of clause *)
-  source : source;
-}
-
-(*
-(* Compare clauses by their lexicographically comparing their (sorted
-   and duplicate-free lists of) literals *)
-let compare { literals = l1 } { literals = l2 } =
-  compare_lists Term.compare l1 l2
-    
-(* Clauses are equal if their (sorted and duplicate-free lists of)
-   literals are equal *)
-let equal { literals = l1 } { literals = l2 } =
-  List.length l1 = List.length l2 && List.for_all2 Term.equal l1 l2
-*)
-
-(* A trie of clauses *)
-module ClauseTrie = Trie.Make (Term)
-
-(* Return disjunction of literals from a clause *)
-let term_of_clause { literals } = Term.mk_or literals
-
-(* Return literals from a clause *)
-let literals_of_clause { literals } = literals
-
-(* Return unique identifier of clause *)
-let id_of_clause { clause_id } = clause_id
-
-(* Return number of literals in clause *)
-let length_of_clause { literals } = List.length literals
-
-(* Return source of clause *)
-let source_of_clause { source } = source
 
 (*
 (* Pretty-print the source of a clause *)
@@ -925,181 +606,59 @@ let actlits_n1_of_clause solver { clause_id; actlits_n1; literals } =
 (* Clauses                                                                *)
 (* ********************************************************************** *)
 
+let sort_literals_l1l2 literals =
+  let compare_literals l1 l2 =
+    String.compare (Term.string_of_term l1) (Term.string_of_term l2)
+  in
+  List.sort compare_literals literals
+
+let sort_literals_l2l1 literals =
+  let compare_literals l2 l1 =
+    String.compare (Term.string_of_term l1) (Term.string_of_term l2)
+  in
+  List.sort compare_literals literals
+
+let mk_clause_of_sorted_literals source literals =
+  let clause_id = next_clause_id () in
+
+  let mk_uf_symbol tag =
+    let uf_symbol_name =
+      Format.asprintf "%s%s_%d_%s" actlit_prefix "_clause" clause_id tag
+    in
+    UfSymbol.mk_uf_symbol uf_symbol_name [] Type.t_bool
+  in
+
+  let actlit_p0 = mk_uf_symbol "p0" |> fun uf -> Term.mk_uf uf [] in
+  let actlit_p1 = mk_uf_symbol "p1" |> fun uf -> Term.mk_uf uf [] in
+
+  let actlits_n0 =
+    List.mapi
+      (fun i _ ->
+        mk_uf_symbol (Format.asprintf "n0_%d" i) |> fun uf -> Term.mk_uf uf [])
+      literals
+  in
+
+  let actlits_n1 =
+    List.mapi
+      (fun i _ ->
+        mk_uf_symbol (Format.asprintf "n1_%d" i) |> fun uf -> Term.mk_uf uf [])
+      literals
+  in
+
+  { clause_id; actlit_p0; actlits_n0; actlit_p1; actlits_n1; literals; source }
+
 (* Create a clause of literals *)
 let mk_clause_of_literals source literals =
-  let literals =
-    Term.TermSet.(of_list literals |> elements)
-  in
-  
-  (* Next unique identifier for clause *)
-  let clause_id = next_clause_id () in
-
-  (* Create uninterpreted function symbol *)
-  let mk_uf_symbol tag =
-
-    (* Name of uninterpreted function symbol *)
-    let uf_symbol_name = 
-      Format.asprintf "%s%s_%d_%s"
-        actlit_prefix
-        "_clause"
-        clause_id
-        tag
-    in
-
-    (* Create uninterpreted function symbol *)
-    UfSymbol.mk_uf_symbol uf_symbol_name [] Type.t_bool
-      
-  in
-
-  (* Create activation literal for positive unprimed clause *)
-  let actlit_p0 = mk_uf_symbol "p0" |> (fun uf -> Term.mk_uf uf []) in
-
-  (* Create activation literal for positive primed clause *)
-  let actlit_p1 = mk_uf_symbol "p1" |> (fun uf -> Term.mk_uf uf []) in
-  
-  (* Create activation literals for negated unprimed literal *)
-  let actlits_n0 =
-    List.mapi
-      (fun i _ ->
-        mk_uf_symbol
-          (Format.asprintf "n0_%d" i)
-          |> (fun uf -> Term.mk_uf uf []))
-      literals
-  in
-
-  (* Create activation literals for negated primed literal *)
-  let actlits_n1 =
-    List.mapi
-      (fun i _ ->
-        mk_uf_symbol
-          (Format.asprintf "n1_%d" i)
-          |> (fun uf -> Term.mk_uf uf []))
-      literals
-  in
-
-  (* Return clause with activation literals *)
-  { clause_id; actlit_p0; actlits_n0; actlit_p1; actlits_n1; literals; source }
+  (* Sort and eliminate duplicate literals *)
+  let literals = Term.TermSet.(of_list literals |> elements) in
+  mk_clause_of_sorted_literals source literals
 
 let mk_clause_of_literals_l1l2 source literals =
-
-  (* Sort and eliminate duplicate literals *)
-  (* let literals = Term.TermSet.(of_list literals |> elements) in *)
-
-  let literals = 
-  let compare_literals l1 l2 = String.compare (Term.string_of_term l1) (Term.string_of_term l2) in
-  List.sort compare_literals literals
-  in
-  
-  (* Next unique identifier for clause *)
-  let clause_id = next_clause_id () in
-
-  (* Create uninterpreted function symbol *)
-  let mk_uf_symbol tag =
-
-    (* Name of uninterpreted function symbol *)
-    let uf_symbol_name = 
-      Format.asprintf "%s%s_%d_%s"
-        actlit_prefix
-        "_clause"
-        clause_id
-        tag
-    in
-
-    (* Create uninterpreted function symbol *)
-    UfSymbol.mk_uf_symbol uf_symbol_name [] Type.t_bool
-      
-  in
-
-  (* Create activation literal for positive unprimed clause *)
-  let actlit_p0 = mk_uf_symbol "p0" |> (fun uf -> Term.mk_uf uf []) in
-
-  (* Create activation literal for positive primed clause *)
-  let actlit_p1 = mk_uf_symbol "p1" |> (fun uf -> Term.mk_uf uf []) in
-  
-  (* Create activation literals for negated unprimed literal *)
-  let actlits_n0 =
-    List.mapi
-      (fun i _ ->
-        mk_uf_symbol
-          (Format.asprintf "n0_%d" i)
-          |> (fun uf -> Term.mk_uf uf []))
-      literals
-  in
-
-  (* Create activation literals for negated primed literal *)
-  let actlits_n1 =
-    List.mapi
-      (fun i _ ->
-        mk_uf_symbol
-          (Format.asprintf "n1_%d" i)
-          |> (fun uf -> Term.mk_uf uf []))
-      literals
-  in
-
-  (* Return clause with activation literals *)
-  { clause_id; actlit_p0; actlits_n0; actlit_p1; actlits_n1; literals; source }
+  mk_clause_of_sorted_literals source (sort_literals_l1l2 literals)
 
 let mk_clause_of_literals_l2l1 source literals =
+  mk_clause_of_sorted_literals source (sort_literals_l2l1 literals)
 
-  (* Sort and eliminate duplicate literals *)
-  (* let literals = Term.TermSet.(of_list literals |> elements) in *)
-
-  let literals = 
-  let compare_literals l2 l1 = String.compare (Term.string_of_term l1) (Term.string_of_term l2) in
-  List.sort compare_literals literals
-  in
-  
-  (* Next unique identifier for clause *)
-  let clause_id = next_clause_id () in
-
-  (* Create uninterpreted function symbol *)
-  let mk_uf_symbol tag =
-
-    (* Name of uninterpreted function symbol *)
-    let uf_symbol_name = 
-      Format.asprintf "%s%s_%d_%s"
-        actlit_prefix
-        "_clause"
-        clause_id
-        tag
-    in
-
-    (* Create uninterpreted function symbol *)
-    UfSymbol.mk_uf_symbol uf_symbol_name [] Type.t_bool
-      
-  in
-
-  (* Create activation literal for positive unprimed clause *)
-  let actlit_p0 = mk_uf_symbol "p0" |> (fun uf -> Term.mk_uf uf []) in
-
-  (* Create activation literal for positive primed clause *)
-  let actlit_p1 = mk_uf_symbol "p1" |> (fun uf -> Term.mk_uf uf []) in
-  
-  (* Create activation literals for negated unprimed literal *)
-  let actlits_n0 =
-    List.mapi
-      (fun i _ ->
-        mk_uf_symbol
-          (Format.asprintf "n0_%d" i)
-          |> (fun uf -> Term.mk_uf uf []))
-      literals
-  in
-
-  (* Create activation literals for negated primed literal *)
-  let actlits_n1 =
-    List.mapi
-      (fun i _ ->
-        mk_uf_symbol
-          (Format.asprintf "n1_%d" i)
-          |> (fun uf -> Term.mk_uf uf []))
-      literals
-  in
-
-  (* Return clause with activation literals *)
-  { clause_id; actlit_p0; actlits_n0; actlit_p1; actlits_n1; literals; source }
-
-
- 
 (* Copy clause with a fresh activation literal *)
 let copy_clause_block_prop ({ literals } as clause) =
   mk_clause_of_literals (CopyBlockProp clause) literals
