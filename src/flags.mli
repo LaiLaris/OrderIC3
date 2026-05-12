@@ -434,6 +434,12 @@ module IC3QE : sig
   val ast_asc : unit -> bool
   (** Enable ascending AST-complexity-based literal ordering during inductive generalization. *)
 
+  val freq_sort : unit -> bool
+  (** Enable online inductive-generalization literal-frequency ordering during inductive generalization. *)
+
+  val first_frame_order : unit -> bool
+  (** Enable first-built-frame literal ordering during inductive generalization. *)
+
   val block_growth_guard : unit -> bool
   (** Enable a local blocking-chain guard that suppresses repeated template-growth obligations. *)
 

@@ -41,60 +41,6 @@ let max_unrolling = ref 0
 (* Formatter to output inductive clauses to *)
 let ppf_inductive_assertions = ref Format.std_formatter
 
-(* Last online approximation of the offline first-built-frame:
-   the first non-empty frame in the latest check_frames block whose frontier
-   was subsequently proved safe. *)
-let first_built_frame_literals : Term.TermSet.t option ref = ref None
-
-let ind_gen_literal_frequency : int Term.TermHashtbl.t =
-  Term.TermHashtbl.create 251
-
-let incr_ind_gen_literal_frequency literals =
-  List.iter
-    (fun lit ->
-      let count =
-        try Term.TermHashtbl.find ind_gen_literal_frequency lit
-        with Not_found -> 0
-      in
-      Term.TermHashtbl.replace ind_gen_literal_frequency lit (succ count))
-    literals
-
-let ind_gen_literal_frequency_of lit =
-  try Term.TermHashtbl.find ind_gen_literal_frequency lit with Not_found -> 0
-
-let record_safe_frontier_first_built_frame solver frontier_level frames =
-  if Flags.IC3QE.first_frame_order () then
-    let rec first_non_empty level = function
-      | [] -> None
-      | frame :: tl -> (
-          match F.values frame with
-          | [] -> first_non_empty (pred level) tl
-          | clauses -> Some (level, clauses))
-    in
-    match first_non_empty frontier_level frames with
-    | None -> ()
-    | Some (frame_level, clauses) ->
-        let literals =
-          clauses
-          |> List.to_seq
-          |> Seq.flat_map (fun clause -> C.literals_of_clause clause |> List.to_seq)
-          |> Term.TermSet.of_seq
-        in
-        first_built_frame_literals := Some literals;
-        SMTSolver.trace_comment solver
-          (Format.asprintf
-             "@[<v>first-built-frame candidate after safe R_%d:@,\
-              frame R_%d clauses:@,%a@,\
-              literals (%d):@,%a@]"
-             frontier_level frame_level
-             (pp_print_list
-                (fun ppf c -> Format.fprintf ppf "%d" (C.id_of_clause c))
-                "@,")
-             clauses
-             (Term.TermSet.cardinal literals)
-             (pp_print_list Term.pp_print_term "@,")
-             (Term.TermSet.elements literals))
-
 (* Output statistics *)
 let print_stats () =
   KEvent.stat
@@ -413,73 +359,6 @@ let deactivate_subsumed solver (subsumed, frame') =
    initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
 let ind_generalize solver prop_set frame clause literals =
-  let prioritize_ind_gen_frequency_literals literals =
-    if Flags.IC3QE.freq_sort () then
-      let indexed = List.mapi (fun i lit -> (i, lit)) literals in
-      let sorted =
-        List.sort
-          (fun (i1, lit1) (i2, lit2) ->
-            let c = compare (ind_gen_literal_frequency_of lit1)
-                (ind_gen_literal_frequency_of lit2)
-            in
-            if c <> 0 then c else compare i1 i2)
-          indexed
-      in
-      let reordered = List.map snd sorted in
-      SMTSolver.trace_comment solver
-        (Format.asprintf
-           "@[<v>ind-gen literal frequency priority for clause #%d:@,\
-            original:@,%a@,\
-            low-frequency first, high-frequency delayed:@,%a@]"
-           (C.id_of_clause clause)
-           (pp_print_list
-              (fun ppf lit ->
-                Format.fprintf ppf "[%d] %a"
-                  (ind_gen_literal_frequency_of lit)
-                  Term.pp_print_term lit)
-              "@,")
-           literals
-           (pp_print_list
-              (fun ppf lit ->
-                Format.fprintf ppf "[%d] %a"
-                  (ind_gen_literal_frequency_of lit)
-                  Term.pp_print_term lit)
-              "@,")
-           reordered);
-      reordered
-    else literals
-  in
-  let prioritize_first_built_frame_literals literals =
-    if Flags.IC3QE.first_frame_order () then
-      match !first_built_frame_literals with
-      | None -> literals
-      | Some fb_lits ->
-          let in_fb, not_in_fb =
-            List.partition (fun lit -> Term.TermSet.mem lit fb_lits) literals
-          in
-          let reordered = not_in_fb @ in_fb in
-          (* SMTSolver.trace_comment solver
-            (Format.asprintf
-               "@[<v>first-built-frame literal priority for clause #%d:@,\
-                original:@,%a@,\
-                not-in-first-built-frame first (%d):@,%a@,\
-                first-built-frame delayed (%d):@,%a@,\
-                reordered:@,%a@]"
-               (C.id_of_clause clause)
-               (pp_print_list Term.pp_print_term "@,")
-               literals
-               (List.length not_in_fb)
-               (pp_print_list Term.pp_print_term "@,")
-               not_in_fb
-               (List.length in_fb)
-               (pp_print_list Term.pp_print_term "@,")
-               in_fb
-               (pp_print_list Term.pp_print_term "@,")
-               reordered); *)
-          reordered
-    else literals
-  in
-
   (* Linearly traverse the list of literals in the clause, and remove
      a literal the clause without the literal remains relatively
      inductive and initial
@@ -514,8 +393,6 @@ let ind_generalize solver prop_set frame clause literals =
                (C.id_of_clause clause) (C.id_of_clause clause')
                (pp_print_list Term.pp_print_term ";@ ")
                (C.literals_of_clause clause'));
-          if Flags.IC3QE.freq_sort () then
-            incr_ind_gen_literal_frequency (C.literals_of_clause clause');
           (* cex_clauses := clause :: !cex_clauses;
           generalized_clauses := clause' :: !generalized_clauses;
           generalization_pairs := (clause, clause') :: !generalization_pairs; *)
@@ -587,10 +464,7 @@ let ind_generalize solver prop_set frame clause literals =
           is_initial ()
   in
 
-  linear_search []
-    (literals
-    |> prioritize_ind_gen_frequency_literals
-    |> prioritize_first_built_frame_literals)
+  linear_search [] literals
 (*
 
 
@@ -1038,8 +912,6 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
               SMTSolver.trace_comment solver
                 (Format.sprintf "block: All successors of R_%d are safe."
                    (List.length frames));
-              record_safe_frontier_first_built_frame solver
-                (List.length frames) frames;
               (* Return frames *)
               (frames, predicates)))
   (* No more cubes to block in R_i *)
@@ -1829,22 +1701,6 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
               frames_tl
             |> Term.mk_and
           in
-          let ind_inv_conjuncts =
-            let rec collect acc t =
-              if Term.is_node t then
-                let s = Term.node_symbol_of_term t in
-                match Symbol.node_of_symbol s with
-                | `AND -> List.fold_left collect acc (Term.node_args_of_term t)
-                | _ -> t :: acc
-              else t :: acc
-            in
-            List.rev (collect [] ind_inv)
-          in
-          SMTSolver.trace_comment solver
-            (Format.asprintf
-               "@[<hv>Inductive invariant:@ @[<hv 1>{%a}@]@]"
-               (pp_print_list Term.pp_print_term ";@ ")
-               ind_inv_conjuncts);
 
           (* Activation literals for inductive invariant *)
           let ind_inv_p0, ind_inv_n0, ind_inv_n1 =
