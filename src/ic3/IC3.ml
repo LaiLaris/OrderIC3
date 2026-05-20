@@ -1038,8 +1038,11 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
               SMTSolver.trace_comment solver
                 (Format.sprintf "block: All successors of R_%d are safe."
                    (List.length frames));
-              record_safe_frontier_first_built_frame solver
-                (List.length frames) frames;
+              (* Previous first-built-frame update point: after block proves
+                 the frontier safe. Keep disabled to profile the frame after
+                 forward propagation instead.
+                 record_safe_frontier_first_built_frame solver
+                   (List.length frames) frames; *)
               (* Return frames *)
               (frames, predicates)))
   (* No more cubes to block in R_i *)
@@ -2006,6 +2009,8 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
   in
 
   Stat.record_time Stat.ic3_fwd_prop_time;
+
+  record_safe_frontier_first_built_frame solver (List.length frames') frames';
 
   Stat.set_int_list (frame_sizes frames') Stat.ic3_frame_sizes;
 
