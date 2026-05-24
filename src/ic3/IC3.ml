@@ -46,21 +46,35 @@ let ppf_inductive_assertions = ref Format.std_formatter
    was subsequently proved safe. *)
 let first_built_frame_literals : Term.TermSet.t option ref = ref None
 
-let ind_gen_literal_frequency : int Term.TermHashtbl.t =
+let ind_gen_literal_frequency : float Term.TermHashtbl.t =
   Term.TermHashtbl.create 251
 
+module StringMap = Map.Make (String)
+
+(* Multiplicative decay applied to every entry before each batch increment,
+   matching IC3Ref's litOrder.decay() (IC3.cpp lines 337-340, called from
+   updateLitOrder before count). Recent literals weigh more; stale counts
+   fade. *)
+let ind_gen_literal_frequency_decay = 0.99
+
+let decay_ind_gen_literal_frequency () =
+  Term.TermHashtbl.filter_map_inplace
+    (fun _ count -> Some (count *. ind_gen_literal_frequency_decay))
+    ind_gen_literal_frequency
+
 let incr_ind_gen_literal_frequency literals =
+  decay_ind_gen_literal_frequency ();
   List.iter
     (fun lit ->
       let count =
         try Term.TermHashtbl.find ind_gen_literal_frequency lit
-        with Not_found -> 0
+        with Not_found -> 0.0
       in
-      Term.TermHashtbl.replace ind_gen_literal_frequency lit (succ count))
+      Term.TermHashtbl.replace ind_gen_literal_frequency lit (count +. 1.0))
     literals
 
 let ind_gen_literal_frequency_of lit =
-  try Term.TermHashtbl.find ind_gen_literal_frequency lit with Not_found -> 0
+  try Term.TermHashtbl.find ind_gen_literal_frequency lit with Not_found -> 0.0
 
 let record_safe_frontier_first_built_frame solver frontier_level frames =
   if Flags.IC3QE.first_frame_order () then
@@ -410,38 +424,153 @@ let deactivate_subsumed solver (subsumed, frame') =
 (* Inductively generalize [clause] relative to [frame]
 
    Assuming that [clause] is relatively inductive to [frame] and
-   initial, find a smaller subclause of [clause] that is still
+  initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
 let ind_generalize solver prop_set frame clause literals =
   let prioritize_ind_gen_frequency_literals literals =
-    if Flags.IC3QE.freq_sort () then
-      let indexed = List.mapi (fun i lit -> (i, lit)) literals in
-      let sorted =
-        List.sort
-          (fun (i1, lit1) (i2, lit2) ->
-            let c = compare (ind_gen_literal_frequency_of lit1)
-                (ind_gen_literal_frequency_of lit2)
-            in
-            if c <> 0 then c else compare i1 i2)
-          indexed
+    if Flags.IC3QE.freq_sort () && frame <> [] then
+      let state_var_key svs =
+        svs |> List.map StateVar.string_of_state_var |> String.concat "|"
       in
-      let reordered = List.map snd sorted in
+      let is_comparison_symbol s =
+        s == Symbol.s_eq || s == Symbol.s_leq || s == Symbol.s_geq
+        || s == Symbol.s_lt || s == Symbol.s_gt
+      in
+      let comparison_body lit =
+        if Term.is_negated lit then Term.unnegate lit else lit
+      in
+      let is_expensive_arithmetic_symbol s =
+        match Symbol.node_of_symbol s with
+        | `DIV | `INTDIV | `MOD -> true
+        | _ -> false
+      in
+      let arithmetic_shape term =
+        let rec aux (has_let, count) term =
+          match Term.node_of_term term with
+          | Term.T.Node (s, args) ->
+              let count =
+                if is_expensive_arithmetic_symbol s then succ count else count
+              in
+              List.fold_left aux (has_let, count) args
+          | Term.T.Let _ -> (true, count)
+          | Term.T.Annot (term, _) -> aux (has_let, count) term
+          | _ -> (has_let, count)
+        in
+        aux (false, 0) term
+      in
+      let has_expensive_arithmetic term =
+        let has_let, arith_count = arithmetic_shape term in
+        has_let || arith_count > 1
+      in
+      let structural_key lit =
+        if has_expensive_arithmetic lit then None
+        else
+          let svs =
+            Term.state_vars_of_term lit |> StateVar.StateVarSet.elements
+          in
+          match svs with
+          | [] -> None
+          | [ _ ] -> Some (`Single, state_var_key svs)
+          | _ -> (
+              match Term.destruct (comparison_body lit) with
+              | Term.T.App (s, _) when is_comparison_symbol s ->
+                  Some (`Affine, state_var_key svs)
+              | _ -> None)
+      in
+      let structural_support =
+        List.fold_left
+          (fun acc lit ->
+            match structural_key lit with
+            | None -> acc
+            | Some (_, key) ->
+                let count = try StringMap.find key acc with Not_found -> 0 in
+                StringMap.add key (succ count) acc)
+          StringMap.empty literals
+      in
+      let structural_support_of lit =
+        match structural_key lit with
+        | None -> 1
+        | Some (kind, key) ->
+            let count = try StringMap.find key structural_support with Not_found -> 1 in
+            (match kind with
+            | `Single -> if count = 2 then 2 else 1
+            | `Affine -> if count = 2 then 2 else 1)
+      in
+      let boundary_delay lit =
+        let body = comparison_body lit in
+        match Term.destruct body with
+        | Term.T.App (s, _)
+          when s == Symbol.s_leq || s == Symbol.s_geq || s == Symbol.s_lt
+               || s == Symbol.s_gt ->
+            1
+        | Term.T.App (s, _) when s == Symbol.s_eq -> 0
+        | _ -> 0
+      in
+      let has_structural_cluster =
+        List.exists (fun lit -> structural_support_of lit = 2) literals
+      in
+      let has_expensive_arithmetic_literal =
+        List.exists has_expensive_arithmetic literals
+      in
+      let expensive_arithmetic_rank lit =
+        if has_expensive_arithmetic lit then 0 else 1
+      in
+      let reordered =
+        if has_structural_cluster || has_expensive_arithmetic_literal then
+          let indexed = List.mapi (fun i lit -> (i, lit)) literals in
+          List.sort
+            (fun (i1, lit1) (i2, lit2) ->
+              let c =
+                compare (expensive_arithmetic_rank lit1)
+                  (expensive_arithmetic_rank lit2)
+              in
+              if c <> 0 then c
+              else
+                let c =
+                  compare (structural_support_of lit1)
+                    (structural_support_of lit2)
+                in
+                if c <> 0 then c
+                else
+                  let c = compare (boundary_delay lit1)
+                      (boundary_delay lit2)
+                  in
+                  if c <> 0 then c
+                  else
+                    let c =
+                      compare
+                        (ind_gen_literal_frequency_of lit1)
+                        (ind_gen_literal_frequency_of lit2)
+                    in
+                    if c <> 0 then c else compare i1 i2)
+            indexed
+          |> List.map snd
+        else literals
+      in
       SMTSolver.trace_comment solver
         (Format.asprintf
            "@[<v>ind-gen literal frequency priority for clause #%d:@,\
             original:@,%a@,\
-            low-frequency first, high-frequency delayed:@,%a@]"
+            pair-structure-gated priority:@,%a@]"
            (C.id_of_clause clause)
            (pp_print_list
               (fun ppf lit ->
-                Format.fprintf ppf "[%d] %a"
+                Format.fprintf ppf
+                  "[exp=%d cluster=%d boundary_delay=%d freq=%.3f] %a"
+                  (1 - expensive_arithmetic_rank lit)
+                  (structural_support_of lit)
+                  (boundary_delay lit)
                   (ind_gen_literal_frequency_of lit)
                   Term.pp_print_term lit)
               "@,")
            literals
            (pp_print_list
               (fun ppf lit ->
-                Format.fprintf ppf "[%d] %a"
+                Format.fprintf ppf
+                  "[exp=%d cluster=%d boundary_delay=%d freq=%.3f] %a"
+                  (1 - expensive_arithmetic_rank lit)
+                  (structural_support_of lit)
+                  (boundary_delay lit)
                   (ind_gen_literal_frequency_of lit)
                   Term.pp_print_term lit)
               "@,")
@@ -526,6 +655,7 @@ let ind_generalize solver prop_set frame clause literals =
     | l :: tl ->
         (* Clause without current literal *)
         let clause' = kept @ tl |> Term.mk_or in
+        (* let candidate_len = List.length kept + List.length tl in *)
 
         (* Actiation literal for clause *)
         let clause'_actlit_p0, clause'_actlit_n0, clause'_actlit_n1 =
@@ -558,14 +688,25 @@ let ind_generalize solver prop_set frame clause literals =
         (* Clause without literal is initial *)
         let is_initial () =
           (* SMTSolver.trace_comment solver
-            "ind_generalize: Checking if clause without literal is relatively \
-             inductive."; *)
-          if
+            (Format.asprintf
+               "@[<v>ind_generalize #%d: BEGIN consecution check after \
+                dropping literal@,\
+                dropped:@,%a@,\
+                candidate_literals=%d kept=%d todo=%d frame_actlits=%d@]"
+               (C.id_of_clause clause) Term.pp_print_term l candidate_len
+               (List.length kept) (List.length tl) (List.length frame)); *)
+          let consecution_sat =
             SMTSolver.check_sat_assuming_tf solver
               (* Check P[x] & R[x] & C[x] & T[x,x'] |= C[x'] *)
               (C.actlit_p0_of_prop_set solver prop_set
               :: clause'_actlit_p0 :: clause'_actlit_n1 :: frame)
-          then
+          in
+          (* SMTSolver.trace_comment solver
+            (Format.asprintf
+               "ind_generalize #%d: END consecution check result=%s"
+               (C.id_of_clause clause)
+               (if consecution_sat then "sat" else "unsat")); *)
+          if consecution_sat then
             (* If sat: Clause without literal is not relatively inductive *)
             keep_literal ()
           else
@@ -574,12 +715,24 @@ let ind_generalize solver prop_set frame clause literals =
         in
 
         (* SMTSolver.trace_comment solver
-          "ind_generalize: Checking if clause without literal is initial."; *)
-        if
+          (Format.asprintf
+             "@[<v>ind_generalize #%d: BEGIN initiality check after dropping \
+              literal@,\
+              dropped:@,%a@,\
+              candidate_literals=%d kept=%d todo=%d@]"
+             (C.id_of_clause clause) Term.pp_print_term l candidate_len
+             (List.length kept) (List.length tl)); *)
+        let initial_sat =
           SMTSolver.check_sat_assuming_tf solver
             (* Check I |= C *)
             [ clause'_actlit_n0; C.actlit_of_frame 0 ]
-        then
+        in
+        (* SMTSolver.trace_comment solver
+          (Format.asprintf
+             "ind_generalize #%d: END initiality check result=%s"
+             (C.id_of_clause clause)
+             (if initial_sat then "sat" else "unsat")); *)
+        if initial_sat then
           (* If sat: Clause without literal is not initial *)
           keep_literal ()
         else
