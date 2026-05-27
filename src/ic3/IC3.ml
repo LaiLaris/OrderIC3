@@ -429,123 +429,18 @@ let deactivate_subsumed solver (subsumed, frame') =
 let ind_generalize solver prop_set frame clause literals =
   let prioritize_ind_gen_frequency_literals literals =
     if Flags.IC3QE.freq_sort () && frame <> [] then
-      let state_var_key svs =
-        svs |> List.map StateVar.string_of_state_var |> String.concat "|"
-      in
-      let is_comparison_symbol s =
-        s == Symbol.s_eq || s == Symbol.s_leq || s == Symbol.s_geq
-        || s == Symbol.s_lt || s == Symbol.s_gt
-      in
-      let comparison_body lit =
-        if Term.is_negated lit then Term.unnegate lit else lit
-      in
-      let is_expensive_arithmetic_symbol s =
-        match Symbol.node_of_symbol s with
-        | `DIV | `INTDIV | `MOD -> true
-        | _ -> false
-      in
-      let arithmetic_shape term =
-        let rec aux (has_let, count) term =
-          match Term.node_of_term term with
-          | Term.T.Node (s, args) ->
-              let count =
-                if is_expensive_arithmetic_symbol s then succ count else count
-              in
-              List.fold_left aux (has_let, count) args
-          | Term.T.Let _ -> (true, count)
-          | Term.T.Annot (term, _) -> aux (has_let, count) term
-          | _ -> (has_let, count)
-        in
-        aux (false, 0) term
-      in
-      let has_expensive_arithmetic term =
-        let has_let, arith_count = arithmetic_shape term in
-        has_let || arith_count > 1
-      in
-      let structural_key lit =
-        if has_expensive_arithmetic lit then None
-        else
-          let svs =
-            Term.state_vars_of_term lit |> StateVar.StateVarSet.elements
-          in
-          match svs with
-          | [] -> None
-          | [ _ ] -> Some (`Single, state_var_key svs)
-          | _ -> (
-              match Term.destruct (comparison_body lit) with
-              | Term.T.App (s, _) when is_comparison_symbol s ->
-                  Some (`Affine, state_var_key svs)
-              | _ -> None)
-      in
-      let structural_support =
-        List.fold_left
-          (fun acc lit ->
-            match structural_key lit with
-            | None -> acc
-            | Some (_, key) ->
-                let count = try StringMap.find key acc with Not_found -> 0 in
-                StringMap.add key (succ count) acc)
-          StringMap.empty literals
-      in
-      let structural_support_of lit =
-        match structural_key lit with
-        | None -> 1
-        | Some (kind, key) ->
-            let count = try StringMap.find key structural_support with Not_found -> 1 in
-            (match kind with
-            | `Single -> if count = 2 then 2 else 1
-            | `Affine -> if count = 2 then 2 else 1)
-      in
-      let boundary_delay lit =
-        let body = comparison_body lit in
-        match Term.destruct body with
-        | Term.T.App (s, _)
-          when s == Symbol.s_leq || s == Symbol.s_geq || s == Symbol.s_lt
-               || s == Symbol.s_gt ->
-            1
-        | Term.T.App (s, _) when s == Symbol.s_eq -> 0
-        | _ -> 0
-      in
-      let has_structural_cluster =
-        List.exists (fun lit -> structural_support_of lit = 2) literals
-      in
-      let has_expensive_arithmetic_literal =
-        List.exists has_expensive_arithmetic literals
-      in
-      let expensive_arithmetic_rank lit =
-        if has_expensive_arithmetic lit then 0 else 1
-      in
       let reordered =
-        if has_structural_cluster || has_expensive_arithmetic_literal then
-          let indexed = List.mapi (fun i lit -> (i, lit)) literals in
-          List.sort
-            (fun (i1, lit1) (i2, lit2) ->
+        let indexed = List.mapi (fun i lit -> (i, lit)) literals in
+        List.sort
+          (fun (i1, lit1) (i2, lit2) ->
               let c =
-                compare (expensive_arithmetic_rank lit1)
-                  (expensive_arithmetic_rank lit2)
+                compare
+                  (ind_gen_literal_frequency_of lit1)
+                  (ind_gen_literal_frequency_of lit2)
               in
-              if c <> 0 then c
-              else
-                let c =
-                  compare (structural_support_of lit1)
-                    (structural_support_of lit2)
-                in
-                if c <> 0 then c
-                else
-                  let c = compare (boundary_delay lit1)
-                      (boundary_delay lit2)
-                  in
-                  if c <> 0 then c
-                  else
-                    let c =
-                      compare
-                        (ind_gen_literal_frequency_of lit1)
-                        (ind_gen_literal_frequency_of lit2)
-                    in
-                    if c <> 0 then c else compare i1 i2)
-            indexed
-          |> List.map snd
-        else literals
+              if c <> 0 then c else compare i1 i2)
+          indexed
+        |> List.map snd
       in
       SMTSolver.trace_comment solver
         (Format.asprintf
@@ -556,10 +451,7 @@ let ind_generalize solver prop_set frame clause literals =
            (pp_print_list
               (fun ppf lit ->
                 Format.fprintf ppf
-                  "[exp=%d cluster=%d boundary_delay=%d freq=%.3f] %a"
-                  (1 - expensive_arithmetic_rank lit)
-                  (structural_support_of lit)
-                  (boundary_delay lit)
+                  "[freq=%.3f] %a"
                   (ind_gen_literal_frequency_of lit)
                   Term.pp_print_term lit)
               "@,")
@@ -567,10 +459,7 @@ let ind_generalize solver prop_set frame clause literals =
            (pp_print_list
               (fun ppf lit ->
                 Format.fprintf ppf
-                  "[exp=%d cluster=%d boundary_delay=%d freq=%.3f] %a"
-                  (1 - expensive_arithmetic_rank lit)
-                  (structural_support_of lit)
-                  (boundary_delay lit)
+                  "[freq=%.3f] %a"
                   (ind_gen_literal_frequency_of lit)
                   Term.pp_print_term lit)
               "@,")

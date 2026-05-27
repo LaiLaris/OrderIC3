@@ -51,6 +51,29 @@ cluster = 2 iff the same key occurs exactly twice in the current clause
 If the same single-variable key appears once, or more than twice, it remains
 `cluster = 1`.
 
+There is one additional guardrail for same-variable integer bounds. If the two
+single-variable literals are both simple linear inequalities in the same
+direction, they are not protected as a pair:
+
+```text
+x <= c1 and x <= c2  -> cluster = 1
+x <  c1 and x <  c2  -> cluster = 1
+x >= c1 and x >= c2  -> cluster = 1
+x >  c1 and x >  c2  -> cluster = 1
+```
+
+This avoids protecting shifted or sliding bounds such as `x <= 0` together with
+`x <= 63`. Those pairs are often redundant boundary artifacts, not useful
+two-sided structure. The guardrail is intentionally limited to simple
+single-variable linear inequalities; equalities, disequalities, non-linear
+terms, expensive arithmetic, and multi-variable affine pairs keep the existing
+rules.
+
+This guardrail only demotes such pairs back to `cluster = 1`. It does not add a
+new sorting trigger by itself. If a clause contains only a same-direction
+single-bound pair and no remaining `cluster = 2` or `exp = 1` literal, the
+original literal order is preserved.
+
 ### Multi-variable comparison literals
 
 A literal is treated as `Affine` when:
@@ -129,13 +152,21 @@ The current boundary-delay rule is:
 
 ```text
 boundary_delay = 0 for equality literals and ordinary literals
-boundary_delay = 1 for inequality/boundary literals: <=, >=, <, >
+boundary_delay = 1 for syntactically direct inequality/boundary literals:
+                   <=, >=, <, >
 ```
 
 Thus boundary literals are delayed relative to equalities when all earlier sort
 keys tie. The name is intentionally literal: a larger value means the literal is
 tried later for deletion and is therefore more likely to survive
 generalization.
+
+Implementation note: this rule intentionally uses the existing syntactic
+`Term.is_negated`/`Term.unnegate` path. Some printed literals of the form
+`(not (> ...))` may therefore still appear as `boundary_delay = 0` in traces.
+The same-direction single-bound guardrail uses its own more robust top-level
+negation handling, but that robustness is not currently applied to
+`boundary_delay`.
 
 ## Frequency
 
@@ -162,6 +193,7 @@ The current `freq_sort` strategy can be read as:
 ```text
 Try to delete complex arithmetic, ordinary, low-frequency, equality literals first.
 Delay structural pairs, high-frequency literals, and boundary inequalities.
+Do not delay same-direction shifted single-variable bounds as a structural pair.
 ```
 
 In IC3/PDR terms, delaying a literal makes it more likely to survive
@@ -188,3 +220,21 @@ useful-looking arithmetic literal is actually a complex `let`/nested-`div`
 expression over `steps_remaining`. Those clauses make later forward propagation
 queries expensive. The current rule still marks these shapes as `exp = 1` and
 removes their structural protection.
+
+`DRAGON_8_e7_3752` exposes a different failure mode with ordinary linear
+integer bounds. Protecting same-variable shifted bounds can leave clauses such
+as:
+
+```text
+call_32_2 <= c
+call_32_2 + call_32_3 >= c + 1
+```
+
+and the constant `c` then advances through many blocking rounds. Demoting
+same-direction single-variable bound pairs prevents this sliding-bound chain and
+lets the run learn the compact single-bound invariant again.
+
+`car_5_e7_244` has a related-looking single-bound pair early in the run, but it
+does not benefit consistently from this guardrail by itself. Treat it as a
+separate tuning case rather than evidence that all same-variable bound pairs
+should be handled more aggressively.
