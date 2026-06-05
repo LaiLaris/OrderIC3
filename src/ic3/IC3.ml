@@ -41,15 +41,8 @@ let max_unrolling = ref 0
 (* Formatter to output inductive clauses to *)
 let ppf_inductive_assertions = ref Format.std_formatter
 
-(* Last online approximation of the offline first-built-frame:
-   the first non-empty frame in the latest check_frames block whose frontier
-   was subsequently proved safe. *)
-let first_built_frame_literals : Term.TermSet.t option ref = ref None
-
 let ind_gen_literal_frequency : float Term.TermHashtbl.t =
   Term.TermHashtbl.create 251
-
-module StringMap = Map.Make (String)
 
 (* Multiplicative decay applied to every entry before each batch increment,
    matching IC3Ref's litOrder.decay() (IC3.cpp lines 337-340, called from
@@ -61,7 +54,6 @@ let decay_ind_gen_literal_frequency () =
   Term.TermHashtbl.filter_map_inplace
     (fun _ count -> Some (count *. ind_gen_literal_frequency_decay))
     ind_gen_literal_frequency
-
 let incr_ind_gen_literal_frequency literals =
   decay_ind_gen_literal_frequency ();
   List.iter
@@ -76,7 +68,39 @@ let incr_ind_gen_literal_frequency literals =
 let ind_gen_literal_frequency_of lit =
   try Term.TermHashtbl.find ind_gen_literal_frequency lit with Not_found -> 0.0
 
-let record_safe_frontier_first_built_frame solver frontier_level frames =
+let rec literal_ast_complexity term =
+  match Term.destruct term with
+  | Term.T.Const _ | Term.T.Var _ -> 1
+  (* Ignore a leading negation so that [p] and [not p] have equal depth. *)
+  (* | Term.T.App (s, [ arg ]) when s == Symbol.s_not ->
+      literal_ast_complexity arg *)
+  | Term.T.App (_, args) ->
+      1
+      + List.fold_left
+          (fun acc arg -> acc + literal_ast_complexity arg)
+          0 args
+
+(* Returns true if the literal (after stripping any leading negation) has
+   equality or disequality (EQ / DISTINCT) as its top-level symbol.
+   Such literals are preferred early in ind-gen: they constrain variables
+   precisely and are relatively cheap for the solver to reason about. *)
+(* let literal_is_eq_or_neq lit =
+  let body =
+    match Term.T.node_of_t lit with
+    | Term.T.Node (s, [ arg ]) when s == Symbol.s_not ->
+        (* peek through a single negation *)
+        arg
+    | _ -> lit
+  in
+  match Term.T.node_of_t body with
+  | Term.T.Node (s, _) | Term.T.Leaf s -> (
+      match Symbol.node_of_symbol s with
+      | `EQ | `DISTINCT -> true
+      | _ -> false)
+  | _ -> false  *)
+
+
+(* let record_safe_frontier_first_built_frame solver frontier_level frames =
   if Flags.IC3QE.first_frame_order () then
     let rec first_non_empty level = function
       | [] -> None
@@ -107,7 +131,7 @@ let record_safe_frontier_first_built_frame solver frontier_level frames =
              clauses
              (Term.TermSet.cardinal literals)
              (pp_print_list Term.pp_print_term "@,")
-             (Term.TermSet.elements literals))
+             (Term.TermSet.elements literals)) *)
 
 (* Output statistics *)
 let print_stats () =
@@ -430,71 +454,49 @@ let ind_generalize solver prop_set frame clause literals =
   let prioritize_ind_gen_frequency_literals literals =
     if Flags.IC3QE.freq_sort () && frame <> [] then
       let reordered =
+        let use_ast_complexity = Flags.IC3QE.literal_ast_complexity () in
         let indexed = List.mapi (fun i lit -> (i, lit)) literals in
         List.sort
           (fun (i1, lit1) (i2, lit2) ->
-              let c =
+            let c =
+              compare
+                (ind_gen_literal_frequency_of lit1)
+                (ind_gen_literal_frequency_of lit2)
+            in
+            if c <> 0 then c
+            else if use_ast_complexity then
+              let c2 =
                 compare
-                  (ind_gen_literal_frequency_of lit1)
-                  (ind_gen_literal_frequency_of lit2)
+                  (literal_ast_complexity lit1)
+                  (literal_ast_complexity lit2)
               in
-              if c <> 0 then c else compare i1 i2)
+              if c2 <> 0 then c2 else compare i1 i2
+            else compare i1 i2)
           indexed
         |> List.map snd
+      in
+      let pp_literal_frequency ppf lit =
+        if Flags.IC3QE.literal_ast_complexity () then
+          Format.fprintf ppf "%a [freq=%.3f, ast=%d]" Term.pp_print_term lit
+            (ind_gen_literal_frequency_of lit)
+            (literal_ast_complexity lit)
+        else
+          Format.fprintf ppf "%a [freq=%.3f]" Term.pp_print_term lit
+            (ind_gen_literal_frequency_of lit)
       in
       SMTSolver.trace_comment solver
         (Format.asprintf
            "@[<v>ind-gen literal frequency priority for clause #%d:@,\
             original:@,%a@,\
-            pair-structure-gated priority:@,%a@]"
+            reordered by %s:@,%a@]"
            (C.id_of_clause clause)
-           (pp_print_list
-              (fun ppf lit ->
-                Format.fprintf ppf
-                  "[freq=%.3f] %a"
-                  (ind_gen_literal_frequency_of lit)
-                  Term.pp_print_term lit)
-              "@,")
+           (pp_print_list pp_literal_frequency "@,")
            literals
-           (pp_print_list
-              (fun ppf lit ->
-                Format.fprintf ppf
-                  "[freq=%.3f] %a"
-                  (ind_gen_literal_frequency_of lit)
-                  Term.pp_print_term lit)
-              "@,")
+           (if Flags.IC3QE.literal_ast_complexity () then "freq+ast"
+            else "freq")
+           (pp_print_list pp_literal_frequency "@,")
            reordered);
       reordered
-    else literals
-  in
-  let prioritize_first_built_frame_literals literals =
-    if Flags.IC3QE.first_frame_order () then
-      match !first_built_frame_literals with
-      | None -> literals
-      | Some fb_lits ->
-          let in_fb, not_in_fb =
-            List.partition (fun lit -> Term.TermSet.mem lit fb_lits) literals
-          in
-          let reordered = not_in_fb @ in_fb in
-          (* SMTSolver.trace_comment solver
-            (Format.asprintf
-               "@[<v>first-built-frame literal priority for clause #%d:@,\
-                original:@,%a@,\
-                not-in-first-built-frame first (%d):@,%a@,\
-                first-built-frame delayed (%d):@,%a@,\
-                reordered:@,%a@]"
-               (C.id_of_clause clause)
-               (pp_print_list Term.pp_print_term "@,")
-               literals
-               (List.length not_in_fb)
-               (pp_print_list Term.pp_print_term "@,")
-               not_in_fb
-               (List.length in_fb)
-               (pp_print_list Term.pp_print_term "@,")
-               in_fb
-               (pp_print_list Term.pp_print_term "@,")
-               reordered); *)
-          reordered
     else literals
   in
 
@@ -532,11 +534,11 @@ let ind_generalize solver prop_set frame clause literals =
                (C.id_of_clause clause) (C.id_of_clause clause')
                (pp_print_list Term.pp_print_term ";@ ")
                (C.literals_of_clause clause'));
-          if Flags.IC3QE.freq_sort () then
-            incr_ind_gen_literal_frequency (C.literals_of_clause clause');
-          (* cex_clauses := clause :: !cex_clauses;
-          generalized_clauses := clause' :: !generalized_clauses;
-          generalization_pairs := (clause, clause') :: !generalization_pairs; *)
+          if Flags.IC3QE.freq_sort () then (
+            let lits = C.literals_of_clause clause' in
+            (* Skip single-literal clauses: they perturb the frequency too much *)
+            (* if List.length lits >= 2 then *)
+              incr_ind_gen_literal_frequency lits);
           clause')
     (* Do not try to generalize to the empty clause, this should not
        be possible in a sound transition system *)
@@ -631,8 +633,7 @@ let ind_generalize solver prop_set frame clause literals =
 
   linear_search []
     (literals
-    |> prioritize_ind_gen_frequency_literals
-    |> prioritize_first_built_frame_literals)
+    |> prioritize_ind_gen_frequency_literals)
 (*
 
 
@@ -813,7 +814,6 @@ let add_to_block_tl solver block_clause block_trace = function
   | (block_clauses, r_succ_i) :: block_clauses_tl ->
       (* (block_clauses @ [C.copy_clause solver block_clause, block_trace], r_succ_i) :: block_clauses_tl *)
       let block_clause' = C.copy_clause_block_prop block_clause in
-
       SMTSolver.trace_comment solver
         (Format.asprintf
            "@[<hv>Copied clause #%d for blocking at depth %d:@ #%d @[<hv \
@@ -823,7 +823,6 @@ let add_to_block_tl solver block_clause block_trace = function
            (C.id_of_clause block_clause')
            (pp_print_list Term.pp_print_term ";@ ")
            (C.literals_of_clause block_clause'));
-
       ((block_clause', block_trace) :: block_clauses, r_succ_i)
       :: block_clauses_tl
 (* (block_clauses @ [block_clause', block_trace], r_succ_i) :: block_clauses_tl *)
@@ -985,7 +984,6 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
             (Format.sprintf
                "block: Check if all successors of frontier R_%d are safe."
                (List.length frames));
-
           match
             (* Check P[x] & R_k[x] & T[x,x'] |= P[x']
 
@@ -2051,8 +2049,6 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
   in
 
   Stat.record_time Stat.ic3_fwd_prop_time;
-
-  record_safe_frontier_first_built_frame solver (List.length frames') frames';
 
   Stat.set_int_list (frame_sizes frames') Stat.ic3_frame_sizes;
 

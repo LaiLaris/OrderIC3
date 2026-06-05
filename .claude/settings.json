@@ -3,10 +3,24 @@
     "allow": [
       "Read(//home/lyh/.claude/**)",
       "Bash(mkdir -p /home/lyh/.claude/skills/push && ls /home/lyh/.claude/skills/)",
-      "Edit(~/.claude/skills/push/**)"
+      "Edit(~/.claude/skills/push/**)",
+      "Bash(awk '/New clause from inductive generalization of #24:/,/New clause from inductive generalization of #153:/' /home/lyh/kind2-2.3.0-OrderIC3-v2/bin/car_244_0602.log)",
+      "Bash(awk -F: 'NR<=15 {print $1\": \"$2}')",
+      "Bash(./kind2 --help)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(timeout 120 ./kind2 --enable IC3QE -vv --color false /home/lyh/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave19.lus --ic3qe_freq_sort --ic3qe_literal_ast_complexity --ic3qe_expensive_op_first > m19_freq.log 2>&1; echo \"exit=$?\"; echo \"=== expensive-op hits ===\"; grep -c \"expensive-op literals prioritized\" m19_freq.log)",
+      "Bash(opam exec *)",
+      "Read(//home/lyh/.opam/4.14.0/lib/dune-build-info/**)",
+      "Bash(dune --version)",
+      "Read(//home/lyh/.opam/4.14.0/bin/**)",
+      "Bash(ocamlc -version)",
+      "Bash(opam switch *)",
+      "Bash(DIV\\\\b\" src/terms/term.ml src/utils/symbol.ml src/smt/*.ml 2>/dev/null | grep -i \"div\" | head -20)",
+      "Bash(grep -n \"\\\\\"div\\\\\"\\\\|INTDIV\\\\|\\\\\"/\\\\\"\\\\|`DIV\\\\b\" src/terms/term.ml src/utils/symbol.ml src/smt/*.ml 2>/dev/null | grep -i \"div\" | head -20)"
     ],
     "additionalDirectories": [
-      "/home/lyh/.claude/skills"
+      "/home/lyh/.claude/skills",
+      "/home/lyh/kind2-2.3.0-OrderIC3-v2/bin"
     ]
   }
 }

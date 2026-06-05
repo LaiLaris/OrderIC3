@@ -419,44 +419,20 @@ module IC3QE : sig
   val fwd_prop_subsume : unit -> bool
   (** Subsumption in forward propagation. *)
 
-  val ltr_sort : unit -> bool
-  (** Enable LTR-based heuristic literal ordering. *)
-
-  val refer_skipping : unit -> bool
-  (** Enable refer-skipping during inductive generalization. *)
-
-  val simple_sort : unit -> bool
-  (** Enable simple compactness-based literal ordering during inductive generalization. *)
-
-  val ast_desc : unit -> bool
-  (** Enable descending AST-complexity-based literal ordering during inductive generalization. *)
-
-  val ast_asc : unit -> bool
-  (** Enable ascending AST-complexity-based literal ordering during inductive generalization. *)
+  val literal_ast_complexity : unit -> bool
+  (** Use AST complexity as a tie-breaker in IC3QE frequency literal ordering. *)
 
   val freq_sort : unit -> bool
   (** Enable online inductive-generalization literal-frequency ordering during inductive generalization. *)
 
-  val first_frame_order : unit -> bool
-  (** Enable first-built-frame literal ordering during inductive generalization. *)
-
   val block_growth_guard : unit -> bool
   (** Enable a local blocking-chain guard that suppresses repeated template-growth obligations. *)
-
-  val branching : unit -> bool
-  (** Enable branching for i-good lemmas. *)
-
-  val ic3ref_branching : unit -> bool
-  (** Enable IC3ref-style learned-clause frequency ordering. *)
 
   val intersection : unit -> bool
   (** Enable Intersection-style auxiliary state and debug output. *)
 
   val intersection_limit : unit -> int
   (** Number of recent finalized cores used by Intersection/CoreLocality-style ordering. *)
-
-  val cluster_conflict_sort : unit -> bool
-  (** Reorder clause literals before unsat-core extraction by variable-overlap conflict clusters. *)
 
   val use_invgen : unit -> bool
   (** Use invariants from invariant generators. *)

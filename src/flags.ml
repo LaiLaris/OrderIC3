@@ -876,56 +876,19 @@ module IC3QE = struct
           fwd_prop_subsume_default)
 
   let fwd_prop_subsume () = !fwd_prop_subsume
-  let ltr_sort_default = false
-  let ltr_sort = ref ltr_sort_default
+  
+  let literal_ast_complexity_default = false
+  let literal_ast_complexity = ref literal_ast_complexity_default
 
   let _ =
-    add_spec "--ic3qe_ltr_sort" (Arg.Set ltr_sort) (fun fmt ->
+    add_spec "--ic3qe_literal_ast_complexity"
+      (Arg.Set literal_ast_complexity)
+      (fun fmt ->
         Format.fprintf fmt
-          "@[<v>Enable LTR-based heuristic literal ordering@ Default: %a@]"
-          fmt_bool ltr_sort_default)
+          "@[<v>Use AST complexity as a tie-breaker in IC3QE frequency literal ordering@ Default: %a@]"
+          fmt_bool literal_ast_complexity_default)
 
-  let ltr_sort () = !ltr_sort
-  let refer_skipping_default = false
-  let refer_skipping = ref refer_skipping_default
-
-  let _ =
-    add_spec "--ic3qe_refer_skipping" (bool_arg refer_skipping) (fun fmt ->
-        Format.fprintf fmt
-          "@[<v>Enable refer-skipping during inductive generalization@ Default: %a@]"
-          fmt_bool refer_skipping_default)
-
-  let refer_skipping () = !refer_skipping
-  let simple_sort_default = false
-  let simple_sort = ref simple_sort_default
-
-  let _ =
-    add_spec "--ic3qe_simple_sort" (Arg.Set simple_sort) (fun fmt ->
-        Format.fprintf fmt
-          "@[<v>Enable simple compactness-based literal ordering during inductive generalization@ Default: %a@]"
-          fmt_bool simple_sort_default)
-
-  let simple_sort () = !simple_sort
-  let ast_desc_default = false
-  let ast_desc = ref ast_desc_default
-
-  let _ =
-    add_spec "--ic3qe_ast_desc" (Arg.Set ast_desc) (fun fmt ->
-        Format.fprintf fmt
-          "@[<v>Enable descending AST-complexity-based literal ordering during inductive generalization@ Default: %a@]"
-          fmt_bool ast_desc_default)
-
-  let ast_desc () = !ast_desc
-  let ast_asc_default = false
-  let ast_asc = ref ast_asc_default
-
-  let _ =
-    add_spec "--ic3qe_ast_asc" (Arg.Set ast_asc) (fun fmt ->
-        Format.fprintf fmt
-          "@[<v>Enable ascending AST-complexity-based literal ordering during inductive generalization@ Default: %a@]"
-          fmt_bool ast_asc_default)
-
-  let ast_asc () = !ast_asc
+  let literal_ast_complexity () = !literal_ast_complexity
   let freq_sort_default = false
   let freq_sort = ref freq_sort_default
 
@@ -936,16 +899,6 @@ module IC3QE = struct
           fmt_bool freq_sort_default)
 
   let freq_sort () = !freq_sort
-  let first_frame_order_default = false
-  let first_frame_order = ref first_frame_order_default
-
-  let _ =
-    add_spec "--ic3qe_first_frame_order" (Arg.Set first_frame_order) (fun fmt ->
-        Format.fprintf fmt
-          "@[<v>Enable first-built-frame literal ordering during inductive generalization@ Default: %a@]"
-          fmt_bool first_frame_order_default)
-
-  let first_frame_order () = !first_frame_order
   let block_growth_guard_default = false
   let block_growth_guard = ref block_growth_guard_default
 
@@ -956,26 +909,7 @@ module IC3QE = struct
           fmt_bool block_growth_guard_default)
 
   let block_growth_guard () = !block_growth_guard
-  let branching_default = false
-  let branching = ref branching_default
 
-  let _ =
-    add_spec "--ic3qe_branching" (bool_arg branching) (fun fmt ->
-        Format.fprintf fmt
-          "@[<v>Enable branching for i-good lemmas@ Default: %a@]"
-          fmt_bool branching_default)
-
-  let branching () = !branching
-  let ic3ref_branching_default = false
-  let ic3ref_branching = ref ic3ref_branching_default
-
-  let _ =
-    add_spec "--ic3qe_ic3ref_branching" (Arg.Set ic3ref_branching) (fun fmt ->
-        Format.fprintf fmt
-          "@[<v>Enable IC3ref-style learned-clause frequency ordering@ Default: %a@]"
-          fmt_bool ic3ref_branching_default)
-
-  let ic3ref_branching () = !ic3ref_branching
   let intersection_default = false
   let intersection = ref intersection_default
 
@@ -996,18 +930,6 @@ module IC3QE = struct
           intersection_limit_default)
 
   let intersection_limit () = !intersection_limit
-  let cluster_conflict_sort_default = false
-  let cluster_conflict_sort = ref cluster_conflict_sort_default
-
-  let _ =
-    add_spec "--ic3qe_cluster_conflict_sort"
-      (Arg.Set cluster_conflict_sort)
-      (fun fmt ->
-        Format.fprintf fmt
-          "@[<v>Reorder clause literals before unsat-core extraction by variable-overlap conflict clusters@ Default: %a@]"
-          fmt_bool cluster_conflict_sort_default)
-
-  let cluster_conflict_sort () = !cluster_conflict_sort
   let use_invgen_default = true
   let use_invgen = ref use_invgen_default
 
