@@ -1433,6 +1433,22 @@ module Certif = struct
 
   let certif () = !certif
   let proof () = !proof
+
+(* lyh_add *)
+  let load_inv_default = ""
+  let load_inv = ref load_inv_default
+
+  let _ =
+    add_spec "--load_inv"
+      (Arg.String (fun s -> load_inv := s))
+      (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Load an invariant from the specified file to verify its \
+           correctness.@ The invariant will be checked against the system \
+           properties.@ Default: %a@]"
+          Format.pp_print_string load_inv_default)
+
+  let load_inv () = !load_inv
   let smaller_holes_default = false
   let smaller_holes = ref smaller_holes_default
 

@@ -44,6 +44,9 @@ let ppf_inductive_assertions = ref Format.std_formatter
 let ind_gen_literal_frequency : float Term.TermHashtbl.t =
   Term.TermHashtbl.create 251
 
+(* let pending_ind_gen_literal_frequency : float Term.TermHashtbl.t =
+  Term.TermHashtbl.create 251 *)
+
 (* Multiplicative decay applied to every entry before each batch increment,
    matching IC3Ref's litOrder.decay() (IC3.cpp lines 337-340, called from
    updateLitOrder before count). Recent literals weigh more; stale counts
@@ -54,6 +57,31 @@ let decay_ind_gen_literal_frequency () =
   Term.TermHashtbl.filter_map_inplace
     (fun _ count -> Some (count *. ind_gen_literal_frequency_decay))
     ind_gen_literal_frequency
+
+(* let accum_ind_gen_literal_frequency literals =
+  List.iter
+    (fun lit ->
+      let count =
+        try Term.TermHashtbl.find pending_ind_gen_literal_frequency lit
+        with Not_found -> 0.0
+      in
+      Term.TermHashtbl.replace pending_ind_gen_literal_frequency lit
+        (count +. 1.0))
+    literals
+
+let flush_ind_gen_literal_frequency () =
+  decay_ind_gen_literal_frequency ();
+  Term.TermHashtbl.iter
+    (fun lit pending_count ->
+      let count =
+        try Term.TermHashtbl.find ind_gen_literal_frequency lit
+        with Not_found -> 0.0
+      in
+      Term.TermHashtbl.replace ind_gen_literal_frequency lit
+        (count +. pending_count))
+    pending_ind_gen_literal_frequency;
+  Term.TermHashtbl.clear pending_ind_gen_literal_frequency *)
+
 let incr_ind_gen_literal_frequency literals =
   decay_ind_gen_literal_frequency ();
   List.iter
@@ -64,7 +92,6 @@ let incr_ind_gen_literal_frequency literals =
       in
       Term.TermHashtbl.replace ind_gen_literal_frequency lit (count +. 1.0))
     literals
-
 let ind_gen_literal_frequency_of lit =
   try Term.TermHashtbl.find ind_gen_literal_frequency lit with Not_found -> 0.0
 
@@ -132,6 +159,16 @@ let rec literal_ast_complexity term =
              (Term.TermSet.cardinal literals)
              (pp_print_list Term.pp_print_term "@,")
              (Term.TermSet.elements literals)) *)
+
+(* Extract all or-clauses from a constraint conjunction *)
+let extract_clauses_from_constraint constr_term =
+  let rec extract_or_clauses term =
+    match Term.T.destruct term with
+    | Term.T.App (s_and, terms) when Symbol.equal_symbols s_and Symbol.s_and ->
+        List.concat (List.map extract_or_clauses terms)
+    | _ -> [term]
+  in
+  extract_or_clauses constr_term
 
 (* Output statistics *)
 let print_stats () =
@@ -537,8 +574,9 @@ let ind_generalize solver prop_set frame clause literals =
           if Flags.IC3QE.freq_sort () then (
             let lits = C.literals_of_clause clause' in
             (* Skip single-literal clauses: they perturb the frequency too much *)
-            (* if List.length lits >= 2 then *)
-              incr_ind_gen_literal_frequency lits);
+              incr_ind_gen_literal_frequency lits;
+              (* accum_ind_gen_literal_frequency lits *)
+            );
           clause')
     (* Do not try to generalize to the empty clause, this should not
        be possible in a sound transition system *)
@@ -954,6 +992,8 @@ let abstr_simulate trace trans_sys raise_cex =
 
     interpolants
 
+let inv_loaded = ref false
+
 (* Block sets of bad states in frames
 
    The last two arguments [frames] and [trace] are lists of frames and
@@ -975,7 +1015,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
       (* k > 0, we must have at least one frame *)
       | [] -> raise (Invalid_argument "block")
       (* Head of frames is the last frame *)
-      | r_k :: frames_tl as frames -> (
+      | r_k_orig :: frames_tl as frames -> (
           (* Receive and assert new invariants *)
           handle_events solver input_sys aparam trans_sys
             (C.props_of_prop_set prop_set);
@@ -984,6 +1024,112 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
             (Format.sprintf
                "block: Check if all successors of frontier R_%d are safe."
                (List.length frames));
+
+          (* Load external invariant clauses into the first frame, once *)
+          let r_k =
+            if List.length frames = 1 && not !inv_loaded then (
+              let filename = Flags.Certif.load_inv () in
+              if filename <> "" then (
+                inv_loaded := true;
+                match (try Some (InvParser.load_inv filename)
+                       with InvParser.Parse_error msg ->
+                         Format.printf
+                           "[Block] Failed to parse invariant from %s: %s@\n%!"
+                           filename msg;
+                         None)
+                with
+                | None -> r_k_orig
+                | Some constr_term ->
+                Format.printf
+                  "[Block] Loading constraint clauses into k=1 frame from %s@\n%!"
+                  filename;
+
+                let constr_clauses = extract_clauses_from_constraint constr_term in
+                Format.printf
+                  "[Block] Extracted %d clauses from constraint@\n%!"
+                  (List.length constr_clauses);
+                
+                (* 输出每个clause的具体内容 *)
+                (* List.iteri
+                  (fun i clause ->
+                    Format.printf
+                      "[Block] Clause %d: @[<hv>%a@]@\n%!"
+                      (i + 1)
+                      Term.pp_print_term clause)
+                  inv_clauses *)
+
+
+                (* 将每个clause添加到第一个frame *)
+                let updated_first_frame = 
+                  List.fold_left
+                    (fun frame clause_term ->
+                      let clause = 
+                        let literals = 
+                          match Term.destruct clause_term with
+                          | Term.T.App (s, literals) 
+                            when Symbol.equal_symbols s Symbol.s_or ->
+                              literals
+                          | _ -> [clause_term]
+                        in
+                        C.mk_clause_of_literals C.BlockFrontier literals
+                      in
+                      (* SMTSolver.trace_comment solver
+                      (Format.asprintf
+                        "@[<hv>New invariant clause:@ #%d @[<hv 1>{%a}@]@]"
+                        (C.id_of_clause clause)
+                        (pp_print_list Term.pp_print_term ";@ ")
+                        (C.literals_of_clause clause)); *)
+                      let literals = C.literals_of_clause clause in
+                      (* 检查literals是否为空，避免Trie错误 *)
+                      if literals = [] then (
+                        Format.printf
+                          "[Block] Warning: Empty literals, skipping clause@\n%!";
+                        frame
+                      ) else (
+                        (* 激活clause的activation literal *)
+                        ignore (C.actlit_p0_of_clause solver clause);
+                        ignore (C.actlits_n0_of_clause solver clause);
+                        ignore (C.actlits_n1_of_clause solver clause);
+                        
+                        try
+                          (* Adding a clause may fail if it a prefix of a clause
+                             in the trie, or if a clause in the trie is a
+                             prefix of this clause *)
+                          F.add literals clause frame
+                        with Invalid_argument _ ->
+                          (* The new clause is not subsumed, because
+                             otherwise we would not get the counterexample *)
+                          (* Subsume in this frame and add *)
+                          try
+                            F.subsume frame literals
+                            |> snd
+                            |> F.add literals clause
+                          with Invalid_argument _ ->
+                            (* 如果仍然失败，跳过这个clause *)
+                            Format.printf
+                              "[Block] Warning: Failed to add clause after subsumption, skipping@\n%!";
+                            frame
+                      ))
+                    r_k_orig
+                    constr_clauses
+                in
+                updated_first_frame
+              ) else
+                r_k_orig
+            ) else
+              r_k_orig
+          in
+          SMTSolver.trace_comment solver
+            (Format.asprintf "@[<v>frames r_k:@,%a@]"
+              (fun ppf r_i ->
+                Format.fprintf ppf "@,Frame:@,%a"
+                  (pp_print_list
+                    (fun ppf c -> Format.fprintf ppf "%d" (C.id_of_clause c))
+                    "@,")
+                  (F.values r_i))
+              r_k);
+
+          
           match
             (* Check P[x] & R_k[x] & T[x,x'] |= P[x']
 
@@ -2060,6 +2206,8 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
   in
 
   Stat.record_time Stat.ic3_strengthen_time;
+
+  (* if Flags.IC3QE.freq_sort () then flush_ind_gen_literal_frequency (); *)
 
   Stat.set_int_list (frame_sizes frames'') Stat.ic3_frame_sizes;
 

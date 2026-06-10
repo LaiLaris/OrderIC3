@@ -570,6 +570,9 @@ module Certif : sig
   (** Binary for JKind *)
 
   val only_user_candidates : unit -> bool
+
+  val load_inv : unit -> string
+  (** File to load invariant from for verification. *)
 end
 
 (** {2 Inductive Validity Cores} *)
