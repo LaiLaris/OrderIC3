@@ -877,18 +877,18 @@ module IC3QE = struct
 
   let fwd_prop_subsume () = !fwd_prop_subsume
   
-  let literal_ast_complexity_default = false
-  let literal_ast_complexity = ref literal_ast_complexity_default
+  let ast_complexity_default = false
+  let ast_complexity = ref ast_complexity_default
 
   let _ =
-    add_spec "--ic3qe_literal_ast_complexity"
-      (Arg.Set literal_ast_complexity)
+    add_spec "--ic3qe_ast_complexity"
+      (Arg.Set ast_complexity)
       (fun fmt ->
         Format.fprintf fmt
           "@[<v>Use AST complexity as a tie-breaker in IC3QE frequency literal ordering@ Default: %a@]"
-          fmt_bool literal_ast_complexity_default)
+          fmt_bool ast_complexity_default)
 
-  let literal_ast_complexity () = !literal_ast_complexity
+  let ast_complexity () = !ast_complexity
   let freq_sort_default = false
   let freq_sort = ref freq_sort_default
 

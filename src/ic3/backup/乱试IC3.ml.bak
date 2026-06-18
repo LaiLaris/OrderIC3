@@ -44,6 +44,9 @@ let ppf_inductive_assertions = ref Format.std_formatter
 let ind_gen_literal_frequency : float Term.TermHashtbl.t =
   Term.TermHashtbl.create 251
 
+let ind_gen_singleton_boundary_literal_count : int Term.TermHashtbl.t =
+  Term.TermHashtbl.create 251
+
 (* let pending_ind_gen_literal_frequency : float Term.TermHashtbl.t =
   Term.TermHashtbl.create 251 *)
 
@@ -107,25 +110,854 @@ let rec literal_ast_complexity term =
           (fun acc arg -> acc + literal_ast_complexity arg)
           0 args
 
-(* Returns true if the literal (after stripping any leading negation) has
-   equality or disequality (EQ / DISTINCT) as its top-level symbol.
-   Such literals are preferred early in ind-gen: they constrain variables
-   precisely and are relatively cheap for the solver to reason about. *)
-(* let literal_is_eq_or_neq lit =
+let neg_one = Numeral.neg Numeral.one
+
+let add_boundary_coeff key coeff acc =
+  let old =
+    match Term.TermMap.find_opt key acc with
+    | Some coeff -> coeff
+    | None -> Numeral.zero
+  in
+  let coeff = Numeral.add old coeff in
+  if Numeral.equal coeff Numeral.zero then Term.TermMap.remove key acc
+  else Term.TermMap.add key coeff acc
+
+let merge_boundary_linear_forms (coeffs1, const1) (coeffs2, const2) =
+  let coeffs =
+    Term.TermMap.fold
+      (fun key coeff acc -> add_boundary_coeff key coeff acc)
+      coeffs2 coeffs1
+  in
+  (coeffs, Numeral.add const1 const2)
+
+let scale_boundary_linear_form k (coeffs, const) =
+  if Numeral.equal k Numeral.zero then (Term.TermMap.empty, Numeral.zero)
+  else
+    ( Term.TermMap.fold
+        (fun key coeff acc ->
+          add_boundary_coeff key (Numeral.mult k coeff) acc)
+        coeffs Term.TermMap.empty,
+      Numeral.mult k const )
+
+let is_boundary_constant_form (coeffs, _) = Term.TermMap.is_empty coeffs
+
+let rec collect_boundary_linear_int_expr term =
+  match Term.destruct term with
+  | Term.T.App (s, args) when s == Symbol.s_plus ->
+      List.fold_left
+        (fun acc arg ->
+          match acc, collect_boundary_linear_int_expr arg with
+          | Some acc, Some expr -> Some (merge_boundary_linear_forms acc expr)
+          | _ -> None)
+        (Some (Term.TermMap.empty, Numeral.zero))
+        args
+  | Term.T.App (s, [a; b]) when s == Symbol.s_minus -> (
+      match
+        collect_boundary_linear_int_expr a,
+        collect_boundary_linear_int_expr b
+      with
+      | Some lhs, Some rhs ->
+          Some
+            (merge_boundary_linear_forms lhs
+               (scale_boundary_linear_form neg_one rhs))
+      | _ -> None)
+  | Term.T.App (s, [a]) when s == Symbol.s_minus -> (
+      match collect_boundary_linear_int_expr a with
+      | Some expr -> Some (scale_boundary_linear_form neg_one expr)
+      | None -> None)
+  | Term.T.App (s, [a; b]) when s == Symbol.s_times -> (
+      match
+        collect_boundary_linear_int_expr a,
+        collect_boundary_linear_int_expr b
+      with
+      | Some lhs, Some rhs when is_boundary_constant_form lhs ->
+          Some (scale_boundary_linear_form (snd lhs) rhs)
+      | Some lhs, Some rhs when is_boundary_constant_form rhs ->
+          Some (scale_boundary_linear_form (snd rhs) lhs)
+      | _ -> None)
+  | _ when Term.is_numeral term ->
+      Some (Term.TermMap.empty, Term.numeral_of_term term)
+  | _ when Term.type_of_term term == Type.t_int ->
+      Some (Term.TermMap.singleton term Numeral.one, Numeral.zero)
+  | _ -> None
+
+type boundary_direction = UpperBound | LowerBound
+
+type boundary_literal = {
+  boundary_lit : Term.t;
+  boundary_family : (Term.t * Numeral.t) list;
+  boundary_direction : boundary_direction;
+  boundary_bound : Numeral.t;
+}
+
+module BoundaryKey = struct
+  [@@@warning "-34"]
+
+  type t = boundary_direction * (Term.t * Numeral.t) list
+
+  let compare_boundary_direction dir1 dir2 =
+    match (dir1, dir2) with
+    | UpperBound, UpperBound | LowerBound, LowerBound -> 0
+    | UpperBound, LowerBound -> -1
+    | LowerBound, UpperBound -> 1
+
+  let compare_boundary_family family1 family2 =
+    let rec loop family1 family2 =
+      match (family1, family2) with
+      | [], [] -> 0
+      | [], _ -> -1
+      | _, [] -> 1
+      | (term1, coeff1) :: tl1, (term2, coeff2) :: tl2 -> (
+          match Term.compare term1 term2 with
+          | 0 -> (
+              match Numeral.compare coeff1 coeff2 with
+              | 0 -> loop tl1 tl2
+              | c -> c)
+          | c -> c)
+    in
+    loop family1 family2
+
+  let compare (dir1, family1) (dir2, family2) =
+    match compare_boundary_direction dir1 dir2 with
+    | 0 -> compare_boundary_family family1 family2
+    | c -> c
+end
+
+let normalize_boundary_family coeffs const =
+  if Term.TermMap.is_empty coeffs then None
+  else
+    let family = Term.TermMap.bindings coeffs in
+    let sign =
+      match family with
+      | (_, coeff) :: _ when Numeral.compare coeff Numeral.zero < 0 -> neg_one
+      | _ -> Numeral.one
+    in
+    let coeffs, const =
+      if Numeral.equal sign Numeral.one then (coeffs, const)
+      else scale_boundary_linear_form neg_one (coeffs, const)
+    in
+    Some (Term.TermMap.bindings coeffs, const, Numeral.equal sign neg_one)
+
+let boundary_of_linear_leq_zero lit (coeffs, const) =
+  match normalize_boundary_family coeffs const with
+  | None -> None
+  | Some (family, const, flipped) ->
+      let bound = Numeral.neg const in
+      Some
+        {
+          boundary_lit = lit;
+          boundary_family = family;
+          boundary_direction = (if flipped then LowerBound else UpperBound);
+          boundary_bound = bound;
+        }
+
+let boundary_of_literal lit =
+  let neg, body =
+    match Term.destruct lit with
+    | Term.T.App (s, [arg]) when s == Symbol.s_not -> (true, arg)
+    | _ -> (false, lit)
+  in
+  match Term.destruct body with
+  | Term.T.App (s, [lhs; rhs]) -> (
+      let int_args =
+        Term.type_of_term lhs == Type.t_int && Term.type_of_term rhs == Type.t_int
+      in
+      let strict_lower_as_leq_zero lhs rhs =
+        if int_args then
+          Some
+            (Term.mk_plus
+               [Term.mk_minus [rhs; lhs]; Term.mk_num Numeral.one])
+        else None
+      in
+      let strict_upper_as_leq_zero lhs rhs =
+        if int_args then
+          Some
+            (Term.mk_plus
+               [Term.mk_minus [lhs; rhs]; Term.mk_num Numeral.one])
+        else None
+      in
+      let diff =
+        match Symbol.node_of_symbol s, neg with
+        | `GT, true | `LEQ, false -> Some (Term.mk_minus [lhs; rhs])
+        | `LT, true | `GEQ, false -> Some (Term.mk_minus [rhs; lhs])
+        | `GT, false | `LEQ, true -> strict_lower_as_leq_zero lhs rhs
+        | `LT, false | `GEQ, true -> strict_upper_as_leq_zero lhs rhs
+        | _ -> None
+      in
+      match diff with
+      | Some diff -> (
+          match collect_boundary_linear_int_expr diff with
+          | Some expr -> boundary_of_linear_leq_zero lit expr
+          | None -> None)
+      | None -> None)
+  | _ -> None
+
+let boundary_key boundary =
+  (boundary.boundary_direction, boundary.boundary_family)
+
+let ind_gen_template_density_threshold = ref 5
+
+let term_lists_equal l1 l2 =
+  List.length l1 = List.length l2 && List.for_all2 Term.equal l1 l2
+
+let ind_gen_state_var_id sv =
+  let scope = StateVar.scope_of_state_var sv |> String.concat "." in
+  scope ^ "/" ^ StateVar.name_of_state_var sv
+
+let ind_gen_numeral_sign term =
+  if Term.is_numeral term then
+    let n = Term.numeral_of_term term in
+    if Numeral.equal n Numeral.one then Some 1
+    else if Numeral.equal n neg_one then Some (-1)
+    else None
+  else None
+
+let ind_gen_state_var_of_term term =
+  match Term.destruct term with
+  | Term.T.Var v when Var.is_state_var_instance v ->
+      Some (Var.state_var_of_state_var_instance v)
+  | _ -> None
+
+let rec ind_gen_collect_linear_terms term =
+  match Term.destruct term with
+  | Term.T.App (s, args) when s == Symbol.s_plus -> (
+      let rec loop acc = function
+        | [] -> Some acc
+        | arg :: rest -> (
+            match ind_gen_collect_linear_terms arg with
+            | None -> None
+            | Some terms -> loop (List.rev_append terms acc) rest)
+      in
+      loop [] args)
+  | Term.T.App (s, [lhs; rhs]) when s == Symbol.s_minus -> (
+      match
+        ind_gen_collect_linear_terms lhs,
+        ind_gen_collect_linear_terms rhs
+      with
+      | Some lhs_terms, Some rhs_terms ->
+          let rhs_terms =
+            List.map (fun (sv, sign) -> (sv, -sign)) rhs_terms
+          in
+          Some (List.rev_append rhs_terms lhs_terms)
+      | _ -> None)
+  | Term.T.App (s, [arg]) when s == Symbol.s_minus -> (
+      match ind_gen_collect_linear_terms arg with
+      | Some terms -> Some (List.map (fun (sv, sign) -> (sv, -sign)) terms)
+      | None -> None)
+  | Term.T.App (s, [lhs; rhs]) when s == Symbol.s_times -> (
+      match ind_gen_numeral_sign lhs, ind_gen_state_var_of_term rhs with
+      | Some sign, Some sv -> Some [ (sv, sign) ]
+      | _ -> (
+          match ind_gen_numeral_sign rhs, ind_gen_state_var_of_term lhs with
+          | Some sign, Some sv -> Some [ (sv, sign) ]
+          | _ ->
+              if Term.is_numeral lhs || Term.is_numeral rhs then Some []
+              else None))
+  | _ -> (
+      match ind_gen_state_var_of_term term with
+      | Some sv -> Some [ (sv, 1) ]
+      | None -> if Term.is_numeral term then Some [] else None)
+
+let ind_gen_template_key term =
+  let comparison_linear_terms term =
+    match Term.destruct term with
+    | Term.T.App (s, [lhs; rhs]) -> (
+        match Symbol.node_of_symbol s with
+        | `LT | `GT | `LEQ | `GEQ | `EQ -> (
+            match
+              ind_gen_collect_linear_terms lhs,
+              ind_gen_collect_linear_terms rhs
+            with
+            | Some lhs_terms, Some rhs_terms ->
+                let rhs_terms =
+                  List.map (fun (sv, sign) -> (sv, -sign)) rhs_terms
+                in
+                Some (List.rev_append rhs_terms lhs_terms)
+            | _ -> None)
+        | _ -> None)
+    | _ -> None
+  in
+  let rec collect acc term =
+    let acc =
+      match comparison_linear_terms term with
+      | Some terms -> terms :: acc
+      | None -> acc
+    in
+    match Term.destruct term with
+    | Term.T.App (_, args) -> List.fold_left collect acc args
+    | _ -> acc
+  in
+  let normalize_terms terms =
+    terms
+    |> List.sort (fun (sv1, sign1) (sv2, sign2) ->
+           let c = String.compare (ind_gen_state_var_id sv1)
+               (ind_gen_state_var_id sv2)
+           in
+           if c <> 0 then c else compare sign1 sign2)
+    |> List.map (fun (sv, sign) ->
+           (if sign < 0 then "-" else "+") ^ ind_gen_state_var_id sv)
+    |> String.concat ","
+  in
+  match collect [] term with
+  | [] -> None
+  | templates ->
+      let keys =
+        templates |> List.map normalize_terms |> List.sort String.compare
+      in
+      Some (String.concat "|" keys)
+
+let prioritize_ind_gen_template_density_literals literals =
+  let template_counts = Hashtbl.create 251 in
+  List.iter
+    (fun lit ->
+      match ind_gen_template_key lit with
+      | None -> ()
+      | Some key ->
+          let count =
+            try Hashtbl.find template_counts key with Not_found -> 0
+          in
+          Hashtbl.replace template_counts key (count + 1))
+    literals;
+  let count_of lit =
+    match ind_gen_template_key lit with
+    | None -> 0
+    | Some key -> (try Hashtbl.find template_counts key with Not_found -> 0)
+  in
+  let is_dense lit =
+    count_of lit > !ind_gen_template_density_threshold
+  in
+  literals
+  |> List.mapi (fun i lit -> (i, lit))
+  |> List.stable_sort (fun (i1, lit1) (i2, lit2) ->
+         let dense1 = is_dense lit1 in
+         let dense2 = is_dense lit2 in
+         if dense1 <> dense2 then compare dense2 dense1
+         else
+           let count1 = count_of lit1 in
+           let count2 = count_of lit2 in
+           if count1 <> count2 then compare count2 count1
+           else compare i1 i2)
+  |> List.map snd
+
+let ind_gen_singleton_boundary_min_count = 3
+
+let record_ind_gen_singleton_boundary_literal lit =
+  match boundary_of_literal lit with
+  | None -> ()
+  | Some _ ->
+      let count =
+        try Term.TermHashtbl.find ind_gen_singleton_boundary_literal_count lit
+        with Not_found -> 0
+      in
+      Term.TermHashtbl.replace ind_gen_singleton_boundary_literal_count lit
+        (count + 1)
+
+let record_ind_gen_singleton_boundary_clause clause =
+  match C.literals_of_clause clause with
+  | [ lit ] -> record_ind_gen_singleton_boundary_literal lit
+  | _ -> ()
+
+let ind_gen_singleton_boundary_count_of lit =
+  try Term.TermHashtbl.find ind_gen_singleton_boundary_literal_count lit
+  with Not_found -> 0
+
+let ind_gen_singleton_boundary_is_saturated lit =
+  ind_gen_singleton_boundary_count_of lit >= ind_gen_singleton_boundary_min_count
+
+let ind_gen_effective_literal_frequency_of lit =
+  if ind_gen_singleton_boundary_is_saturated lit then 0.0
+  else ind_gen_literal_frequency_of lit
+
+module BridgeKey = struct
+  type t = BoundaryKey.t * BoundaryKey.t * Numeral.t
+
+  let compare (left1, right1, offset1) (left2, right2, offset2) =
+    match BoundaryKey.compare left1 left2 with
+    | 0 -> (
+        match BoundaryKey.compare right1 right2 with
+        | 0 -> Numeral.compare offset1 offset2
+        | c -> c)
+    | c -> c
+end
+
+module BridgeMap = Map.Make (BridgeKey)
+module BoundaryMap = Map.Make (BoundaryKey)
+module NumeralSet = Set.Make (struct
+  type t = Numeral.t
+
+  let compare = Numeral.compare
+end)
+
+let ind_gen_boundary_family_activity = ref BoundaryMap.empty
+let ind_gen_boundary_family_bounds = ref BoundaryMap.empty
+
+let ind_gen_ladder_min_distinct_bounds = 4
+let ind_gen_ladder_max_gap_slack = 3
+let ind_gen_ladder_min_family_activity = 3
+
+let int_of_numeral_opt n =
+  try Some (Numeral.to_int n) with Failure _ -> None
+
+let ind_gen_boundaries_have_compact_ladder bounds =
+  let ints =
+    NumeralSet.fold
+      (fun bound acc ->
+        match acc, int_of_numeral_opt bound with
+        | Some ints, Some i -> Some (i :: ints)
+        | _ -> None)
+      bounds (Some [])
+  in
+  match ints with
+  | None -> false
+  | Some ints -> (
+      match List.sort_uniq compare ints with
+      | [] -> false
+      | first :: rest ->
+          let last = List.fold_left max first rest in
+          let distinct_count = 1 + List.length rest in
+          distinct_count >= ind_gen_ladder_min_distinct_bounds
+          && last - first
+             <= distinct_count - 1 + ind_gen_ladder_max_gap_slack)
+
+let ind_gen_boundary_family_has_ladder key =
+  match BoundaryMap.find_opt key !ind_gen_boundary_family_bounds with
+  | Some bounds -> ind_gen_boundaries_have_compact_ladder bounds
+  | None -> false
+
+let ind_gen_boundary_family_is_ladder_active key =
+  let family_activity =
+    match BoundaryMap.find_opt key !ind_gen_boundary_family_activity with
+    | Some count -> count
+    | None -> 0
+  in
+  family_activity >= ind_gen_ladder_min_family_activity
+  && ind_gen_boundary_family_has_ladder key
+
+let ind_gen_ladder_boundary_keys_of_literals literals =
+  let add_boundary map boundary =
+    let key = boundary_key boundary in
+    let bounds =
+      match BoundaryMap.find_opt key map with
+      | Some bounds -> bounds
+      | None -> NumeralSet.empty
+    in
+    BoundaryMap.add key
+      (NumeralSet.add boundary.boundary_bound bounds)
+      map
+  in
+  let grouped =
+    List.fold_left
+      (fun map lit ->
+        match boundary_of_literal lit with
+        | None -> map
+        | Some boundary -> add_boundary map boundary)
+      BoundaryMap.empty literals
+  in
+  BoundaryMap.fold
+    (fun key bounds ladder_keys ->
+      let family_activity =
+        match BoundaryMap.find_opt key !ind_gen_boundary_family_activity with
+        | Some count -> count
+        | None -> 0
+      in
+      if
+        (family_activity >= ind_gen_ladder_min_family_activity
+         && ind_gen_boundaries_have_compact_ladder bounds)
+        || ind_gen_boundary_family_is_ladder_active key
+      then
+        BoundaryMap.add key () ladder_keys
+      else ladder_keys)
+    grouped BoundaryMap.empty
+
+let ind_gen_has_ladder_boundary_key ladder_keys key =
+  BoundaryMap.mem key ladder_keys
+
+type ind_gen_bridge_stats = {
+  bridge_count : int;
+  bridge_left_bounds : NumeralSet.t;
+  bridge_first_clause : int;
+  bridge_last_clause : int;
+}
+
+let ind_gen_bridge_patterns = ref BridgeMap.empty
+let ind_gen_proto_bridge_patterns = ref BridgeMap.empty
+let ind_gen_pending_guessed_relations = ref Term.TermSet.empty
+let ind_gen_accepted_guessed_relations = ref Term.TermSet.empty
+
+let ind_gen_bridge_min_count = 3
+let ind_gen_bridge_min_distinct_bounds = 2
+let ind_gen_bridge_max_clause_len = 3
+let ind_gen_family_activity_min_count = 3
+let ind_gen_proto_bridge_max_clause_len = 12
+
+let incr_boundary_family_activity boundary =
+  let key = boundary_key boundary in
+  let count =
+    match BoundaryMap.find_opt key !ind_gen_boundary_family_activity with
+    | Some count -> count
+    | None -> 0
+  in
+  ind_gen_boundary_family_activity :=
+    BoundaryMap.add key (count + 1) !ind_gen_boundary_family_activity;
+  let bounds =
+    match BoundaryMap.find_opt key !ind_gen_boundary_family_bounds with
+    | Some bounds -> bounds
+    | None -> NumeralSet.empty
+  in
+  ind_gen_boundary_family_bounds :=
+    BoundaryMap.add key
+      (NumeralSet.add boundary.boundary_bound bounds)
+      !ind_gen_boundary_family_bounds
+
+let record_ind_gen_boundary_family_activity clause =
+  if C.length_of_clause clause <= ind_gen_bridge_max_clause_len then
+    C.literals_of_clause clause
+    |> List.filter_map boundary_of_literal
+    |> List.iter incr_boundary_family_activity
+
+let ind_gen_boundary_family_activity_of key =
+  match BoundaryMap.find_opt key !ind_gen_boundary_family_activity with
+  | Some count -> count
+  | None -> 0
+
+let ind_gen_boundary_family_is_active key =
+  ind_gen_boundary_family_activity_of key >= ind_gen_family_activity_min_count
+
+let ind_gen_bridge_pattern_is_stable stats =
+  stats.bridge_count >= ind_gen_bridge_min_count
+  && NumeralSet.cardinal stats.bridge_left_bounds
+     >= ind_gen_bridge_min_distinct_bounds
+
+let update_bridge_map map_ref clause_id left right offset =
+  let key = (boundary_key left, boundary_key right, offset) in
+  let was_stable =
+    match BridgeMap.find_opt key !map_ref with
+    | Some stats -> ind_gen_bridge_pattern_is_stable stats
+    | None -> false
+  in
+  let stats =
+    match BridgeMap.find_opt key !map_ref with
+    | Some stats ->
+        {
+          bridge_count = stats.bridge_count + 1;
+          bridge_left_bounds =
+            NumeralSet.add left.boundary_bound stats.bridge_left_bounds;
+          bridge_first_clause = stats.bridge_first_clause;
+          bridge_last_clause = clause_id;
+        }
+    | None ->
+        {
+          bridge_count = 1;
+          bridge_left_bounds = NumeralSet.singleton left.boundary_bound;
+          bridge_first_clause = clause_id;
+          bridge_last_clause = clause_id;
+        }
+  in
+  map_ref := BridgeMap.add key stats !map_ref;
+  (was_stable, stats)
+
+let update_ind_gen_bridge_pattern clause_id left right offset =
+  update_bridge_map ind_gen_bridge_patterns clause_id left right offset
+
+let update_ind_gen_proto_bridge_pattern clause_id left right offset =
+  update_bridge_map ind_gen_proto_bridge_patterns clause_id left right offset
+
+let pp_boundary_key ppf (direction, family) =
+  let pp_direction ppf = function
+    | UpperBound -> Format.fprintf ppf "<="
+    | LowerBound -> Format.fprintf ppf ">="
+  in
+  Format.fprintf ppf "@[<h>%a {%a}@]" pp_direction direction
+    (pp_print_list
+       (fun ppf (term, coeff) ->
+         Format.fprintf ppf "%a*%a" Numeral.pp_print_numeral coeff
+           Term.pp_print_term term)
+       ", ")
+    family
+
+let term_of_boundary_family family =
+  let terms =
+    List.map
+      (fun (term, coeff) ->
+        if Numeral.equal coeff Numeral.one then term
+        else Term.mk_times [ Term.mk_num coeff; term ])
+      family
+  in
+  match terms with
+  | [] -> Term.mk_num Numeral.zero
+  | [ term ] -> term
+  | _ -> Term.mk_plus terms
+
+let synthesize_bridge_relation left_key right_key offset =
+  match (left_key, right_key) with
+  | (UpperBound, left_family), (LowerBound, right_family) ->
+      let lhs =
+        Term.mk_minus
+          [ term_of_boundary_family left_family;
+            term_of_boundary_family right_family ]
+      in
+      Some (Term.mk_leq [ lhs; Term.mk_num (Numeral.neg offset) ])
+  | (LowerBound, left_family), (UpperBound, right_family) ->
+      let lhs =
+        Term.mk_minus
+          [ term_of_boundary_family right_family;
+            term_of_boundary_family left_family ]
+      in
+      Some (Term.mk_leq [ lhs; Term.mk_num offset ])
+  | _ -> None
+
+let pp_synthesized_bridge_relation ppf = function
+  | None -> ()
+  | Some relation ->
+      Format.fprintf ppf "@,guessed relation: %a" Term.pp_print_term relation
+
+let record_pending_guessed_relation = function
+  | None -> ()
+  | Some relation ->
+      if
+        not
+          (Term.TermSet.mem relation !ind_gen_accepted_guessed_relations
+          || Term.TermSet.mem relation !ind_gen_pending_guessed_relations)
+      then
+        ind_gen_pending_guessed_relations :=
+          Term.TermSet.add relation !ind_gen_pending_guessed_relations
+
+let record_ind_gen_bridge_patterns solver clause =
+  let clause_len = C.length_of_clause clause in
+  if clause_len <= ind_gen_bridge_max_clause_len then
+    let boundaries =
+      C.literals_of_clause clause |> List.filter_map boundary_of_literal
+    in
+    List.iter
+      (fun left ->
+        List.iter
+          (fun right ->
+            if
+              not (Term.equal left.boundary_lit right.boundary_lit)
+              && BoundaryKey.compare (boundary_key left) (boundary_key right)
+                 <= 0
+            then
+              let offset =
+                Numeral.sub right.boundary_bound left.boundary_bound
+              in
+              let was_stable, stats =
+                update_ind_gen_bridge_pattern (C.id_of_clause clause) left
+                  right offset
+              in
+              if
+                (not was_stable) && ind_gen_bridge_pattern_is_stable stats
+              then
+                let left_key = boundary_key left in
+                let right_key = boundary_key right in
+                let guessed_relation =
+                  if Flags.IC3QE.guess_bridge_relation () then
+                    synthesize_bridge_relation left_key right_key offset
+                  else None
+                in
+                record_pending_guessed_relation guessed_relation;
+                SMTSolver.trace_comment solver
+                  (Format.asprintf
+                     "@[<v>ind-gen stable bridge pattern:@,\
+                      left: %a bound=%a@,\
+                      right: %a bound=%a@,\
+                      offset=%a count=%d distinct_left_bounds=%d clauses=#%d..#%d%a@]"
+                     pp_boundary_key left_key
+                     Numeral.pp_print_numeral left.boundary_bound
+                     pp_boundary_key right_key
+                     Numeral.pp_print_numeral right.boundary_bound
+                     Numeral.pp_print_numeral offset stats.bridge_count
+                     (NumeralSet.cardinal stats.bridge_left_bounds)
+                     stats.bridge_first_clause stats.bridge_last_clause
+                     pp_synthesized_bridge_relation guessed_relation))
+          boundaries)
+      boundaries
+
+let record_ind_gen_proto_bridge_patterns solver clause_id literals =
+  let clause_len = List.length literals in
+  if clause_len <= ind_gen_proto_bridge_max_clause_len then
+    let boundaries = literals |> List.filter_map boundary_of_literal in
+    List.iter
+      (fun left ->
+        List.iter
+          (fun right ->
+            if
+              not (Term.equal left.boundary_lit right.boundary_lit)
+              && BoundaryKey.compare (boundary_key left) (boundary_key right)
+                 <= 0
+            then
+              let left_key = boundary_key left in
+              let right_key = boundary_key right in
+              if
+                ind_gen_boundary_family_is_active left_key
+                && ind_gen_boundary_family_is_active right_key
+              then
+                let offset =
+                  Numeral.sub right.boundary_bound left.boundary_bound
+                in
+                let was_stable, stats =
+                  update_ind_gen_proto_bridge_pattern clause_id left right
+                    offset
+                in
+                if
+                  (not was_stable) && ind_gen_bridge_pattern_is_stable stats
+                then
+                  let guessed_relation =
+                    if Flags.IC3QE.guess_bridge_relation () then
+                      synthesize_bridge_relation left_key right_key offset
+                    else None
+                  in
+                  record_pending_guessed_relation guessed_relation;
+                  SMTSolver.trace_comment solver
+                    (Format.asprintf
+                       "@[<v>ind-gen proto bridge pattern:@,\
+                        left: %a bound=%a activity=%d@,\
+                        right: %a bound=%a activity=%d@,\
+                        offset=%a count=%d distinct_left_bounds=%d clauses=#%d..#%d%a@]"
+                       pp_boundary_key left_key Numeral.pp_print_numeral
+                       left.boundary_bound
+                       (ind_gen_boundary_family_activity_of left_key)
+                       pp_boundary_key right_key Numeral.pp_print_numeral
+                       right.boundary_bound
+                       (ind_gen_boundary_family_activity_of right_key)
+                       Numeral.pp_print_numeral offset stats.bridge_count
+                       (NumeralSet.cardinal stats.bridge_left_bounds)
+                       stats.bridge_first_clause stats.bridge_last_clause
+                       pp_synthesized_bridge_relation guessed_relation))
+          boundaries)
+      boundaries
+
+let[@warning "-32"] ind_gen_bridge_score_of_literal lit =
+  match boundary_of_literal lit with
+  | None -> 0
+  | Some boundary ->
+      BridgeMap.fold
+        (fun (left_key, right_key, _) stats score ->
+          if not (ind_gen_bridge_pattern_is_stable stats) then score
+          else
+            let key = boundary_key boundary in
+            if
+              BoundaryKey.compare key left_key = 0
+              || BoundaryKey.compare key right_key = 0
+            then score + stats.bridge_count
+            else score)
+        !ind_gen_bridge_patterns 0
+
+let compare_boundary_strength boundary1 boundary2 =
+  match BoundaryKey.compare (boundary_key boundary1) (boundary_key boundary2) with
+  | 0 -> (
+      match boundary1.boundary_direction with
+      | UpperBound ->
+          Numeral.compare boundary1.boundary_bound boundary2.boundary_bound
+      | LowerBound ->
+          Numeral.compare boundary2.boundary_bound boundary1.boundary_bound)
+  | c -> c
+
+let[@warning "-32"] sort_boundary_literals_strong_to_weak literals =
+  literals
+  |> List.filter_map boundary_of_literal
+  |> List.sort compare_boundary_strength
+  |> List.map (fun boundary -> boundary.boundary_lit)
+
+let sort_literals_by_boundary_strength literals =
+  let flush_group acc = function
+    | [] -> acc
+    | group ->
+        let sorted =
+          group
+          |> List.sort (fun (index1, _, boundary1) (index2, _, boundary2) ->
+                 match compare_boundary_strength boundary1 boundary2 with
+                 | 0 -> compare index1 index2
+                 | c -> c)
+          |> List.map (fun (_, lit, _) -> lit)
+        in
+        List.rev_append sorted acc
+  in
+  let rec loop index current_group acc = function
+    | [] -> List.rev (flush_group acc current_group)
+    | lit :: tl -> (
+        match boundary_of_literal lit with
+        | None ->
+            loop (index + 1) [] (lit :: flush_group acc current_group) tl
+        | Some boundary ->
+            loop (index + 1) ((index, lit, boundary) :: current_group) acc tl)
+  in
+  loop 0 [] [] literals
+
+let literal_equality_priority lit =
   let body =
-    match Term.T.node_of_t lit with
-    | Term.T.Node (s, [ arg ]) when s == Symbol.s_not ->
-        (* peek through a single negation *)
-        arg
+    match Term.destruct lit with
+    | Term.T.App (s, [ arg ]) when s == Symbol.s_not -> arg
     | _ -> lit
   in
-  match Term.T.node_of_t body with
-  | Term.T.Node (s, _) | Term.T.Leaf s -> (
-      match Symbol.node_of_symbol s with
-      | `EQ | `DISTINCT -> true
-      | _ -> false)
-  | _ -> false  *)
+  match Term.destruct body with
+  | Term.T.App (s, [ lhs; rhs ]) when s == Symbol.s_eq -> (
+      match collect_boundary_linear_int_expr (Term.mk_minus [ lhs; rhs ]) with
+      | Some (coeffs, _) when Term.TermMap.cardinal coeffs >= 2 -> 1
+      | _ -> 0)
+  | _ -> 0
 
+let literal_is_bool_guard lit =
+  let body =
+    match Term.destruct lit with
+    | Term.T.App (s, [ arg ]) when s == Symbol.s_not -> arg
+    | _ -> lit
+  in
+  match Term.destruct body with
+  | Term.T.Var _ -> Term.type_of_term body == Type.t_bool
+  | _ -> false
+
+let string_contains_substring haystack needle =
+  let haystack_len = String.length haystack in
+  let needle_len = String.length needle in
+  if needle_len = 0 then true
+  else
+    let rec loop index =
+      if index + needle_len > haystack_len then false
+      else
+        String.sub haystack index needle_len = needle || loop (index + 1)
+    in
+    loop 0
+
+let literal_contains_div_keyword lit =
+  let s = Format.asprintf "%a" Term.pp_print_term lit in
+  string_contains_substring s "div"
+
+
+let pp_print_cube ppf cube =
+  Format.fprintf ppf "@[<v 1>{%a}@]"
+    (pp_print_list Term.pp_print_term ";@,")
+    cube
+
+let check_fp_cube_model trans_sys model fp_cube =
+  List.for_all
+    (fun t ->
+      match Eval.eval_term (TransSys.uf_defs trans_sys) model t with
+      | Eval.ValBool true -> true
+      | _ -> false)
+    fp_cube
+
+let check_fp_cube_sound trans_sys fp_cube elim failure_term =
+  match QE.ae_val trans_sys (Term.mk_and fp_cube) elim failure_term with
+  | QE.Valid _ -> true
+  | QE.Invalid _ | QE.Unknown -> false
+
+(* Check that a t_cube (step-1 vars renamed to step-0) is satisfied by
+   the step-1 part of the model. Bumps each term back to offset-1 before
+   evaluating so it matches the model's primed variables. *)
+let check_t_cube_model trans_sys model t_cube =
+  List.for_all
+    (fun t ->
+      let t1 = Term.bump_state Numeral.one t in
+      match Eval.eval_term (TransSys.uf_defs trans_sys) model t1 with
+      | Eval.ValBool true -> true
+      | _ -> false)
+    t_cube
+
+(* lits(c1) ⊆ lits(c2),c1 ⇒ c2 *)
+let clause_implies c1 c2 =
+  let s1 = Term.TermSet.of_list (C.literals_of_clause c1) in
+  let s2 = Term.TermSet.of_list (C.literals_of_clause c2) in
+  Term.TermSet.subset s1 s2
 
 (* let record_safe_frontier_first_built_frame solver frontier_level frames =
   if Flags.IC3QE.first_frame_order () then
@@ -478,6 +1310,96 @@ let deactivate_subsumed solver (subsumed, frame') =
 
   (subsumed, frame')
 
+let add_clause_to_frame_with_subsumption solver frame clause =
+  let literals = C.literals_of_clause clause in
+  if F.is_subsumed frame literals then (
+    C.deactivate_clause solver clause;
+    frame)
+  else
+    try F.add literals clause frame
+    with Invalid_argument _ ->
+      F.subsume frame literals |> count_subsumed solver
+      |> deactivate_subsumed solver |> snd
+      |> F.add literals clause
+
+let add_guessed_relations_to_next_frame solver clauses = function
+  | [] -> []
+  | (block_clauses, frame) :: tl ->
+      let frame' =
+        List.fold_left
+          (fun frame clause ->
+            let clause' = C.copy_clause clause in
+            SMTSolver.trace_comment solver
+              (Format.asprintf
+                 "@[<v>guessed relation copied to next frame: #%d -> #%d@,%a@]"
+                 (C.id_of_clause clause) (C.id_of_clause clause')
+                 Term.pp_print_term (C.term_of_clause clause'));
+            add_clause_to_frame_with_subsumption solver frame clause')
+          frame clauses
+      in
+      (block_clauses, frame') :: tl
+
+let try_assert_global_guessed_relation solver prop_set relation =
+  let clause = C.mk_clause_of_literals C.BlockFrontier [ relation ] in
+  let initial_sat =
+    SMTSolver.check_sat_assuming_tf solver
+      (C.actlit_of_frame 0 :: C.actlits_n0_of_clause solver clause)
+  in
+  if initial_sat then (
+    C.deactivate_clause solver clause;
+    SMTSolver.trace_comment solver
+      (Format.asprintf
+         "@[<v>guessed relation rejected: not initial@,%a@]"
+         Term.pp_print_term relation);
+    false)
+    else
+      let consecution_sat =
+        SMTSolver.check_sat_assuming_tf solver
+          (C.actlit_p0_of_prop_set solver prop_set
+          :: C.actlit_p0_of_clause solver clause
+          :: C.actlits_n1_of_clause solver clause)
+      in
+    if consecution_sat then (
+      C.deactivate_clause solver clause;
+      SMTSolver.trace_comment solver
+        (Format.asprintf
+           "@[<v>guessed relation pending: not globally inductive@,%a@]"
+           Term.pp_print_term relation);
+      false)
+    else (
+      ind_gen_accepted_guessed_relations :=
+        Term.TermSet.add relation !ind_gen_accepted_guessed_relations;
+      C.deactivate_clause solver clause;
+      SMTSolver.assert_term solver relation;
+      SMTSolver.assert_term solver (Term.bump_state Numeral.one relation);
+      SMTSolver.trace_comment solver
+        (Format.asprintf
+           "@[<v>guessed relation accepted globally:@,%a@]"
+           Term.pp_print_term relation);
+      true)
+
+let try_add_pending_guessed_relations solver prop_set _rel_ind_actlits frame =
+  if
+    (not (Flags.IC3QE.guess_bridge_relation ()))
+    || Term.TermSet.is_empty !ind_gen_pending_guessed_relations
+  then (frame, [])
+  else
+    let pending_after = ref Term.TermSet.empty in
+    let try_relation relation frame =
+      if Term.TermSet.mem relation !ind_gen_accepted_guessed_relations then frame
+      else if try_assert_global_guessed_relation solver prop_set relation then
+        frame
+      else (
+        pending_after := Term.TermSet.add relation !pending_after;
+        frame)
+    in
+    let frame' =
+      Term.TermSet.fold try_relation
+        !ind_gen_pending_guessed_relations frame
+    in
+    ind_gen_pending_guessed_relations := !pending_after;
+    (frame', [])
+
 (* ************************************************************************ *)
 (* Inductive generalization                                                 *)
 (* ************************************************************************ *)
@@ -488,38 +1410,122 @@ let deactivate_subsumed solver (subsumed, frame') =
   initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
 let ind_generalize solver prop_set frame clause literals =
+  (* record_ind_gen_proto_bridge_patterns solver (C.id_of_clause clause) literals;
+  let prioritize_ind_gen_bound_literals literals =
+    if Flags.IC3QE.bound_sort () && frame <> [] then
+      let reordered = sort_literals_by_boundary_strength literals in
+      let pp_boundary_literal ppf lit =
+        Term.pp_print_term ppf lit
+      in
+      SMTSolver.trace_comment solver
+        (Format.asprintf
+           "@[<v>ind-gen boundary literal priority for clause #%d:@,\
+            original:@,%a@,\
+            reordered strong-to-weak:@,%a@]"
+           (C.id_of_clause clause)
+           (pp_print_list pp_boundary_literal "@,")
+           literals
+           (pp_print_list pp_boundary_literal "@,")
+           reordered);
+      reordered
+    else literals
+  in *)
   let prioritize_ind_gen_frequency_literals literals =
     if Flags.IC3QE.freq_sort () && frame <> [] then
+      let use_ast_complexity = Flags.IC3QE.ast_complexity () in
+      let use_bound_sort = Flags.IC3QE.bound_sort () in
+      let use_ladder_guard_first = Flags.IC3QE.ladder_guard_first () in
+      let ladder_keys =
+        if use_ladder_guard_first then
+          ind_gen_ladder_boundary_keys_of_literals literals
+        else BoundaryMap.empty
+      in
+      let has_ladder_keys = not (BoundaryMap.is_empty ladder_keys) in
+      let ladder_guard_class lit =
+        if not has_ladder_keys then 0
+        else
+          match boundary_of_literal lit with
+          | Some boundary
+            when ind_gen_has_ladder_boundary_key ladder_keys
+                   (boundary_key boundary) ->
+              2
+          | Some _ -> 1
+          | None -> if literal_is_bool_guard lit then 0 else 1
+      in
       let reordered =
-        let use_ast_complexity = Flags.IC3QE.ast_complexity () in
+        let compare_bound_tie i1 lit1 i2 lit2 =
+          if use_bound_sort then
+            match (boundary_of_literal lit1, boundary_of_literal lit2) with
+            | Some boundary1, Some boundary2 -> (
+                match
+                  BoundaryKey.compare (boundary_key boundary1)
+                    (boundary_key boundary2)
+                with
+                | 0 -> (
+                    match compare_boundary_strength boundary2 boundary1 with
+                    | 0 -> compare i1 i2
+                    | c -> c)
+                | c -> c)
+            | _ -> compare i1 i2
+          else compare i1 i2
+        in
         let indexed = List.mapi (fun i lit -> (i, lit)) literals in
         List.sort
           (fun (i1, lit1) (i2, lit2) ->
-            let c =
-              compare
-                (ind_gen_literal_frequency_of lit1)
-                (ind_gen_literal_frequency_of lit2)
+            let c_ladder =
+              compare (ladder_guard_class lit1) (ladder_guard_class lit2)
             in
-            if c <> 0 then c
-            else if use_ast_complexity then
-              let c2 =
+            if c_ladder <> 0 then c_ladder
+            else
+              let c_div =
                 compare
-                  (literal_ast_complexity lit1)
-                  (literal_ast_complexity lit2)
+                  (if literal_contains_div_keyword lit1 then 0 else 1)
+                  (if literal_contains_div_keyword lit2 then 0 else 1)
               in
-              if c2 <> 0 then c2 else compare i1 i2
-            else compare i1 i2)
+              if c_div <> 0 then c_div
+              else
+                let c0 =
+                  compare
+                    (literal_equality_priority lit1)
+                    (literal_equality_priority lit2)
+                in
+                if c0 <> 0 then c0
+                else
+                  let c =
+                    compare
+                      (ind_gen_effective_literal_frequency_of lit1)
+                      (ind_gen_effective_literal_frequency_of lit2)
+                  in
+                  if c <> 0 then c
+                  else if use_ast_complexity then
+                    let c2 =
+                      compare
+                        (literal_ast_complexity lit1)
+                        (literal_ast_complexity lit2)
+                    in
+                    if c2 <> 0 then c2 else compare_bound_tie i1 lit1 i2 lit2
+                  else compare_bound_tie i1 lit1 i2 lit2)
           indexed
         |> List.map snd
       in
       let pp_literal_frequency ppf lit =
+        let raw_freq = ind_gen_literal_frequency_of lit in
+        let ladder_suffix =
+          if Flags.IC3QE.ladder_guard_first () then
+            match boundary_of_literal lit, ladder_keys with
+            | Some boundary, ladder_keys
+              when ind_gen_has_ladder_boundary_key ladder_keys
+                     (boundary_key boundary) ->
+                ", ladder"
+            | _ -> ""
+          else ""
+        in
         if Flags.IC3QE.ast_complexity () then
-          Format.fprintf ppf "%a [freq=%.3f, ast=%d]" Term.pp_print_term lit
-            (ind_gen_literal_frequency_of lit)
-            (literal_ast_complexity lit)
+          Format.fprintf ppf "%a [freq=%.3f, ast=%d%s]" Term.pp_print_term lit
+            raw_freq (literal_ast_complexity lit) ladder_suffix
         else
-          Format.fprintf ppf "%a [freq=%.3f]" Term.pp_print_term lit
-            (ind_gen_literal_frequency_of lit)
+          Format.fprintf ppf "%a [freq=%.3f%s]" Term.pp_print_term lit raw_freq
+            ladder_suffix
       in
       SMTSolver.trace_comment solver
         (Format.asprintf
@@ -529,11 +1535,31 @@ let ind_generalize solver prop_set frame clause literals =
            (C.id_of_clause clause)
            (pp_print_list pp_literal_frequency "@,")
            literals
-           (if Flags.IC3QE.ast_complexity () then "freq+ast"
+           (if Flags.IC3QE.ladder_guard_first () then
+              if Flags.IC3QE.ast_complexity () then "ladder+freq+ast"
+              else "ladder+freq"
+            else if Flags.IC3QE.ast_complexity () then "freq+ast"
             else "freq")
            (pp_print_list pp_literal_frequency "@,")
            reordered);
       reordered
+    else literals
+  in
+  let prioritize_ind_gen_template_density_if_enabled literals =
+    if Flags.IC3QE.template () then (
+      let reordered = prioritize_ind_gen_template_density_literals literals in
+      if not (term_lists_equal reordered literals) then
+        SMTSolver.trace_comment solver
+          (Format.asprintf
+             "@[<v>ind-gen template density priority for clause #%d:@,\
+              original:@,%a@,\
+              reordered dense-to-sparse:@,%a@]"
+             (C.id_of_clause clause)
+             (pp_print_list Term.pp_print_term "@,")
+             literals
+             (pp_print_list Term.pp_print_term "@,")
+             reordered);
+      reordered)
     else literals
   in
 
@@ -571,6 +1597,9 @@ let ind_generalize solver prop_set frame clause literals =
                (C.id_of_clause clause) (C.id_of_clause clause')
                (pp_print_list Term.pp_print_term ";@ ")
                (C.literals_of_clause clause'));
+          (* record_ind_gen_singleton_boundary_clause clause'; *)
+          record_ind_gen_boundary_family_activity clause';
+          record_ind_gen_bridge_patterns solver clause';
           if Flags.IC3QE.freq_sort () then (
             let lits = C.literals_of_clause clause' in
             (* Skip single-literal clauses: they perturb the frequency too much *)
@@ -671,6 +1700,8 @@ let ind_generalize solver prop_set frame clause literals =
 
   linear_search []
     (literals
+    (* |> prioritize_ind_gen_bound_literals *)
+    |> prioritize_ind_gen_template_density_if_enabled
     |> prioritize_ind_gen_frequency_literals)
 (*
 
@@ -839,6 +1870,46 @@ let extrapolate trans_sys state f g =
 
   (* Return generalized term *)
   gen_term
+
+(* Like extrapolate, but eliminates step-0 (unprimed) variables and returns
+   a cube on step-1 variables renamed back to step-0.
+   Used to compute a generalized t (successor) cube for failure_push,
+   matching the paper's diff(b, t) where t is the post-state. *)
+let extrapolate_succ trans_sys state f g =
+  let term =
+    Term.mk_and
+      (TransSys.global_constraints trans_sys
+      @ [
+          f;
+          TransSys.trans_of_bound None trans_sys Numeral.one;
+          Term.bump_state Numeral.one g;
+        ])
+  in
+  (* Eliminate step-0 (unprimed) variables, keep step-1 *)
+  let unprimed_vars =
+    Var.VarSet.elements (Term.vars_at_offset_of_term Numeral.zero term)
+  in
+  Stat.unpause_time Stat.ic3_generalize_time;
+  let gen_term =
+    try
+      QE.generalize trans_sys
+        (TransSys.uf_defs trans_sys)
+        state unprimed_vars term
+    with QE.QuantifiedTermFound _ ->
+      let err = "Shutting down IC3QE: Cannot generalize quantified terms." in
+      raise (UnsupportedFeature err)
+  in
+  Stat.record_time Stat.ic3_generalize_time;
+  (* Rename step-1 variables back to step-0 so t_cube is in the same
+     coordinate system as b_cube for diff_set *)
+  List.map
+    (Term.map_vars (fun v ->
+         if
+           Var.is_state_var_instance v
+           && Numeral.equal (Var.offset_of_state_var_instance v) Numeral.one
+         then Var.set_offset_of_state_var_instance v Numeral.zero
+         else v))
+    gen_term
 
 (* ************************************************************************ *)
 (* Block unreachable generalized counterexamples to induction               *)
@@ -1119,7 +2190,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
             ) else
               r_k_orig
           in
-          SMTSolver.trace_comment solver
+          (* SMTSolver.trace_comment solver
             (Format.asprintf "@[<v>frames r_k:@,%a@]"
               (fun ppf r_i ->
                 Format.fprintf ppf "@,Frame:@,%a"
@@ -1127,7 +2198,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                     (fun ppf c -> Format.fprintf ppf "%d" (C.id_of_clause c))
                     "@,")
                   (F.values r_i))
-              r_k);
+              r_k); *)
 
           
           match
@@ -1431,47 +2502,57 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                 let block_clause_gen_literals =
                   C.literals_of_clause block_clause_gen
                 in
+                let r_i_with_block_clause =
+                  try
+                    (* Adding a clause may fail if it a prefix of a clause
+                       in the trie, or if a clause in the trie is a
+                       prefix of this clause *)
+                    F.add block_clause_gen_literals block_clause_gen r_i
+                  with Invalid_argument _ ->
+                    SMTSolver.trace_comment solver
+                      (Format.asprintf
+                         "@[<v>Clause@ @[<hv>{%a@}@]@ subsumes a clause in \
+                          frame, must do subsumption before adding@ \
+                          @[<hv>%a@]@]"
+                         (pp_print_list Term.pp_print_term ";@ ")
+                         block_clause_gen_literals
+                         (pp_print_list
+                            (fun ppf (k, c) ->
+                              Format.fprintf ppf "@[<hv 1>{%a}@ =@ %a"
+                                (pp_print_list Term.pp_print_term ";@ ")
+                                k Term.pp_print_term (C.term_of_clause c))
+                            ",@ ")
+                         (F.bindings r_i));
 
-                ( (try
-                     (* Adding a clause may fail if it a prefix of a clause
-                     in the trie, or if a clause in the trie is a
-                     prefix of this clause *)
-                     F.add block_clause_gen_literals block_clause_gen r_i
-                   with Invalid_argument _ ->
-                     SMTSolver.trace_comment solver
-                       (Format.asprintf
-                          "@[<v>Clause@ @[<hv>{%a@}@]@ subsumes a clause in \
-                           frame, must do subsumption before adding@ \
-                           @[<hv>%a@]@]"
-                          (pp_print_list Term.pp_print_term ";@ ")
-                          block_clause_gen_literals
-                          (pp_print_list
-                             (fun ppf (k, c) ->
-                               Format.fprintf ppf "@[<hv 1>{%a}@ =@ %a"
-                                 (pp_print_list Term.pp_print_term ";@ ")
-                                 k Term.pp_print_term (C.term_of_clause c))
-                             ",@ ")
-                          (F.bindings r_i));
+                    (* The new blocking clause is not subsumed, because
+                       otherwise we would not get the counterexample *)
+                    (* if F.is_subsumed r_i block_clause_gen_literals then r_i else *)
 
-                     (* The new blocking clause is not subsumed, because
-                      otherwise we would not get the counterexample *)
-                     (* if F.is_subsumed r_i block_clause_gen_literals then r_i else *)
-
-                     (* Subsume in this frame and add *)
-                     F.subsume r_i block_clause_gen_literals
-                     (* Count number of subsumed clauses *)
-                     |> count_subsumed solver
-                     (* Deactivate activation literals of subsumed clauses *)
-                     |> deactivate_subsumed solver
-                     |> snd
-                     (* Add clause to frame after subsumption *)
-                     |> F.add block_clause_gen_literals block_clause_gen),
-                  frames,
+                    (* Subsume in this frame and add *)
+                    F.subsume r_i block_clause_gen_literals
+                    (* Count number of subsumed clauses *)
+                    |> count_subsumed solver
+                    (* Deactivate activation literals of subsumed clauses *)
+                    |> deactivate_subsumed solver
+                    |> snd
+                    (* Add clause to frame after subsumption *)
+                    |> F.add block_clause_gen_literals block_clause_gen
+                in
+                let r_i_with_guessed, guessed_forward_clauses =
+                  try_add_pending_guessed_relations solver prop_set
+                    actlits_p0_r_pred_i r_i_with_block_clause
+                in
+                let block_tl_with_block_clause =
                   (* Add cube to block to next higher frame if flag is set *)
                   if Flags.IC3QE.block_in_future () then
                     add_to_block_tl solver block_clause_orig block_trace
                       block_tl
-                  else block_tl )
+                  else block_tl
+                in
+                ( r_i_with_guessed,
+                  frames,
+                  add_guessed_relations_to_next_frame solver
+                    guessed_forward_clauses block_tl_with_block_clause )
               in
 
               (* Combine clauses from higher frames to get the actual
@@ -1765,6 +2846,43 @@ let partition_fwd_prop solver trans_sys prop_set frame clauses =
                   |> Eval.eval_term [] model |> Eval.bool_of_value)
             maybe_prop
         in
+        let fwd_failure_term =
+          C.term_of_prop_set prop_set
+          :: List.map C.term_of_clause (frame @ clauses)
+          |> Term.mk_and
+        in
+
+        List.iter
+          (fun c ->
+            if Flags.IC3QE.predict_lemma () then (
+              let fp_cube =
+                extrapolate_succ trans_sys model fwd_failure_term
+                  (C.term_of_clause c |> Term.negate)
+              in
+              let neg_fp_cube = List.map Term.negate fp_cube in
+              if debug_assert then
+                assert (check_t_cube_model trans_sys model fp_cube);
+              let clause =
+                try
+                  C.mk_clause_of_literals C.BlockFrontier neg_fp_cube
+                with Invalid_argument _ as e ->
+                  if List.exists (fun t -> Term.has_quantifier t) fp_cube then
+                    raise
+                      (UnsupportedFeature
+                         "Shutting down IC3QE: QE failed during generalization \
+                          step.")
+                  else raise e
+              in
+
+              (* FailurePushTbl.replace failure_push
+                (C.id_of_clause c, level)
+                fp_cube; *)
+              SMTSolver.trace_comment solver
+                (Format.asprintf
+                   "@[<v>forward propagation 失败，子句 #%d 的 neg_fp_cube，新子句 #%d:@,%a@]"
+                   (C.id_of_clause c) (C.id_of_clause clause) pp_print_cube
+                   neg_fp_cube)))
+          keep_new;
 
         (* Clauses found not propagateable *)
         let keep' = keep @ keep_new in

@@ -419,7 +419,7 @@ module IC3QE : sig
   val fwd_prop_subsume : unit -> bool
   (** Subsumption in forward propagation. *)
 
-  val literal_ast_complexity : unit -> bool
+  val ast_complexity : unit -> bool
   (** Use AST complexity as a tie-breaker in IC3QE frequency literal ordering. *)
 
   val freq_sort : unit -> bool
