@@ -95,6 +95,13 @@ let incr_ind_gen_literal_frequency literals =
 let ind_gen_literal_frequency_of lit =
   try Term.TermHashtbl.find ind_gen_literal_frequency lit with Not_found -> 0.0
 
+let is_ind_gen_trivial_false_literal lit =
+  lit == Term.t_false
+  ||
+  match Term.destruct lit with
+  | Term.T.App (s, [term]) when s == Symbol.s_not -> term == Term.t_true
+  | _ -> false
+
 let rec literal_ast_complexity term =
   match Term.destruct term with
   | Term.T.Const _ | Term.T.Var _ -> 1
@@ -488,6 +495,11 @@ let deactivate_subsumed solver (subsumed, frame') =
   initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
 let ind_generalize solver prop_set frame clause literals =
+  let skip_trivial_false_literals literals =
+    match List.filter (fun lit -> not (is_ind_gen_trivial_false_literal lit)) literals with
+    | [] -> literals
+    | filtered -> filtered
+  in
   let prioritize_ind_gen_frequency_literals literals =
     if Flags.IC3QE.freq_sort () && frame <> [] then
       let reordered =
@@ -671,6 +683,7 @@ let ind_generalize solver prop_set frame clause literals =
 
   linear_search []
     (literals
+    |> skip_trivial_false_literals
     |> prioritize_ind_gen_frequency_literals)
 (*
 
@@ -2214,7 +2227,7 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
   Stat.update_time Stat.ic3_total_time;
 
   (* Output statistics *)
-  (* if output_on_level L_debug then print_stats (); *)
+  if output_on_level L_debug then print_stats ();
 
   (* No reachable state violates the property, continue with next k *)
   ic3 solver input_sys aparam trans_sys prop_set frames'' predicates
