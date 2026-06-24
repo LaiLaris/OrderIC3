@@ -113,6 +113,20 @@ let rec literal_ast_complexity term =
       + List.fold_left
           (fun acc arg -> acc + literal_ast_complexity arg)
           0 args
+let string_contains_substring haystack needle =
+  let haystack_len = String.length haystack in
+  let needle_len = String.length needle in
+  if needle_len = 0 then true
+  else
+    let rec loop index =
+      if index + needle_len > haystack_len then false
+      else
+        String.sub haystack index needle_len = needle || loop (index + 1)
+    in
+    loop 0
+let literal_contains_div_keyword lit =
+  let s = Format.asprintf "%a" Term.pp_print_term lit in
+  string_contains_substring s "div"
 
 (* Returns true if the literal (after stripping any leading negation) has
    equality or disequality (EQ / DISTINCT) as its top-level symbol.
@@ -507,20 +521,24 @@ let ind_generalize solver prop_set frame clause literals =
         let indexed = List.mapi (fun i lit -> (i, lit)) literals in
         List.sort
           (fun (i1, lit1) (i2, lit2) ->
-            let c =
-              compare
-                (ind_gen_literal_frequency_of lit1)
-                (ind_gen_literal_frequency_of lit2)
-            in
+            let c = compare (literal_contains_div_keyword lit2)
+                (literal_contains_div_keyword lit1) in
             if c <> 0 then c
-            else if use_ast_complexity then
-              let c2 =
+            else
+              let c =
                 compare
-                  (literal_ast_complexity lit1)
-                  (literal_ast_complexity lit2)
+                  (ind_gen_literal_frequency_of lit1)
+                  (ind_gen_literal_frequency_of lit2)
               in
-              if c2 <> 0 then c2 else compare i1 i2
-            else compare i1 i2)
+              if c <> 0 then c
+              else if use_ast_complexity then
+                let c2 =
+                  compare
+                    (literal_ast_complexity lit1)
+                    (literal_ast_complexity lit2)
+                in
+                if c2 <> 0 then c2 else compare i1 i2
+              else compare i1 i2)
           indexed
         |> List.map snd
       in
