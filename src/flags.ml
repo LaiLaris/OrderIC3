@@ -765,16 +765,7 @@ module IC3QE = struct
           cex_inv_map_default)
 
   let cex_inv_map () = !cex_inv_map
-  let template_default = false
-  let template = ref template_default
 
-  let _ =
-    add_spec "--ic3qe_template" (bool_arg template) (fun fmt ->
-        Format.fprintf fmt
-          "@[<v>Enable template-related IC3QE output, including coarse-template logs and inductive-invariant frontier templates@ Default: %a@]"
-          fmt_bool template_default)
-
-  let template () = !template
   let check_inductive_default = true
   let check_inductive = ref check_inductive_default
 
@@ -899,6 +890,17 @@ module IC3QE = struct
           fmt_bool freq_sort_default)
 
   let freq_sort () = !freq_sort
+
+  let template_default = false
+  let template = ref template_default
+
+  let _ =
+    add_spec "--ic3qe_template" (Arg.Set template) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Enable template-related IC3QE output, including coarse-template logs and inductive-invariant frontier templates@ Default: %a@]"
+          fmt_bool template_default)
+
+  let template () = !template
   let block_growth_guard_default = false
   let block_growth_guard = ref block_growth_guard_default
 

@@ -102,6 +102,242 @@ let is_ind_gen_trivial_false_literal lit =
   | Term.T.App (s, [term]) when s == Symbol.s_not -> term == Term.t_true
   | _ -> false
 
+type ind_gen_bound_dir = Bound_ge | Bound_le
+
+type ind_gen_bound_literal = {
+  bound_family : string;
+  bound_family_term : Term.t;
+  bound_const : Numeral.t;
+}
+
+let string_of_ind_gen_bound_dir = function
+  | Bound_ge -> ">="
+  | Bound_le -> "<="
+
+let ind_gen_flip_bound_dir = function
+  | Bound_ge -> Bound_le
+  | Bound_le -> Bound_ge
+
+let ind_gen_is_minus_one term =
+  Term.is_numeral term && Numeral.(Term.numeral_of_term term = neg one)
+
+let ind_gen_is_one term =
+  Term.is_numeral term && Numeral.(Term.numeral_of_term term = one)
+
+let ind_gen_normalize_unit_coefficients term =
+  match Term.destruct term with
+  | Term.T.App (s, [coef; term]) when s == Symbol.s_times ->
+      if ind_gen_is_one coef then term
+      else if ind_gen_is_one term then coef
+      else Term.mk_times [coef; term]
+  | _ -> term
+
+let ind_gen_strip_unit_minus term =
+  match Term.destruct term with
+  | Term.T.App (s, [term]) when s == Symbol.s_minus -> Some term
+  | Term.T.App (s, [coef; term])
+    when s == Symbol.s_times && ind_gen_is_minus_one coef ->
+      Some term
+  | Term.T.App (s, [term; coef])
+    when s == Symbol.s_times && ind_gen_is_minus_one coef ->
+      Some term
+  | _ -> None
+
+let ind_gen_strip_all_negative_terms term =
+  match Term.destruct term with
+  | Term.T.App (s, args) when s == Symbol.s_plus -> (
+      match List.map ind_gen_strip_unit_minus args with
+      | stripped when List.for_all Option.is_some stripped ->
+          let terms = List.map Option.get stripped in
+          Some
+            (match terms with
+            | [] -> Term.mk_num Numeral.zero
+            | [term] -> ind_gen_normalize_unit_coefficients term
+            | terms ->
+                Term.mk_plus (List.map ind_gen_normalize_unit_coefficients terms))
+      | _ -> None)
+  | _ -> ind_gen_strip_unit_minus term
+
+let ind_gen_split_sum_constant term =
+  match Term.destruct term with
+  | Term.T.App (s, args) when s == Symbol.s_plus ->
+      let rec loop acc_terms acc_const = function
+        | [] ->
+            let term =
+              match List.rev acc_terms with
+              | [] -> Term.mk_num Numeral.zero
+              | [term] -> term
+              | terms -> Term.mk_plus terms
+            in
+            Some (ind_gen_normalize_unit_coefficients term, acc_const)
+        | arg :: tl when Term.is_numeral arg ->
+            loop acc_terms Numeral.(acc_const + Term.numeral_of_term arg) tl
+        | arg :: tl ->
+            loop
+              (ind_gen_normalize_unit_coefficients arg :: acc_terms)
+              acc_const tl
+      in
+      loop [] Numeral.zero args
+  | _ -> Some (ind_gen_normalize_unit_coefficients term, Numeral.zero)
+
+let ind_gen_normalize_signed_bound dir family_term bound_const =
+  match ind_gen_strip_all_negative_terms family_term with
+  | Some family_term ->
+      (ind_gen_flip_bound_dir dir, family_term, Numeral.(~- bound_const))
+  | None -> (dir, family_term, bound_const)
+
+let ind_gen_bound_of_literal lit =
+  let body =
+    match Term.destruct lit with
+    | Term.T.App (s, [term]) when s == Symbol.s_not -> Some term
+    | _ -> None
+  in
+  match body with
+  | Some body -> (
+      match Term.destruct body with
+      | Term.T.App (s, [lhs; rhs])
+        when (Symbol.node_of_symbol s = `LT || Symbol.node_of_symbol s = `GT)
+             && Term.is_numeral rhs
+             && Numeral.(Term.numeral_of_term rhs = zero) -> (
+          match ind_gen_split_sum_constant lhs with
+          | Some (family_term, const_offset) ->
+              let dir, bound_const =
+                match Symbol.node_of_symbol s with
+                | `LT -> (Bound_ge, Numeral.(~- const_offset))
+                | `GT -> (Bound_le, Numeral.(~- const_offset))
+                | _ -> assert false
+              in
+              let dir, family_term, bound_const =
+                ind_gen_normalize_signed_bound dir family_term bound_const
+              in
+              Some
+                {
+                  bound_family =
+                    Format.asprintf "%s:%a" (string_of_ind_gen_bound_dir dir)
+                      Term.pp_print_term family_term;
+                  bound_family_term = family_term;
+                  bound_const;
+                }
+          | None -> None)
+      | _ -> None)
+  | None -> None
+
+let ind_gen_sliding_template_key a b =
+  if String.compare a.bound_family b.bound_family <= 0 then
+    (a, b, a.bound_family ^ " || " ^ b.bound_family)
+  else (b, a, b.bound_family ^ " || " ^ a.bound_family)
+
+let ind_gen_sliding_template_key_with_delta a b =
+  let a, b, family_key = ind_gen_sliding_template_key a b in
+  let delta = Numeral.(b.bound_const + neg a.bound_const) in
+  family_key ^ " delta=" ^ Numeral.string_of_numeral delta
+
+let ind_gen_bound_family_kind bound =
+  let vars = Term.vars_of_term bound.bound_family_term in
+  if Var.VarSet.cardinal vars <= 1 then "single" else "relation"
+
+let ind_gen_sliding_template_type a b =
+  let a, b, _ = ind_gen_sliding_template_key a b in
+  let vars_a = Term.vars_of_term a.bound_family_term in
+  let vars_b = Term.vars_of_term b.bound_family_term in
+  let overlap =
+    not (Var.VarSet.is_empty (Var.VarSet.inter vars_a vars_b))
+  in
+  Format.asprintf "%s-%s-%s"
+    (if overlap then "overlap" else "disjoint")
+    (ind_gen_bound_family_kind a)
+    (ind_gen_bound_family_kind b)
+
+let ind_gen_sliding_template_keys literals =
+  let bounds =
+    List.filter_map
+      (fun lit ->
+        match ind_gen_bound_of_literal lit with
+        | Some bound -> Some (lit, bound)
+        | None -> None)
+      literals
+  in
+  let rec loop acc = function
+    | [] | [_] -> acc
+    | (lit1, bound1) :: tl ->
+        let acc =
+          List.fold_left
+            (fun acc (lit2, bound2) ->
+              let key = ind_gen_sliding_template_key_with_delta bound1 bound2 in
+              let template_type =
+                ind_gen_sliding_template_type bound1 bound2
+              in
+              (template_type, key, lit1, lit2) :: acc)
+            acc tl
+        in
+        loop acc tl
+  in
+  List.rev (loop [] bounds)
+
+let ind_gen_last_sliding_template_key = ref None
+
+let ind_gen_consecutive_sliding_template_observations = ref 0
+
+let ind_gen_current_k = ref None
+
+let ind_gen_reported_sliding_template_keys : (string, string) Hashtbl.t =
+  Hashtbl.create 251
+
+let ind_gen_begin_sliding_iteration k =
+  Hashtbl.clear ind_gen_reported_sliding_template_keys;
+  ind_gen_last_sliding_template_key := None;
+  ind_gen_consecutive_sliding_template_observations := 0;
+  ind_gen_current_k := Some k
+
+let string_of_ind_gen_current_k () =
+  match !ind_gen_current_k with
+  | None -> "none"
+  | Some k -> string_of_int k
+
+let ind_gen_record_sliding_template_observation solver clause_id literals =
+  match ind_gen_sliding_template_keys literals with
+  | [(template_type, key, _, _)] ->
+      let count =
+        match !ind_gen_last_sliding_template_key with
+        | Some last_key when String.equal last_key key ->
+            !ind_gen_consecutive_sliding_template_observations + 1
+        | _ -> 1
+      in
+      ind_gen_last_sliding_template_key := Some key;
+      ind_gen_consecutive_sliding_template_observations := count;
+      if count >= 3 && not (Hashtbl.mem ind_gen_reported_sliding_template_keys key)
+      then (
+        Hashtbl.add ind_gen_reported_sliding_template_keys key template_type;
+        SMTSolver.trace_comment solver
+          (Format.asprintf
+             "@[<v>ind-gen sliding template detected in k=%s after clause \
+              #%d:@,type=%s@,%s@]"
+             (string_of_ind_gen_current_k ()) clause_id template_type key))
+  | _ -> ()
+
+let ind_gen_report_clause_sliding_template_pairs solver clause_id literals =
+  let pairs =
+    List.filter
+      (fun (_, key, _, _) ->
+        Hashtbl.mem ind_gen_reported_sliding_template_keys key)
+      (ind_gen_sliding_template_keys literals)
+  in
+  match pairs with
+  | [] -> ()
+  | pairs ->
+      SMTSolver.trace_comment solver
+        (Format.asprintf
+           "@[<v>ind-gen clause pairs matching detected templates before \
+            generalization of #%d in k=%s:@,%a@]"
+           clause_id (string_of_ind_gen_current_k ())
+           (pp_print_list
+              (fun ppf (template_type, key, lit1, lit2) ->
+                Format.fprintf ppf "@[<v>type=%s@,%s:@,%a@,%a@]"
+                  template_type key Term.pp_print_term lit1
+                  Term.pp_print_term lit2)
+              "@,")
+           pairs)
+
 let rec literal_ast_complexity term =
   match Term.destruct term with
   | Term.T.Const _ | Term.T.Var _ -> 1
@@ -509,6 +745,9 @@ let deactivate_subsumed solver (subsumed, frame') =
   initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
 let ind_generalize solver prop_set frame clause literals =
+  if Flags.IC3QE.template () then
+    ind_gen_report_clause_sliding_template_pairs solver
+      (C.id_of_clause clause) literals;
   let skip_trivial_false_literals literals =
     match List.filter (fun lit -> not (is_ind_gen_trivial_false_literal lit)) literals with
     | [] -> literals
@@ -566,7 +805,6 @@ let ind_generalize solver prop_set frame clause literals =
       reordered
     else literals
   in
-
   (* Linearly traverse the list of literals in the clause, and remove
      a literal the clause without the literal remains relatively
      inductive and initial
@@ -601,6 +839,9 @@ let ind_generalize solver prop_set frame clause literals =
                (C.id_of_clause clause) (C.id_of_clause clause')
                (pp_print_list Term.pp_print_term ";@ ")
                (C.literals_of_clause clause'));
+          if Flags.IC3QE.template () then
+            ind_gen_record_sliding_template_observation solver
+              (C.id_of_clause clause') (C.literals_of_clause clause');
           if Flags.IC3QE.freq_sort () then (
             let lits = C.literals_of_clause clause' in
             (* Skip single-literal clauses: they perturb the frequency too much *)
@@ -2180,6 +2421,8 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
   (* Current k is length of trace *)
   let ic3_k = succ (List.length frames) in
 
+  if Flags.IC3QE.template () then ind_gen_begin_sliding_iteration ic3_k;
+
   KEvent.log L_info "IC3QE main loop at k=%d" ic3_k;
 
   KEvent.progress ic3_k;
@@ -2897,9 +3140,6 @@ let main input_sys aparam trans_sys =
             match Flags.IC3QE.reuse_tree_pdf () with
             | Some path when path <> "" ->
                 let pdf_path = path in
-                if Sys.file_exists pdf_path then
-                  Printf.printf "pdf成功保存到%s\n" pdf_path
-                else Printf.printf "警告: PDF文件可能未正确保存到%s\n" pdf_path;
                 Graphics.open_pdf pdf_path;
                 Graphics.open_graph "1800x2400";
                 let root_x = 50 in
