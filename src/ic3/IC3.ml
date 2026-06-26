@@ -315,13 +315,14 @@ let ind_gen_record_sliding_template_observation solver clause_id literals =
              (string_of_ind_gen_current_k ()) clause_id template_type key))
   | _ -> ()
 
+let ind_gen_clause_sliding_template_pairs literals =
+  List.filter
+    (fun (_, key, _, _) ->
+      Hashtbl.mem ind_gen_reported_sliding_template_keys key)
+    (ind_gen_sliding_template_keys literals)
+
 let ind_gen_report_clause_sliding_template_pairs solver clause_id literals =
-  let pairs =
-    List.filter
-      (fun (_, key, _, _) ->
-        Hashtbl.mem ind_gen_reported_sliding_template_keys key)
-      (ind_gen_sliding_template_keys literals)
-  in
+  let pairs = ind_gen_clause_sliding_template_pairs literals in
   match pairs with
   | [] -> ()
   | pairs ->
@@ -336,7 +337,51 @@ let ind_gen_report_clause_sliding_template_pairs solver clause_id literals =
                   template_type key Term.pp_print_term lit1
                   Term.pp_print_term lit2)
               "@,")
-           pairs)
+               pairs)
+
+let ind_gen_defer_disjoint_relation_single_template_literals solver clause_id
+    literals =
+  if List.length literals <= 2 then literals
+  else
+    let pairs = ind_gen_clause_sliding_template_pairs literals in
+    let deferred =
+      List.fold_left
+        (fun acc (template_type, _, lit1, lit2) ->
+          if String.equal template_type "disjoint-relation-single" then
+            lit1 :: lit2 :: acc
+          else acc)
+        [] pairs
+    in
+    match deferred with
+    | [] -> literals
+    | deferred ->
+        let is_deferred lit =
+          List.exists (fun deferred_lit -> Term.equal lit deferred_lit) deferred
+        in
+        let ordinary, delayed =
+          List.partition (fun lit -> not (is_deferred lit)) literals
+        in
+        let reordered = ordinary @ delayed in
+        if
+          List.length literals = List.length reordered
+          && List.for_all2 Term.equal literals reordered
+        then ()
+        else
+          SMTSolver.trace_comment solver
+            (Format.asprintf
+               "@[<v>ind-gen disjoint-relation-single template literals \
+                deferred for clause #%d in k=%s:@,\
+                deferred literals:@,%a@,\
+                delete order before defer:@,%a@,\
+                delete order after defer:@,%a@]"
+               clause_id (string_of_ind_gen_current_k ())
+               (pp_print_list Term.pp_print_term "@,")
+               delayed
+               (pp_print_list Term.pp_print_term "@,")
+               literals
+               (pp_print_list Term.pp_print_term "@,")
+               reordered);
+        reordered
 
 let rec literal_ast_complexity term =
   match Term.destruct term with
@@ -822,10 +867,6 @@ let ind_generalize solver prop_set frame clause literals =
           (* Return clause unchanged *)
           clause
         else (
-          (* SMTSolver.trace_comment solver
-            (Format.sprintf "ind_generalize: Dropped %d literals from clause."
-               (C.length_of_clause clause - List.length kept)); *)
-
           (* Deactivate activation literal of parent clause *)
           C.deactivate_clause solver clause;
 
@@ -943,7 +984,9 @@ let ind_generalize solver prop_set frame clause literals =
   linear_search []
     (literals
     |> skip_trivial_false_literals
-    |> prioritize_ind_gen_frequency_literals)
+    |> prioritize_ind_gen_frequency_literals
+    |> ind_gen_defer_disjoint_relation_single_template_literals solver
+         (C.id_of_clause clause))
 (*
 
 
