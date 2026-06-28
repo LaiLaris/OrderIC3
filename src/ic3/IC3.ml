@@ -789,7 +789,8 @@ let deactivate_subsumed solver (subsumed, frame') =
    Assuming that [clause] is relatively inductive to [frame] and
   initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
-let ind_generalize solver prop_set frame clause literals =
+let ind_generalize ?(freq_sort_literals = true) solver prop_set frame clause
+    literals =
   if Flags.IC3QE.template () then
     ind_gen_report_clause_sliding_template_pairs solver
       (C.id_of_clause clause) literals;
@@ -799,7 +800,10 @@ let ind_generalize solver prop_set frame clause literals =
     | filtered -> filtered
   in
   let prioritize_ind_gen_frequency_literals literals =
-    if Flags.IC3QE.freq_sort () && frame <> [] then
+    if
+      freq_sort_literals && Flags.IC3QE.freq_sort ()
+      && List.length literals > 1
+    then
       let reordered =
         let use_ast_complexity = Flags.IC3QE.ast_complexity () in
         let indexed = List.mapi (fun i lit -> (i, lit)) literals in
@@ -862,9 +866,6 @@ let ind_generalize solver prop_set frame clause literals =
     | [] ->
         (* Could we drop literals? *)
         if List.length kept = C.length_of_clause clause then
-          (* if not (List.mem clause !cex_clauses) then
-            cex_clauses := clause :: !cex_clauses; *)
-          (* Return clause unchanged *)
           clause
         else (
           (* Deactivate activation literal of parent clause *)
@@ -1600,7 +1601,6 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                         block_clause_orig
                         (C.literals_of_clause block_clause_orig))
                 in
-
                 ( block_clause,
                   (* Need to modify trace to add generalized clause *)
                   ((block_clause, block_trace) :: block_clauses_tl, r_i)
@@ -2214,7 +2214,8 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
               List.map
                 (fun c ->
                   Stat.time_fun Stat.ic3_ind_gen_time (fun () ->
-                      ind_generalize solver empty_prop_set [] c
+                      ind_generalize ~freq_sort_literals:true solver
+                        empty_prop_set [] c
                         (C.literals_of_clause c)))
                 inductive_clauses
             in
