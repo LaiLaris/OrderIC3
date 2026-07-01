@@ -41,6 +41,436 @@ let max_unrolling = ref 0
 (* Formatter to output inductive clauses to *)
 let ppf_inductive_assertions = ref Format.std_formatter
 
+let ind_gen_literal_frequency : float Term.TermHashtbl.t =
+  Term.TermHashtbl.create 251
+
+let current_ic3_k = ref 1
+
+let pending_ind_gen_literal_frequency : float Term.TermHashtbl.t =
+  Term.TermHashtbl.create 251
+
+(* Multiplicative decay applied to every entry before each batch increment,
+   matching IC3Ref's litOrder.decay() (IC3.cpp lines 337-340, called from
+   updateLitOrder before count). Recent literals weigh more; stale counts
+   fade. *)
+let ind_gen_literal_frequency_decay = 0.99
+
+let decay_ind_gen_literal_frequency () =
+  Term.TermHashtbl.filter_map_inplace
+    (fun _ count -> Some (count *. ind_gen_literal_frequency_decay))
+    ind_gen_literal_frequency
+
+let ind_gen_literal_frequency_weight () =
+  1.0 /. float_of_int (max 1 !current_ic3_k)
+
+let accum_ind_gen_literal_frequency literals =
+  let weight = ind_gen_literal_frequency_weight () in
+  List.iter
+    (fun lit ->
+      let count =
+        try Term.TermHashtbl.find pending_ind_gen_literal_frequency lit
+        with Not_found -> 0.0
+      in
+      Term.TermHashtbl.replace pending_ind_gen_literal_frequency lit
+        (count +. weight))
+    literals
+
+let flush_ind_gen_literal_frequency () =
+  if Term.TermHashtbl.length pending_ind_gen_literal_frequency > 0 then (
+    decay_ind_gen_literal_frequency ();
+    Term.TermHashtbl.iter
+      (fun lit pending_count ->
+        let count =
+          try Term.TermHashtbl.find ind_gen_literal_frequency lit
+          with Not_found -> 0.0
+        in
+        Term.TermHashtbl.replace ind_gen_literal_frequency lit
+          (count +. pending_count))
+      pending_ind_gen_literal_frequency;
+    Term.TermHashtbl.clear pending_ind_gen_literal_frequency)
+
+let incr_ind_gen_literal_frequency literals =
+  accum_ind_gen_literal_frequency literals
+let ind_gen_literal_frequency_of lit =
+  try Term.TermHashtbl.find ind_gen_literal_frequency lit with Not_found -> 0.0
+
+let is_ind_gen_trivial_false_literal lit =
+  lit == Term.t_false
+  ||
+  match Term.destruct lit with
+  | Term.T.App (s, [term]) when s == Symbol.s_not -> term == Term.t_true
+  | _ -> false
+
+type ind_gen_bound_dir = Bound_ge | Bound_le
+
+type ind_gen_bound_literal = {
+  bound_family : string;
+  bound_family_term : Term.t;
+  bound_const : Numeral.t;
+}
+
+let string_of_ind_gen_bound_dir = function
+  | Bound_ge -> ">="
+  | Bound_le -> "<="
+
+let ind_gen_flip_bound_dir = function
+  | Bound_ge -> Bound_le
+  | Bound_le -> Bound_ge
+
+let ind_gen_is_minus_one term =
+  Term.is_numeral term && Numeral.(Term.numeral_of_term term = neg one)
+
+let ind_gen_is_one term =
+  Term.is_numeral term && Numeral.(Term.numeral_of_term term = one)
+
+let ind_gen_normalize_unit_coefficients term =
+  match Term.destruct term with
+  | Term.T.App (s, [coef; term]) when s == Symbol.s_times ->
+      if ind_gen_is_one coef then term
+      else if ind_gen_is_one term then coef
+      else Term.mk_times [coef; term]
+  | _ -> term
+
+let ind_gen_strip_unit_minus term =
+  match Term.destruct term with
+  | Term.T.App (s, [term]) when s == Symbol.s_minus -> Some term
+  | Term.T.App (s, [coef; term])
+    when s == Symbol.s_times && ind_gen_is_minus_one coef ->
+      Some term
+  | Term.T.App (s, [term; coef])
+    when s == Symbol.s_times && ind_gen_is_minus_one coef ->
+      Some term
+  | _ -> None
+
+let ind_gen_strip_all_negative_terms term =
+  match Term.destruct term with
+  | Term.T.App (s, args) when s == Symbol.s_plus -> (
+      match List.map ind_gen_strip_unit_minus args with
+      | stripped when List.for_all Option.is_some stripped ->
+          let terms = List.map Option.get stripped in
+          Some
+            (match terms with
+            | [] -> Term.mk_num Numeral.zero
+            | [term] -> ind_gen_normalize_unit_coefficients term
+            | terms ->
+                Term.mk_plus (List.map ind_gen_normalize_unit_coefficients terms))
+      | _ -> None)
+  | _ -> ind_gen_strip_unit_minus term
+
+let ind_gen_split_sum_constant term =
+  match Term.destruct term with
+  | Term.T.App (s, args) when s == Symbol.s_plus ->
+      let rec loop acc_terms acc_const = function
+        | [] ->
+            let term =
+              match List.rev acc_terms with
+              | [] -> Term.mk_num Numeral.zero
+              | [term] -> term
+              | terms -> Term.mk_plus terms
+            in
+            Some (ind_gen_normalize_unit_coefficients term, acc_const)
+        | arg :: tl when Term.is_numeral arg ->
+            loop acc_terms Numeral.(acc_const + Term.numeral_of_term arg) tl
+        | arg :: tl ->
+            loop
+              (ind_gen_normalize_unit_coefficients arg :: acc_terms)
+              acc_const tl
+      in
+      loop [] Numeral.zero args
+  | _ -> Some (ind_gen_normalize_unit_coefficients term, Numeral.zero)
+
+let ind_gen_normalize_signed_bound dir family_term bound_const =
+  match ind_gen_strip_all_negative_terms family_term with
+  | Some family_term ->
+      (ind_gen_flip_bound_dir dir, family_term, Numeral.(~- bound_const))
+  | None -> (dir, family_term, bound_const)
+
+let ind_gen_bound_of_literal lit =
+  let body =
+    match Term.destruct lit with
+    | Term.T.App (s, [term]) when s == Symbol.s_not -> Some term
+    | _ -> None
+  in
+  match body with
+  | Some body -> (
+      match Term.destruct body with
+      | Term.T.App (s, [lhs; rhs])
+        when (Symbol.node_of_symbol s = `LT || Symbol.node_of_symbol s = `GT)
+             && Term.is_numeral rhs
+             && Numeral.(Term.numeral_of_term rhs = zero) -> (
+          match ind_gen_split_sum_constant lhs with
+          | Some (family_term, const_offset) ->
+              let dir, bound_const =
+                match Symbol.node_of_symbol s with
+                | `LT -> (Bound_ge, Numeral.(~- const_offset))
+                | `GT -> (Bound_le, Numeral.(~- const_offset))
+                | _ -> assert false
+              in
+              let dir, family_term, bound_const =
+                ind_gen_normalize_signed_bound dir family_term bound_const
+              in
+              Some
+                {
+                  bound_family =
+                    Format.asprintf "%s:%a" (string_of_ind_gen_bound_dir dir)
+                      Term.pp_print_term family_term;
+                  bound_family_term = family_term;
+                  bound_const;
+                }
+          | None -> None)
+      | _ -> None)
+  | None -> None
+
+let ind_gen_sliding_template_key a b =
+  if String.compare a.bound_family b.bound_family <= 0 then
+    (a, b, a.bound_family ^ " || " ^ b.bound_family)
+  else (b, a, b.bound_family ^ " || " ^ a.bound_family)
+
+let ind_gen_sliding_template_key_with_delta a b =
+  let a, b, family_key = ind_gen_sliding_template_key a b in
+  let delta = Numeral.(b.bound_const + neg a.bound_const) in
+  family_key ^ " delta=" ^ Numeral.string_of_numeral delta
+
+let ind_gen_bound_family_kind bound =
+  let vars = Term.vars_of_term bound.bound_family_term in
+  if Var.VarSet.cardinal vars <= 1 then "single" else "relation"
+
+let ind_gen_sliding_template_type a b =
+  let a, b, _ = ind_gen_sliding_template_key a b in
+  let vars_a = Term.vars_of_term a.bound_family_term in
+  let vars_b = Term.vars_of_term b.bound_family_term in
+  let overlap =
+    not (Var.VarSet.is_empty (Var.VarSet.inter vars_a vars_b))
+  in
+  Format.asprintf "%s-%s-%s"
+    (if overlap then "overlap" else "disjoint")
+    (ind_gen_bound_family_kind a)
+    (ind_gen_bound_family_kind b)
+
+let ind_gen_sliding_template_keys literals =
+  let bounds =
+    List.filter_map
+      (fun lit ->
+        match ind_gen_bound_of_literal lit with
+        | Some bound -> Some (lit, bound)
+        | None -> None)
+      literals
+  in
+  let rec loop acc = function
+    | [] | [_] -> acc
+    | (lit1, bound1) :: tl ->
+        let acc =
+          List.fold_left
+            (fun acc (lit2, bound2) ->
+              let key = ind_gen_sliding_template_key_with_delta bound1 bound2 in
+              let template_type =
+                ind_gen_sliding_template_type bound1 bound2
+              in
+              (template_type, key, lit1, lit2) :: acc)
+            acc tl
+        in
+        loop acc tl
+  in
+  List.rev (loop [] bounds)
+
+let ind_gen_last_sliding_template_key = ref None
+
+let ind_gen_consecutive_sliding_template_observations = ref 0
+
+let ind_gen_current_k = ref None
+
+let ind_gen_reported_sliding_template_keys : (string, string) Hashtbl.t =
+  Hashtbl.create 251
+
+let ind_gen_begin_sliding_iteration k =
+  Hashtbl.clear ind_gen_reported_sliding_template_keys;
+  ind_gen_last_sliding_template_key := None;
+  ind_gen_consecutive_sliding_template_observations := 0;
+  ind_gen_current_k := Some k
+
+let string_of_ind_gen_current_k () =
+  match !ind_gen_current_k with
+  | None -> "none"
+  | Some k -> string_of_int k
+
+let ind_gen_record_sliding_template_observation solver clause_id literals =
+  match ind_gen_sliding_template_keys literals with
+  | [(template_type, key, _, _)] ->
+      let count =
+        match !ind_gen_last_sliding_template_key with
+        | Some last_key when String.equal last_key key ->
+            !ind_gen_consecutive_sliding_template_observations + 1
+        | _ -> 1
+      in
+      ind_gen_last_sliding_template_key := Some key;
+      ind_gen_consecutive_sliding_template_observations := count;
+      if count >= 3 && not (Hashtbl.mem ind_gen_reported_sliding_template_keys key)
+      then (
+        Hashtbl.add ind_gen_reported_sliding_template_keys key template_type;
+        SMTSolver.trace_comment solver
+          (Format.asprintf
+             "@[<v>ind-gen sliding template detected in k=%s after clause \
+              #%d:@,type=%s@,%s@]"
+             (string_of_ind_gen_current_k ()) clause_id template_type key))
+  | _ -> ()
+
+let ind_gen_clause_sliding_template_pairs literals =
+  List.filter
+    (fun (_, key, _, _) ->
+      Hashtbl.mem ind_gen_reported_sliding_template_keys key)
+    (ind_gen_sliding_template_keys literals)
+
+let ind_gen_report_clause_sliding_template_pairs solver clause_id literals =
+  let pairs = ind_gen_clause_sliding_template_pairs literals in
+  match pairs with
+  | [] -> ()
+  | pairs ->
+      SMTSolver.trace_comment solver
+        (Format.asprintf
+           "@[<v>ind-gen clause pairs matching detected templates before \
+            generalization of #%d in k=%s:@,%a@]"
+           clause_id (string_of_ind_gen_current_k ())
+           (pp_print_list
+              (fun ppf (template_type, key, lit1, lit2) ->
+                Format.fprintf ppf "@[<v>type=%s@,%s:@,%a@,%a@]"
+                  template_type key Term.pp_print_term lit1
+                  Term.pp_print_term lit2)
+              "@,")
+               pairs)
+
+let ind_gen_defer_disjoint_relation_single_template_literals solver clause_id
+    literals =
+  if List.length literals <= 2 then literals
+  else
+    let pairs = ind_gen_clause_sliding_template_pairs literals in
+    let deferred =
+      List.fold_left
+        (fun acc (template_type, _, lit1, lit2) ->
+          if String.equal template_type "disjoint-relation-single" then
+            lit1 :: lit2 :: acc
+          else acc)
+        [] pairs
+    in
+    match deferred with
+    | [] -> literals
+    | deferred ->
+        let is_deferred lit =
+          List.exists (fun deferred_lit -> Term.equal lit deferred_lit) deferred
+        in
+        let ordinary, delayed =
+          List.partition (fun lit -> not (is_deferred lit)) literals
+        in
+        let reordered = ordinary @ delayed in
+        if
+          List.length literals = List.length reordered
+          && List.for_all2 Term.equal literals reordered
+        then ()
+        else
+          SMTSolver.trace_comment solver
+            (Format.asprintf
+               "@[<v>ind-gen disjoint-relation-single template literals \
+                deferred for clause #%d in k=%s:@,\
+                deferred literals:@,%a@,\
+                delete order before defer:@,%a@,\
+                delete order after defer:@,%a@]"
+               clause_id (string_of_ind_gen_current_k ())
+               (pp_print_list Term.pp_print_term "@,")
+               delayed
+               (pp_print_list Term.pp_print_term "@,")
+               literals
+               (pp_print_list Term.pp_print_term "@,")
+               reordered);
+        reordered
+
+let rec literal_ast_complexity term =
+  match Term.destruct term with
+  | Term.T.Const _ | Term.T.Var _ -> 1
+  (* Ignore a leading negation so that [p] and [not p] have equal depth. *)
+  (* | Term.T.App (s, [ arg ]) when s == Symbol.s_not ->
+      literal_ast_complexity arg *)
+  | Term.T.App (_, args) ->
+      1
+      + List.fold_left
+          (fun acc arg -> acc + literal_ast_complexity arg)
+          0 args
+let string_contains_substring haystack needle =
+  let haystack_len = String.length haystack in
+  let needle_len = String.length needle in
+  if needle_len = 0 then true
+  else
+    let rec loop index =
+      if index + needle_len > haystack_len then false
+      else
+        String.sub haystack index needle_len = needle || loop (index + 1)
+    in
+    loop 0
+let literal_contains_div_keyword lit =
+  let s = Format.asprintf "%a" Term.pp_print_term lit in
+  string_contains_substring s "div"
+
+(* Returns true if the literal (after stripping any leading negation) has
+   equality or disequality (EQ / DISTINCT) as its top-level symbol.
+   Such literals are preferred early in ind-gen: they constrain variables
+   precisely and are relatively cheap for the solver to reason about. *)
+(* let literal_is_eq_or_neq lit =
+  let body =
+    match Term.T.node_of_t lit with
+    | Term.T.Node (s, [ arg ]) when s == Symbol.s_not ->
+        (* peek through a single negation *)
+        arg
+    | _ -> lit
+  in
+  match Term.T.node_of_t body with
+  | Term.T.Node (s, _) | Term.T.Leaf s -> (
+      match Symbol.node_of_symbol s with
+      | `EQ | `DISTINCT -> true
+      | _ -> false)
+  | _ -> false  *)
+
+
+(* let record_safe_frontier_first_built_frame solver frontier_level frames =
+  if Flags.IC3QE.first_frame_order () then
+    let rec first_non_empty level = function
+      | [] -> None
+      | frame :: tl -> (
+          match F.values frame with
+          | [] -> first_non_empty (pred level) tl
+          | clauses -> Some (level, clauses))
+    in
+    match first_non_empty frontier_level frames with
+    | None -> ()
+    | Some (frame_level, clauses) ->
+        let literals =
+          clauses
+          |> List.to_seq
+          |> Seq.flat_map (fun clause -> C.literals_of_clause clause |> List.to_seq)
+          |> Term.TermSet.of_seq
+        in
+        first_built_frame_literals := Some literals;
+        SMTSolver.trace_comment solver
+          (Format.asprintf
+             "@[<v>first-built-frame candidate after safe R_%d:@,\
+              frame R_%d clauses:@,%a@,\
+              literals (%d):@,%a@]"
+             frontier_level frame_level
+             (pp_print_list
+                (fun ppf c -> Format.fprintf ppf "%d" (C.id_of_clause c))
+                "@,")
+             clauses
+             (Term.TermSet.cardinal literals)
+             (pp_print_list Term.pp_print_term "@,")
+             (Term.TermSet.elements literals)) *)
+
+(* Extract all or-clauses from a constraint conjunction *)
+let extract_clauses_from_constraint constr_term =
+  let rec extract_or_clauses term =
+    match Term.T.destruct term with
+    | Term.T.App (s_and, terms) when Symbol.equal_symbols s_and Symbol.s_and ->
+        List.concat (List.map extract_or_clauses terms)
+    | _ -> [term]
+  in
+  extract_or_clauses constr_term
+
 (* Output statistics *)
 let print_stats () =
   KEvent.stat
@@ -105,75 +535,14 @@ let add_node_to_tree id clause =
   | Some parent ->
       let new_node = { node_clause = clause; children = [] } in
       parent.children <- new_node :: parent.children
+
 let find_copyblock_pre_clause block_clause =
   let rec loop clause =
     match C.source_of_clause clause with
     | C.CopyBlockProp copied_clause -> loop copied_clause
-    | C.IndGen parent_clause -> loop parent_clause
     | _ -> clause
   in
   loop block_clause
-(* ********************************************************************** *)
-(* Record cex_gen pairs to comapre                                        *)
-(* ********************************************************************** *)
-let generalization_pairs = ref []
-let build_log_folder_path () =
-  let in_file = Flags.input_file () in
-    (* 辅助函数：递归创建目录 *)
-  let rec mkdir_p path =
-    if not (Sys.file_exists path) then begin
-      let parent = Filename.dirname path in
-      if parent <> path then mkdir_p parent;
-      Unix.mkdir path 0o755
-    end
-  in
-  (* 从输入文件路径提取目录和无扩展名的文件名 *)
-  let extract_file_path in_file =
-    let last_slash = String.rindex in_file '/' in
-    let path_part = String.sub in_file 0 last_slash in
-    let file_part =
-      String.sub in_file (last_slash + 1)
-        (String.length in_file - last_slash - 1)
-    in
-    (* 去掉扩展名 *)
-    let base_name =
-      match String.rindex_opt file_part '.' with
-      | Some dot_idx -> String.sub file_part 0 dot_idx
-      | None -> file_part
-    in
-    (path_part, base_name)
-  in
-  let base_path = "./log/" in
-  let relative_path, base_name = extract_file_path in_file in
-  (* 构建完整的日志文件夹路径 *)
-  let folder_path =
-    Filename.concat (Filename.concat base_path relative_path) base_name
-  in
-  mkdir_p folder_path;
-  (folder_path, base_name)
-
-(* let write_generalization_pairs_to_file filename =
-  let oc = open_out filename in
-  let fmt = Format.formatter_of_out_channel oc in
-  Format.fprintf fmt "@[<hv>=== List of generalization clause pairs ===@,%a@]"
-    (pp_print_list
-       (fun ppf (i, orig, gen) ->
-         Format.fprintf ppf
-           "Pair %d:@,\
-            Cex (#%d):@,\
-            @[<hv 1>{%a}@]@,\
-            After generalization (#%d):@,\
-            @[<hv 1>{%a}@]"
-           (i + 1) (C.id_of_clause orig)
-           (pp_print_list Term.pp_print_term ";@ ")
-           (C.literals_of_clause orig)
-           (C.id_of_clause gen)
-           (pp_print_list Term.pp_print_term ";@ ")
-           (C.literals_of_clause gen))
-       "@,")
-    (List.mapi (fun i (orig, gen) -> (i, orig, gen)) (List.rev !generalization_pairs));
-    Format.pp_print_flush fmt ();
-close_out oc *)
 
 (* ********************************************************************** *)
 (* Exception raised in proof process                                      *)
@@ -417,9 +786,73 @@ let deactivate_subsumed solver (subsumed, frame') =
 (* Inductively generalize [clause] relative to [frame]
 
    Assuming that [clause] is relatively inductive to [frame] and
-   initial, find a smaller subclause of [clause] that is still
+  initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
-let ind_generalize solver prop_set frame clause literals =
+let ind_generalize ?(freq_sort_literals = true) solver prop_set frame clause
+    literals =
+  if Flags.IC3QE.template () then
+    ind_gen_report_clause_sliding_template_pairs solver
+      (C.id_of_clause clause) literals;
+  let skip_trivial_false_literals literals =
+    match List.filter (fun lit -> not (is_ind_gen_trivial_false_literal lit)) literals with
+    | [] -> literals
+    | filtered -> filtered
+  in
+  let prioritize_ind_gen_frequency_literals literals =
+    if
+      freq_sort_literals && Flags.IC3QE.freq_sort ()
+      && !current_ic3_k > 1 && List.length literals > 1
+    then
+      let reordered =
+        let use_ast_complexity = Flags.IC3QE.ast_complexity () in
+        let indexed = List.mapi (fun i lit -> (i, lit)) literals in
+        List.sort
+          (fun (i1, lit1) (i2, lit2) ->
+            let c = compare (literal_contains_div_keyword lit2)
+                (literal_contains_div_keyword lit1) in
+            if c <> 0 then c
+            else
+              let c =
+                compare
+                  (ind_gen_literal_frequency_of lit1)
+                  (ind_gen_literal_frequency_of lit2)
+              in
+              if c <> 0 then c
+              else if use_ast_complexity then
+                let c2 =
+                  compare
+                    (literal_ast_complexity lit1)
+                    (literal_ast_complexity lit2)
+                in
+                if c2 <> 0 then c2 else compare i1 i2
+              else compare i1 i2)
+          indexed
+        |> List.map snd
+      in
+      let pp_literal_frequency ppf lit =
+        if Flags.IC3QE.ast_complexity () then
+          Format.fprintf ppf "%a [freq=%.3f, ast=%d]" Term.pp_print_term lit
+            (ind_gen_literal_frequency_of lit)
+            (literal_ast_complexity lit)
+        else
+          Format.fprintf ppf "%a [freq=%.3f]" Term.pp_print_term lit
+            (ind_gen_literal_frequency_of lit)
+      in
+      SMTSolver.trace_comment solver
+        (Format.asprintf
+           "@[<v>ind-gen literal frequency priority for clause #%d:@,\
+            original:@,%a@,\
+            reordered by %s:@,%a@]"
+           (C.id_of_clause clause)
+           (pp_print_list pp_literal_frequency "@,")
+           literals
+           (if Flags.IC3QE.ast_complexity () then "freq+ast"
+            else "freq")
+           (pp_print_list pp_literal_frequency "@,")
+           reordered);
+      reordered
+    else literals
+  in
   (* Linearly traverse the list of literals in the clause, and remove
      a literal the clause without the literal remains relatively
      inductive and initial
@@ -432,20 +865,13 @@ let ind_generalize solver prop_set frame clause literals =
     | [] ->
         (* Could we drop literals? *)
         if List.length kept = C.length_of_clause clause then
-          (* if not (List.mem clause !cex_clauses) then
-            cex_clauses := clause :: !cex_clauses; *)
-          (* Return clause unchanged *)
           clause
         else (
-          (* SMTSolver.trace_comment solver
-            (Format.sprintf "ind_generalize: Dropped %d literals from clause."
-               (C.length_of_clause clause - List.length kept)); *)
-
           (* Deactivate activation literal of parent clause *)
           C.deactivate_clause solver clause;
 
           (* New clause with generalized clause as parent *)
-          let clause' = C.mk_clause_of_literals_l1l2 (C.IndGen clause) kept in
+          let clause' = C.mk_clause_of_literals (C.IndGen clause) kept in
 
           SMTSolver.trace_comment solver
             (Format.asprintf
@@ -454,9 +880,15 @@ let ind_generalize solver prop_set frame clause literals =
                (C.id_of_clause clause) (C.id_of_clause clause')
                (pp_print_list Term.pp_print_term ";@ ")
                (C.literals_of_clause clause'));
-          (* cex_clauses := clause :: !cex_clauses;
-          generalized_clauses := clause' :: !generalized_clauses;
-          generalization_pairs := (clause, clause') :: !generalization_pairs; *)
+          if Flags.IC3QE.template () then
+            ind_gen_record_sliding_template_observation solver
+              (C.id_of_clause clause') (C.literals_of_clause clause');
+          if Flags.IC3QE.freq_sort () then (
+            let lits = C.literals_of_clause clause' in
+            (* Skip single-literal clauses: they perturb the frequency too much *)
+              incr_ind_gen_literal_frequency lits;
+              (* accum_ind_gen_literal_frequency lits *)
+            );
           clause')
     (* Do not try to generalize to the empty clause, this should not
        be possible in a sound transition system *)
@@ -464,6 +896,7 @@ let ind_generalize solver prop_set frame clause literals =
     | l :: tl ->
         (* Clause without current literal *)
         let clause' = kept @ tl |> Term.mk_or in
+        (* let candidate_len = List.length kept + List.length tl in *)
 
         (* Actiation literal for clause *)
         let clause'_actlit_p0, clause'_actlit_n0, clause'_actlit_n1 =
@@ -496,14 +929,25 @@ let ind_generalize solver prop_set frame clause literals =
         (* Clause without literal is initial *)
         let is_initial () =
           (* SMTSolver.trace_comment solver
-            "ind_generalize: Checking if clause without literal is relatively \
-             inductive."; *)
-          if
+            (Format.asprintf
+               "@[<v>ind_generalize #%d: BEGIN consecution check after \
+                dropping literal@,\
+                dropped:@,%a@,\
+                candidate_literals=%d kept=%d todo=%d frame_actlits=%d@]"
+               (C.id_of_clause clause) Term.pp_print_term l candidate_len
+               (List.length kept) (List.length tl) (List.length frame)); *)
+          let consecution_sat =
             SMTSolver.check_sat_assuming_tf solver
               (* Check P[x] & R[x] & C[x] & T[x,x'] |= C[x'] *)
               (C.actlit_p0_of_prop_set solver prop_set
               :: clause'_actlit_p0 :: clause'_actlit_n1 :: frame)
-          then
+          in
+          (* SMTSolver.trace_comment solver
+            (Format.asprintf
+               "ind_generalize #%d: END consecution check result=%s"
+               (C.id_of_clause clause)
+               (if consecution_sat then "sat" else "unsat")); *)
+          if consecution_sat then
             (* If sat: Clause without literal is not relatively inductive *)
             keep_literal ()
           else
@@ -512,12 +956,24 @@ let ind_generalize solver prop_set frame clause literals =
         in
 
         (* SMTSolver.trace_comment solver
-          "ind_generalize: Checking if clause without literal is initial."; *)
-        if
+          (Format.asprintf
+             "@[<v>ind_generalize #%d: BEGIN initiality check after dropping \
+              literal@,\
+              dropped:@,%a@,\
+              candidate_literals=%d kept=%d todo=%d@]"
+             (C.id_of_clause clause) Term.pp_print_term l candidate_len
+             (List.length kept) (List.length tl)); *)
+        let initial_sat =
           SMTSolver.check_sat_assuming_tf solver
             (* Check I |= C *)
             [ clause'_actlit_n0; C.actlit_of_frame 0 ]
-        then
+        in
+        (* SMTSolver.trace_comment solver
+          (Format.asprintf
+             "ind_generalize #%d: END initiality check result=%s"
+             (C.id_of_clause clause)
+             (if initial_sat then "sat" else "unsat")); *)
+        if initial_sat then
           (* If sat: Clause without literal is not initial *)
           keep_literal ()
         else
@@ -525,7 +981,12 @@ let ind_generalize solver prop_set frame clause literals =
           is_initial ()
   in
 
-  linear_search [] literals
+  linear_search []
+    (literals
+    |> skip_trivial_false_literals
+    |> prioritize_ind_gen_frequency_literals
+    |> ind_gen_defer_disjoint_relation_single_template_literals solver
+         (C.id_of_clause clause))
 (*
 
 
@@ -706,7 +1167,6 @@ let add_to_block_tl solver block_clause block_trace = function
   | (block_clauses, r_succ_i) :: block_clauses_tl ->
       (* (block_clauses @ [C.copy_clause solver block_clause, block_trace], r_succ_i) :: block_clauses_tl *)
       let block_clause' = C.copy_clause_block_prop block_clause in
-
       SMTSolver.trace_comment solver
         (Format.asprintf
            "@[<hv>Copied clause #%d for blocking at depth %d:@ #%d @[<hv \
@@ -716,7 +1176,6 @@ let add_to_block_tl solver block_clause block_trace = function
            (C.id_of_clause block_clause')
            (pp_print_list Term.pp_print_term ";@ ")
            (C.literals_of_clause block_clause'));
-
       ((block_clause', block_trace) :: block_clauses, r_succ_i)
       :: block_clauses_tl
 (* (block_clauses @ [block_clause', block_trace], r_succ_i) :: block_clauses_tl *)
@@ -848,6 +1307,8 @@ let abstr_simulate trace trans_sys raise_cex =
 
     interpolants
 
+let inv_loaded = ref false
+
 (* Block sets of bad states in frames
 
    The last two arguments [frames] and [trace] are lists of frames and
@@ -869,7 +1330,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
       (* k > 0, we must have at least one frame *)
       | [] -> raise (Invalid_argument "block")
       (* Head of frames is the last frame *)
-      | r_k :: frames_tl as frames -> (
+      | r_k_orig :: frames_tl as frames -> (
           (* Receive and assert new invariants *)
           handle_events solver input_sys aparam trans_sys
             (C.props_of_prop_set prop_set);
@@ -879,6 +1340,111 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                "block: Check if all successors of frontier R_%d are safe."
                (List.length frames));
 
+          (* Load external invariant clauses into the first frame, once *)
+          let r_k =
+            if List.length frames = 1 && not !inv_loaded then (
+              let filename = Flags.Certif.load_inv () in
+              if filename <> "" then (
+                inv_loaded := true;
+                match (try Some (InvParser.load_inv filename)
+                       with InvParser.Parse_error msg ->
+                         Format.printf
+                           "[Block] Failed to parse invariant from %s: %s@\n%!"
+                           filename msg;
+                         None)
+                with
+                | None -> r_k_orig
+                | Some constr_term ->
+                Format.printf
+                  "[Block] Loading constraint clauses into k=1 frame from %s@\n%!"
+                  filename;
+
+                let constr_clauses = extract_clauses_from_constraint constr_term in
+                Format.printf
+                  "[Block] Extracted %d clauses from constraint@\n%!"
+                  (List.length constr_clauses);
+                
+                (* 输出每个clause的具体内容 *)
+                (* List.iteri
+                  (fun i clause ->
+                    Format.printf
+                      "[Block] Clause %d: @[<hv>%a@]@\n%!"
+                      (i + 1)
+                      Term.pp_print_term clause)
+                  inv_clauses *)
+
+
+                (* 将每个clause添加到第一个frame *)
+                let updated_first_frame = 
+                  List.fold_left
+                    (fun frame clause_term ->
+                      let clause = 
+                        let literals = 
+                          match Term.destruct clause_term with
+                          | Term.T.App (s, literals) 
+                            when Symbol.equal_symbols s Symbol.s_or ->
+                              literals
+                          | _ -> [clause_term]
+                        in
+                        C.mk_clause_of_literals C.BlockFrontier literals
+                      in
+                      (* SMTSolver.trace_comment solver
+                      (Format.asprintf
+                        "@[<hv>New invariant clause:@ #%d @[<hv 1>{%a}@]@]"
+                        (C.id_of_clause clause)
+                        (pp_print_list Term.pp_print_term ";@ ")
+                        (C.literals_of_clause clause)); *)
+                      let literals = C.literals_of_clause clause in
+                      (* 检查literals是否为空，避免Trie错误 *)
+                      if literals = [] then (
+                        Format.printf
+                          "[Block] Warning: Empty literals, skipping clause@\n%!";
+                        frame
+                      ) else (
+                        (* 激活clause的activation literal *)
+                        ignore (C.actlit_p0_of_clause solver clause);
+                        ignore (C.actlits_n0_of_clause solver clause);
+                        ignore (C.actlits_n1_of_clause solver clause);
+                        
+                        try
+                          (* Adding a clause may fail if it a prefix of a clause
+                             in the trie, or if a clause in the trie is a
+                             prefix of this clause *)
+                          F.add literals clause frame
+                        with Invalid_argument _ ->
+                          (* The new clause is not subsumed, because
+                             otherwise we would not get the counterexample *)
+                          (* Subsume in this frame and add *)
+                          try
+                            F.subsume frame literals
+                            |> snd
+                            |> F.add literals clause
+                          with Invalid_argument _ ->
+                            (* 如果仍然失败，跳过这个clause *)
+                            Format.printf
+                              "[Block] Warning: Failed to add clause after subsumption, skipping@\n%!";
+                            frame
+                      ))
+                    r_k_orig
+                    constr_clauses
+                in
+                updated_first_frame
+              ) else
+                r_k_orig
+            ) else
+              r_k_orig
+          in
+          SMTSolver.trace_comment solver
+            (Format.asprintf "@[<v>frames r_k:@,%a@]"
+              (fun ppf r_i ->
+                Format.fprintf ppf "@,Frame:@,%a"
+                  (pp_print_list
+                    (fun ppf c -> Format.fprintf ppf "%d" (C.id_of_clause c))
+                    "@,")
+                  (F.values r_i))
+              r_k);
+
+          
           match
             (* Check P[x] & R_k[x] & T[x,x'] |= P[x']
 
@@ -940,7 +1506,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                    generalized counterexample *)
               let clause =
                 try
-                  C.mk_clause_of_literals_l1l2 C.BlockFrontier
+                  C.mk_clause_of_literals C.BlockFrontier
                     (List.map Term.negate cti_gen)
                 with Invalid_argument _ as e ->
                   if List.exists (fun t -> Term.has_quantifier t) cti_gen then
@@ -973,6 +1539,11 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
               SMTSolver.trace_comment solver
                 (Format.sprintf "block: All successors of R_%d are safe."
                    (List.length frames));
+              (* Previous first-built-frame update point: after block proves
+                 the frontier safe. Keep disabled to profile the frame after
+                 forward propagation instead.
+                 record_safe_frontier_first_built_frame solver
+                   (List.length frames) frames; *)
               (* Return frames *)
               (frames, predicates)))
   (* No more cubes to block in R_i *)
@@ -1018,32 +1589,24 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
 
           (* Inductively generalize clauses propagated for blocking to
            this frame *)
-          let (block_clause,is_block_copy), trace = match C.source_of_clause block_clause_orig with 
-
-          (* Clause was propagates for blocking *)
-          | C.CopyBlockProp _ -> 
-
-            let block_clause = 
-
-              Stat.time_fun Stat.ic3_ind_gen_time
-                (fun () -> 
-                  ind_generalize 
-                    solver
-                    prop_set
-                    actlits_p0_r_pred_i
-                    block_clause_orig
-                    (C.literals_of_clause block_clause_orig))
-            in
-
-            (block_clause,true), 
-
-            (* Need to modify trace to add generalized clause *)
-            (((block_clause, block_trace) :: block_clauses_tl), r_i) 
-            :: block_tl
-
-          (* Clause is an actual blocking clause *)
-          | _ -> (block_clause_orig, false), trace
-        in
+          let block_clause, trace =
+            match C.source_of_clause block_clause_orig with
+            (* Clause was propagates for blocking *)
+            | C.CopyBlockProp _ ->
+                (* block_clause_orig, trace  *)
+                let block_clause =
+                  Stat.time_fun Stat.ic3_ind_gen_time (fun () ->
+                      ind_generalize solver prop_set actlits_p0_r_pred_i
+                        block_clause_orig
+                        (C.literals_of_clause block_clause_orig))
+                in
+                ( block_clause,
+                  (* Need to modify trace to add generalized clause *)
+                  ((block_clause, block_trace) :: block_clauses_tl, r_i)
+                  :: block_tl )
+            (* Clause is an actual blocking clause *)
+            | _ -> (block_clause_orig, trace)
+          in
 
           (* Receive and assert new invariants *)
           handle_events solver input_sys aparam trans_sys
@@ -1159,15 +1722,14 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                       block_clause block_clause_literals_core)
               in
 
-              begin
+              (* begin
               match is_block_copy with
               | true ->
                   print_endline ("block_clause_id为" ^ string_of_int (C.id_of_clause block_clause));
                   print_endline ("gen_clause_id为" ^ string_of_int (C.id_of_clause block_clause_gen))
               | false ->
                   generalization_pairs := (block_clause, block_clause_gen) :: !generalization_pairs
-              end;
-
+              end; *)
               SMTSolver.trace_comment solver
                 (Format.asprintf
                    "@[<hv>block: Reduced clause@ %a@ with ind. gen. to@ %a@]"
@@ -1175,8 +1737,6 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                    (Term.mk_or block_clause_literals_core)
                    Term.pp_print_term
                    (C.term_of_clause block_clause_gen));
-              
-              
 
               (* Add blocking clause to all frames up to where it has to
                 be blocked *)
@@ -1365,7 +1925,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                   (* Create a clause with activation literals from generalized
                     counterexample *)
                   let block_clause' =
-                    C.mk_clause_of_literals_l1l2 (C.BlockRec block_clause)
+                    C.mk_clause_of_literals (C.BlockRec block_clause)
                       (List.map Term.negate cti_gen)
                   in
 
@@ -1378,8 +1938,12 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                        (C.id_of_clause block_clause')
                        (pp_print_list Term.pp_print_term ";@ ")
                        (C.literals_of_clause block_clause'));
-                  let block_clause_pre = find_copyblock_pre_clause block_clause in
-                  add_node_to_tree (C.id_of_clause block_clause_pre) block_clause';
+                  let block_clause_pre =
+                    find_copyblock_pre_clause block_clause
+                  in
+                  add_node_to_tree
+                    (C.id_of_clause block_clause_pre)
+                    block_clause';
                   Stat.incr Stat.ic3_neg_state;
                   block solver input_sys aparam trans_sys prop_set term_tbl
                     predicates
@@ -1649,7 +2213,8 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
               List.map
                 (fun c ->
                   Stat.time_fun Stat.ic3_ind_gen_time (fun () ->
-                      ind_generalize solver empty_prop_set [] c
+                      ind_generalize ~freq_sort_literals:true solver
+                        empty_prop_set [] c
                         (C.literals_of_clause c)))
                 inductive_clauses
             in
@@ -1761,11 +2326,11 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
           Stat.set (List.length frames |> succ) Stat.ic3_fwd_fixpoint;
 
           (* Extract inductive invariant *)
-          let ind_inv = 
-            (List.fold_left 
-                (fun a c -> List.map C.term_of_clause (F.values c) @ a) 
-                (List.map C.term_of_clause fwd)
-                (frames_tl))
+          let ind_inv =
+            List.fold_left
+              (fun a c -> List.map C.term_of_clause (F.values c) @ a)
+              (List.map C.term_of_clause fwd)
+              frames_tl
             |> Term.mk_and
           in
           let ind_inv_conjuncts =
@@ -1773,8 +2338,7 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
               if Term.is_node t then
                 let s = Term.node_symbol_of_term t in
                 match Symbol.node_of_symbol s with
-                | `AND ->
-                    List.fold_left collect acc (Term.node_args_of_term t)
+                | `AND -> List.fold_left collect acc (Term.node_args_of_term t)
                 | _ -> t :: acc
               else t :: acc
             in
@@ -1787,17 +2351,12 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
                ind_inv_conjuncts);
 
           (* Activation literals for inductive invariant *)
-          let ind_inv_p0, ind_inv_n0, ind_inv_n1 = 
-
-            let mk = 
-              C.create_and_assert_fresh_actlit
-                solver
-                "ind_inv"
-                ind_inv
+          let ind_inv_p0, ind_inv_n0, ind_inv_n1 =
+            let mk =
+              C.create_and_assert_fresh_actlit solver "ind_inv" ind_inv
             in
 
-            mk C.Actlit_p0, mk C.Actlit_n0, mk C.Actlit_n1
-
+            (mk C.Actlit_p0, mk C.Actlit_n0, mk C.Actlit_n1)
           in
 
           (* DEBUG
@@ -1904,6 +2463,10 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
 
   (* Current k is length of trace *)
   let ic3_k = succ (List.length frames) in
+  current_ic3_k := ic3_k;
+  if Flags.IC3QE.freq_sort () then flush_ind_gen_literal_frequency ();
+
+  if Flags.IC3QE.template () then ind_gen_begin_sliding_iteration ic3_k;
 
   KEvent.log L_info "IC3QE main loop at k=%d" ic3_k;
 
@@ -1963,12 +2526,14 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
 
   Stat.record_time Stat.ic3_strengthen_time;
 
+  (* if Flags.IC3QE.freq_sort () then flush_ind_gen_literal_frequency (); *)
+
   Stat.set_int_list (frame_sizes frames'') Stat.ic3_frame_sizes;
 
   Stat.update_time Stat.ic3_total_time;
 
   (* Output statistics *)
-  (* if output_on_level L_debug then print_stats (); *)
+  if output_on_level L_debug then print_stats ();
 
   (* No reachable state violates the property, continue with next k *)
   ic3 solver input_sys aparam trans_sys prop_set frames'' predicates
@@ -2143,7 +2708,6 @@ let rec restart_loop solver input_sys aparam trans_sys props predicates =
       with
       (* All propertes are valid *)
       | Success (_, ind_inv) ->
-
           let cert = (1, Term.mk_and (ind_inv :: List.map snd props)) in
 
           (* Send out valid properties *)
@@ -2567,72 +3131,78 @@ let main input_sys aparam trans_sys =
       | _ -> ())
   | _ -> ());
 
-  match Flags.IC3QE.abstr () with
-  | `IA -> main_ic3 input_sys aparam trans_sys
-  | `None ->
-      if TransSys.subsystem_includes_function_symbol trans_sys then
-        raise
-          (UnsupportedFeature
-             "Shutting down IC3QE: system includes an abstract function.");
-      main_ic3 input_sys aparam trans_sys;
+  Fun.protect
+    ~finally:(fun () ->
+      let draw_text_centered text x y =
+        let font_size = 12 in
+        let width = String.length text * font_size / 2 in
+        let height = font_size in
+        Graphics.moveto (x - (width / 2) - 1) (y - (height / 2) + 2);
+        Graphics.draw_string text
+      in
+      let rec draw_tree_node_horizontal node x y =
+        Graphics.set_color black;
+        Graphics.draw_circle x y 10;
+        if C.id_of_clause node.node_clause = 3 then draw_text_centered "~P" x y
+        else
+          draw_text_centered
+            (string_of_int (C.id_of_clause node.node_clause))
+            x y;
 
-  let draw_text_centered text x y =
-    let font_size = 12 in
-    let width = String.length text * font_size / 2 in
-    let height = font_size in
-    Graphics.moveto (x - (width / 2) - 1) (y - (height / 2) + 2);
-    Graphics.draw_string text
-  in
-  let rec draw_tree_node_horizontal node x y =
-    Graphics.set_color black;
-    Graphics.draw_circle x y 10;
-    if C.id_of_clause node.node_clause = 3 then draw_text_centered "~P" x y
-    else
-      draw_text_centered
-        (string_of_int (C.id_of_clause node.node_clause))
-        x y;
+        let level_gap_x = 80 in
+        let node_gap_y = 50 in
 
-    let num_children = List.length node.children in
-
-    let start_y = y - (num_children * 50 / 2) in
-    let start_x =
-      if C.id_of_clause node.node_clause = 3 then x + 50
-      else x + 50 + (num_children * 15)
-    in
-
-    let rec draw_children_horizontal children current_x current_y =
-      match children with
-      | [] -> ()
-      | child :: rest ->
-          let child_y = current_y + 50 in
-          Graphics.moveto x y;
-          Graphics.lineto current_x child_y;
-          draw_tree_node_horizontal child current_x child_y;
-          draw_children_horizontal rest current_x child_y
-    in
-    draw_children_horizontal node.children start_x start_y
-  in
-
-  let draw_tree tree =
-    match tree with
-    | None -> print_endline "树没建好"
-    | Some root ->
-        let folder_path,base_name = build_log_folder_path () in
-        print_endline ("folder_path: " ^ folder_path);
-        let pdf_path =
-          Filename.concat folder_path (base_name ^ "_ori.pdf")
+        let rec subtree_height n =
+          match n.children with
+          | [] -> node_gap_y
+          | children ->
+              List.fold_left (fun acc c -> acc + subtree_height c) 0 children
         in
-        if Sys.file_exists pdf_path then
-          Printf.printf "pdf成功保存到%s\n" pdf_path
-        else Printf.printf "警告: PDF文件可能未正确保存到%s\n" pdf_path;
-        Graphics.open_pdf pdf_path;
-        Graphics.open_graph "1800x2400";
-        let root_x = 50 in
-        let root_y = size_y () / 2 in
-        draw_tree_node_horizontal root root_x root_y;
-        Graphics.close_graph ()
+
+        let total_h = subtree_height node in
+        let child_x = x + level_gap_x in
+        let start_y = y - (total_h / 2) in
+
+        let rec draw_children_horizontal children current_offset =
+          match children with
+          | [] -> ()
+          | child :: rest ->
+              let h = subtree_height child in
+              let child_y = start_y + current_offset + (h / 2) in
+              let next_offset = current_offset + h in
+              Graphics.moveto x y;
+              Graphics.lineto child_x child_y;
+              draw_tree_node_horizontal child child_x child_y;
+              draw_children_horizontal rest next_offset
         in
-        draw_tree !reuse_tree;
+        draw_children_horizontal node.children 0
+      in
+
+      let draw_tree tree =
+        match tree with
+        | None -> print_endline "树没建好"
+        | Some root -> (
+            match Flags.IC3QE.reuse_tree_pdf () with
+            | Some path when path <> "" ->
+                let pdf_path = path in
+                Graphics.open_pdf pdf_path;
+                Graphics.open_graph "1800x2400";
+                let root_x = 50 in
+                let root_y = size_y () / 2 in
+                draw_tree_node_horizontal root root_x root_y;
+                Graphics.close_graph ()
+            | _ -> ())
+      in
+      draw_tree !reuse_tree)
+    (fun () ->
+      match Flags.IC3QE.abstr () with
+      | `IA -> main_ic3 input_sys aparam trans_sys
+      | `None ->
+          if TransSys.subsystem_includes_function_symbol trans_sys then
+            raise
+              (UnsupportedFeature
+                 "Shutting down IC3QE: system includes an abstract function.");
+          main_ic3 input_sys aparam trans_sys)
 
 (* 
    Local Variables:

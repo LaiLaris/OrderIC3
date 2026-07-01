@@ -109,6 +109,7 @@ let find_copyblock_pre_clause block_clause =
   let rec loop clause =
     match C.source_of_clause clause with
     | C.CopyBlockProp copied_clause -> loop copied_clause
+    | C.IndGen parent_clause -> loop parent_clause
     | _ -> clause
   in
   loop block_clause

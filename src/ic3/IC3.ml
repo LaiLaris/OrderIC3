@@ -541,6 +541,7 @@ let find_copyblock_pre_clause block_clause =
   let rec loop clause =
     match C.source_of_clause clause with
     | C.CopyBlockProp copied_clause -> loop copied_clause
+    | C.IndGen parent_clause -> loop parent_clause
     | _ -> clause
   in
   loop block_clause
@@ -800,8 +801,7 @@ let ind_generalize ?(freq_sort_literals = true) solver prop_set frame clause
     | filtered -> filtered
   in
   let prioritize_ind_gen_frequency_literals literals =
-    if
-      freq_sort_literals && Flags.IC3QE.freq_sort ()
+    if freq_sort_literals && Flags.IC3QE.freq_sort () && frame <> []
       && List.length literals > 1
     then
       let reordered =
@@ -827,6 +827,21 @@ let ind_generalize ?(freq_sort_literals = true) solver prop_set frame clause
                 in
                 if c2 <> 0 then c2 else compare i1 i2
               else compare i1 i2)
+              (* let c =
+                if use_ast_complexity then
+                  compare
+                    (literal_ast_complexity lit1)
+                    (literal_ast_complexity lit2)
+                else 0
+              in
+              if c <> 0 then c
+              else
+                let c2 =
+                  compare
+                    (ind_gen_literal_frequency_of lit1)
+                    (ind_gen_literal_frequency_of lit2)
+                in
+                if c2 <> 0 then c2 else compare i1 i2) *)
           indexed
         |> List.map snd
       in
@@ -842,8 +857,8 @@ let ind_generalize ?(freq_sort_literals = true) solver prop_set frame clause
       SMTSolver.trace_comment solver
         (Format.asprintf
            "@[<v>ind-gen literal frequency priority for clause #%d:@,\
-            original:@,%a@,\
-            reordered by %s:@,%a@]"
+            original: {@,%a@,}@,\
+            reordered by %s: {@,%a@,}@]"
            (C.id_of_clause clause)
            (pp_print_list pp_literal_frequency "@,")
            literals
@@ -2214,7 +2229,7 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
               List.map
                 (fun c ->
                   Stat.time_fun Stat.ic3_ind_gen_time (fun () ->
-                      ind_generalize ~freq_sort_literals:true solver
+                      ind_generalize solver
                         empty_prop_set [] c
                         (C.literals_of_clause c)))
                 inductive_clauses
