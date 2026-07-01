@@ -891,6 +891,28 @@ module IC3QE = struct
 
   let freq_sort () = !freq_sort
 
+  let wdm_default = false
+  let wdm = ref wdm_default
+
+  let _ =
+    add_spec "--ic3qe_wdm" (Arg.Set wdm) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Enable witness-directed minimization ordering during inductive generalization@ Default: %a@]"
+          fmt_bool wdm_default)
+
+  let wdm () = !wdm
+
+  let compact_trace_default = false
+  let compact_trace = ref compact_trace_default
+
+  let _ =
+    add_spec "--ic3qe_compact_trace" (Arg.Set compact_trace) (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Use compact IC3QE trace output for repeated clause/core and ordering diagnostics@ Default: %a@]"
+          fmt_bool compact_trace_default)
+
+  let compact_trace () = !compact_trace
+
   let template_default = false
   let template = ref template_default
 

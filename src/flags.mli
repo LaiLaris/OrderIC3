@@ -425,6 +425,12 @@ module IC3QE : sig
   val freq_sort : unit -> bool
   (** Enable online inductive-generalization literal-frequency ordering during inductive generalization. *)
 
+  val wdm : unit -> bool
+  (** Enable witness-directed minimization ordering during inductive generalization. *)
+
+  val compact_trace : unit -> bool
+  (** Use compact IC3QE trace output for repeated clause/core and ordering diagnostics. *)
+
   val block_growth_guard : unit -> bool
   (** Enable a local blocking-chain guard that suppresses repeated template-growth obligations. *)
 
