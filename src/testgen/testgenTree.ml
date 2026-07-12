@@ -17,6 +17,7 @@
 *)
 
 open Lib
+
 module Num = Numeral
 
 type model = Model.t
@@ -33,7 +34,7 @@ type mode = Scope.t
   A conjunction of modes. First are the modes activated, then come the mode
   deactivated.
 *)
-type mode_conj = mode list * mode list
+type mode_conj = (mode list) * (mode list)
 
 (*
   A [mode_path] stores the modes activated by the path in reverse order.
@@ -56,23 +57,26 @@ type mode_path = mode_conj list
   The adt for a reversed partial tree. Does not store witnesses.
 *)
 type rev_tree_adt =
-  (*
+(*
   The root of the tree, i.e. the top most element here since the tree is
   reversed.
 *)
-  | Top
-  (*
+| Top
+(*
   A node is its depth, the node it comes from, the mode it corresponds to, and
   the mode conjunctions already explored from this node.
 *)
-  | Node of depth * rev_tree_adt * mode_conj * mode_conj list
+| Node of depth * rev_tree_adt * mode_conj * (mode_conj list)
 
 (*
   Stores the witnesses and the reversed tree.
   Also stores a mode to term function to construct constraints to activate or
   block mode paths / conjunctions of modes.
 *)
-type t = { mode_to_term : mode -> term; mutable tree : rev_tree_adt }
+type t = {
+  mode_to_term: mode -> term ;
+  mutable tree: rev_tree_adt ;
+}
 
 (*
   Exception raised when [Top] is reached.
@@ -92,9 +96,9 @@ let mk mode_to_term mode_conj =
 (* Creates the term associated to a mode conjunction. *)
 let term_of_mode_conj mode_to_term k (act, deact) =
   List.rev_append
-    (act |> List.map (fun m -> mode_to_term m |> Term.bump_state k))
-    (deact
-    |> List.map (fun m -> mode_to_term m |> Term.bump_state k |> Term.mk_not))
+    ( act |> List.map (fun m -> mode_to_term m |> Term.bump_state k) )
+    ( deact |> List.map (fun m ->
+        mode_to_term m |> Term.bump_state k |> Term.mk_not) )
   |> Term.mk_and
 
 (*
@@ -104,14 +108,12 @@ let term_of_mode_conj mode_to_term k (act, deact) =
   Result goes from current depth to 0.
 *)
 let term_of_path mode_to_term tree =
-  let rec loop tree conj =
-    match tree with
+  let rec loop tree conj = match tree with
     | Node (k, kid, mode_conj, _) ->
-        let mode_at_k = term_of_mode_conj mode_to_term k mode_conj in
-        mode_at_k :: conj |> loop kid (* Looping. *)
-    | Top ->
-        (* Reversing for readability. *)
-        List.rev conj
+      let mode_at_k = term_of_mode_conj mode_to_term k mode_conj in
+      mode_at_k :: conj |> loop kid (* Looping. *)
+    | Top -> (* Reversing for readability. *)
+      List.rev conj
   in
   loop tree
 
@@ -119,8 +121,7 @@ let term_of_path mode_to_term tree =
   Returns the list of mode conjunctions corresponding to a partial tree adt.
 *)
 let mode_path_of_adt tree =
-  let rec loop tree prefix =
-    match tree with
+  let rec loop tree prefix = match tree with
     | Node (_, kid, mode_conj, _) -> mode_conj :: prefix |> loop kid
     | Top -> List.rev prefix
   in
@@ -137,7 +138,7 @@ let mode_path_of { tree } = mode_path_of_adt tree
   Used to check which modes can be activated to extend the path being currently
   explored.
 *)
-let path_of { mode_to_term; tree } =
+let path_of { mode_to_term ; tree } =
   match tree with
   | Node _ -> term_of_path mode_to_term tree [] |> Term.mk_and
   | Top -> raise TopReached
@@ -149,61 +150,66 @@ let path_of { mode_to_term; tree } =
   Used when backtracking, to see if different modes can be activated at the
   current depth.
 *)
-let blocking_path_of { mode_to_term; tree } =
+let blocking_path_of { mode_to_term ; tree } =
   match tree with
   | Node (k, kid, mode_conj, explored) ->
-      mode_conj :: explored
-      |> List.map (fun mode_conj ->
-             (* Negating each mode conjunction. *)
-             term_of_mode_conj mode_to_term k mode_conj |> Term.mk_not)
-      |> term_of_path mode_to_term kid (* Building path. *)
-      |> Term.mk_and
+    mode_conj :: explored
+    |> List.map (fun mode_conj -> (* Negating each mode conjunction. *)
+      term_of_mode_conj mode_to_term k mode_conj |> Term.mk_not
+    ) |> term_of_path mode_to_term kid (* Building path. *)
+    |> Term.mk_and
   | Top -> raise TopReached
 
 (*
   Depth of the current node of a tree.
 *)
-let depth_of { tree } =
-  match tree with Node (k, _, _, _) -> k | Top -> raise TopReached
+let depth_of { tree } = match tree with
+| Node (k, _, _, _) -> k
+| Top -> raise TopReached
 
 (*
   Pushes a node on top of the current one, activating a mode conjunction.
 *)
-let push t mode_conj =
-  let { tree } = t in
+let push t mode_conj = let { tree } = t in
   match tree with
-  | Node (k, _, _, _) -> t.tree <- Node (Num.succ k, tree, mode_conj, [])
-  | Top -> raise TopReached
+| Node (k, _, _, _) ->
+  t.tree <- Node (Num.succ k, tree, mode_conj, [])
+| Top -> raise TopReached
 
 (*
   Pops the current node.
 *)
-let pop ({ tree } as t) =
-  match tree with
-  | Node (_, kid, _, _) -> t.tree <- kid
-  | Top -> raise TopReached
+let pop ({ tree } as t) = match tree with
+| Node (_, kid, _, _) -> t.tree <- kid
+| Top -> raise TopReached
 
 (*
   Updates the current mode.
 *)
-let update t mode_conj =
-  let { tree } = t in
+let update t mode_conj = let { tree } = t in
   match tree with
-  | Node (k, kid, mode_conj', explored) ->
-      t.tree <- Node (k, kid, mode_conj, mode_conj' :: explored)
-  | Top -> raise TopReached
+| Node (k, kid, mode_conj', explored) ->
+  t.tree <- Node (k, kid, mode_conj, mode_conj' :: explored)
+| Top  -> raise TopReached
+
+
+
 
 (* |===| Pretty printers. *)
-let pp_print_tree fmt { tree } =
-  Format.fprintf fmt "@[<v>at %a (%a)@]" Num.pp_print_numeral
-    (match tree with Top -> Num.(~-one) | Node (k, _, _, _) -> k)
+let pp_print_tree in_sys fmt { tree } =
+  Format.fprintf fmt "@[<v>at %a (%a)@]"
+    Num.pp_print_numeral (match tree with
+      | Top -> Num.(~- one) | Node (k,_,_,_) -> k
+    )
     (fun fmt (act, deact) ->
+      let act = List.map (InputSystem.get_node_id in_sys) act in
+      let deact = List.map (InputSystem.get_node_id in_sys) deact in
       Format.fprintf fmt "@[<v>%a@ %a@]"
-        (pp_print_list Scope.pp_print_scope ", ")
-        act
-        (pp_print_list Scope.pp_print_scope ", ")
-        deact)
-    (match tree with Top -> ([ [ "top" ] ], []) | Node (_, _, c, _) -> c)
+        (pp_print_list HString.pp_print_hstring ", ") (List.map NodeId.get_user_name act)
+        (pp_print_list HString.pp_print_hstring ", ") (List.map NodeId.get_user_name deact))
+    (match tree with
+      | Top -> [ ["top"] ], [] | Node(_,_,c,_) -> c)
+
 
 (* 
    Local Variables:

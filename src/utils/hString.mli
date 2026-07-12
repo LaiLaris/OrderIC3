@@ -20,47 +20,52 @@
 
     @author Christoph Sticksel *)
 
-type t
+
 (** Hashconsed string *)
+type t 
 
 (** {1 Hashtables, maps and sets} *)
 
-val compare : t -> t -> int
 (** Comparison function on hashconsed strings *)
+val compare : t -> t -> int
 
-val equal : t -> t -> bool
 (** Equality function on hashconsed strings *)
+val equal : t -> t -> bool
 
-val hash : t -> int
 (** Hashing function on hashconsed strings *)
+val hash : t -> int
 
-module HStringHashtbl : Hashtbl.S with type key = t
 (** Hash table over hashconsed strings *)
+module HStringHashtbl : Hashtbl.S with type key = t
 
-module HStringSet : Set.S with type elt = t
 (** Set over hashconsed strings *)
+module HStringSet : Set.S with type elt = t
 
-module HStringMap : Map.S with type key = t
 (** Map over hashconsed strings *)
+module HStringMap : Map.S with type key = t
+
 
 (** {1 Constructor} *)
 
-val mk_hstring : string -> t
 (** Hashcons a string *)
+val mk_hstring : string -> t
 
-val import : t -> t
-(** Import a string from a different instance into this hashcons table *)
+(** Import a string from a different instance into this hashcons
+    table *)
+val import : t -> t 
 
-(** {1 String functions}
+(** {1 String functions} 
 
     Omitted functions from the [String] module in the standard library:
 
     - [copy]: All strings are shared
 
-    Modified signature:
+    Modified signature: 
 
     - [sub]: return a string, not a hashconsed string
-    - [fill], [blit]: no in-place modifications *)
+    - [fill], [blit]: no in-place modifications
+
+*)
 
 val length : t -> int
 val get : t -> int -> char
@@ -91,14 +96,15 @@ val uncapitalize : t -> t
 
 (** {1 Pretty-printing} *)
 
-val pp_print_hstring : Format.formatter -> t -> unit
 (** Pretty-print a hashconsed string *)
+val pp_print_hstring : Format.formatter -> t -> unit 
 
-val print_hstring : t -> unit
 (** Pretty-print a hashconsed term to the standard formatter *)
+val print_hstring : t -> unit 
 
-val string_of_hstring : t -> string
 (** Return the string *)
+val string_of_hstring : t -> string 
+
 
 (* 
    Local Variables:

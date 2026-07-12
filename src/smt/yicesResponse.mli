@@ -25,10 +25,17 @@ type yices_resp_p =
   | YError
   | YRespSat of (HStringSExpr.t * HStringSExpr.t) list
   | YRespUnknown of (HStringSExpr.t * HStringSExpr.t) list
-  | YRespUnsat of yices_id list
+  | YRespUnsat of (yices_id list)
+
 
 val success : string
+
 val custom : string
+
+
 val yices_id_of_int : int -> yices_id
+
 val int_of_yices_id : yices_id -> int
+
 val pp_print_yices_id : Format.formatter -> yices_id -> unit
+

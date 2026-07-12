@@ -17,43 +17,47 @@
 *)
 
 open ModelElement
+
 module TS = TransSys
 module ScMap = Scope.Map
 module SVSet = StateVar.StateVarSet
+module NI = NodeId
 
 module Position = struct
   type t = Lib.position
-
   let compare = Lib.compare_pos
 end
+module PosMap = Map.Make(Position)
+module PosSet = Set.Make(Position)
 
-module PosMap = Map.Make (Position)
-module PosSet = Set.Make (Position)
 module A = LustreAst
 module H = LustreAstHelpers
 
 module AstID = struct
   type t = A.ident
-
   let compare = compare
 end
 
-module IdMap = Map.Make (AstID)
+module IdMap = Map.Make(AstID)
 
-type 'a result = Solution of 'a | NoSolution | Error of string
+type 'a result =
+| Solution of 'a
+| NoSolution
+| Error of string
 
 type 'a analyze_func =
-  bool ->
-  bool ->
-  bool ->
-  Lib.kind_module list ->
-  'a InputSystem.t ->
-  Analysis.param ->
-  TransSys.t ->
-  unit
+    bool -> bool -> bool ->
+    Lib.kind_module list ->
+    'a InputSystem.t ->
+    Analysis.param ->
+    TransSys.t ->
+    unit
 
 type counterexample = (StateVar.t * Model.value list) list
-type additional_info = { approximation : bool }
+
+type additional_info = {
+  approximation: bool
+}
 
 (* Represents an Inductive Validity Core. The first element correspond to the properties
    for whch the IVC has been computed, and the second element is the core (= set of equations) itself. *)
@@ -67,10 +71,10 @@ type mcs = (Property.t * counterexample) * loc_core * additional_info
 
 (* ---------- PRETTY PRINTING ---------- *)
 
-let is_ivc_approx (_, _, { approximation }) = approximation
-let is_mcs_approx (_, _, { approximation }) = approximation
+let is_ivc_approx (_,_, {approximation}) = approximation
+let is_mcs_approx (_,_, {approximation}) = approximation
 
-let ivc_to_print_data in_sys sys core_class time (_, loc_core, info) =
+let ivc_to_print_data in_sys sys core_class time (_,loc_core,info) =
   let cpd = loc_core_to_print_data in_sys sys core_class time loc_core in
   attach_approx_to_print_data cpd info.approximation
 
@@ -80,18 +84,19 @@ let mcs_to_print_data in_sys sys core_class time ((prop, cex), loc_core, info) =
   let cpd = attach_counterexample_to_print_data cpd cex in
   attach_approx_to_print_data cpd info.approximation
 
-let pp_print_mcs_legacy in_sys param sys ((prop, cex), core, _)
-    (_, core_compl, _) =
+let pp_print_mcs_legacy in_sys param sys ((prop, cex), core, _) (_, core_compl, _) =
   let prop_name = prop.Property.prop_name in
   let sys = TS.copy sys in
   let wa_model =
-    all_wa_names_of_loc_core core_compl |> List.map (fun str -> (str, true))
+    all_wa_names_of_loc_core core_compl
+    |>  List.map (fun str -> (str, true))
   in
   let wa_model' =
-    all_wa_names_of_loc_core core |> List.map (fun str -> (str, false))
+      all_wa_names_of_loc_core core
+    |>  List.map (fun str -> (str, false))
   in
-  TS.set_prop_unknown sys prop_name;
-  let wa_model = wa_model @ wa_model' in
+  TS.set_prop_unknown sys prop_name ;
+  let wa_model = wa_model@wa_model' in
   KEvent.cex_wam cex wa_model in_sys param sys prop_name
 
 let pp_print_no_mcs_legacy prop sys =
@@ -100,30 +105,31 @@ let pp_print_no_mcs_legacy prop sys =
 
   match prop.Property.prop_status with
   | PropInvariant cert ->
-      TS.set_prop_unknown sys prop_name;
-      KEvent.proved_wam cert sys prop_name
+    TS.set_prop_unknown sys prop_name ;
+    KEvent.proved_wam cert sys prop_name
   | _ -> KEvent.unknown_wam sys prop_name
+
 
 let timeout = ref false
 
 let print_timeout_warning () =
-  timeout := true;
+  timeout := true ;
   KEvent.log L_warn "An analysis has timeout..."
 
-let print_uc_error_note () = KEvent.log L_note "Cannot solve the UNSAT core..."
+let print_uc_error_note () =
+  KEvent.log L_note "Cannot solve the UNSAT core..."
 
 (* ---------- LUSTRE AST ---------- *)
 
 let counter =
   let last = ref 0 in
-  fun () ->
-    last := !last + 1;
-    !last
+  (fun () -> last := !last + 1 ; !last)
 
 let dpos = Lib.dummy_pos
 let dspan = { A.start_pos = dpos; A.end_pos = dpos }
-let rand_fun_ident nb = "__rand" ^ string_of_int nb
+let rand_fun_ident nb = "__rand"^(string_of_int nb)
 let new_rand_fun_ident () = rand_fun_ident (counter ())
+
 let max_nb_args = ref 0
 let rand_functions = Hashtbl.create 10
 let previous_rands = Hashtbl.create 10
@@ -131,77 +137,61 @@ let previous_rands = Hashtbl.create 10
 let rec unannot_pos = function
   | A.Bool _ -> A.Bool dpos
   | A.Int _ -> A.Int dpos
-  | A.UInt8 _ -> A.UInt8 dpos
-  | A.UInt16 _ -> A.UInt16 dpos
-  | A.UInt32 _ -> A.UInt32 dpos
-  | A.UInt64 _ -> A.UInt64 dpos
-  | A.Int8 _ -> A.Int8 dpos
-  | A.Int16 _ -> A.Int16 dpos
-  | A.Int32 _ -> A.Int32 dpos
-  | A.Int64 _ -> A.Int64 dpos
-  | A.IntRange (_, e1, e2) -> A.IntRange (dpos, e1, e2)
+  | A.SBitVector (_, s) -> A.SBitVector (dpos, s)
+  | A.UBitVector (_, s) -> A.UBitVector (dpos, s)
+  | A.IntRange (_,e1,e2) -> A.IntRange (dpos,e1,e2)
   | A.Real _ -> A.Real dpos
-  | A.UserType (_, ps, id) -> A.UserType (dpos, ps, id)
-  | A.AbstractType (_, id) -> A.AbstractType (dpos, id)
-  | A.TupleType (_, ts) -> A.TupleType (dpos, List.map unannot_pos ts)
-  | A.GroupType (_, ts) -> A.GroupType (dpos, List.map unannot_pos ts)
+  | A.UserType (_,ps,id) -> A.UserType (dpos,ps,id)
+  | A.AbstractType (_, id) -> A.AbstractType (dpos,id)
+  | A.TupleType (_,ts) -> A.TupleType (dpos, List.map unannot_pos ts)
+  | A.GroupType (_,ts) -> A.GroupType (dpos, List.map unannot_pos ts)
   | A.RecordType (_, name, tids) ->
-      let aux (_, id, t) = (dpos, id, unannot_pos t) in
-      A.RecordType (dpos, name, List.map aux tids)
-  | A.ArrayType (_, (t, e)) -> A.ArrayType (dpos, (unannot_pos t, e))
-  | A.EnumType (_, id, ids) -> A.EnumType (dpos, id, ids)
+    let aux (_,id,t) = (dpos,id,unannot_pos t) in
+    A.RecordType (dpos, name, List.map aux tids)
+  | A.ArrayType (_,(t,e)) -> A.ArrayType (dpos,(unannot_pos t,e))
+  | A.EnumType (_,id,ids) -> A.EnumType (dpos,id,ids)
   | A.History (_, id) -> A.History (dpos, id)
   | A.TArr (_, a_ty, r_ty) -> A.TArr (dpos, a_ty, r_ty)
-  | A.RefinementType (_, id, e) -> RefinementType (dpos, id, e)
-
+  | A.RefinementType (_,id,e) -> RefinementType (dpos,id,e)
+  | A.Map (_, ty1, ty2) -> Map (dpos, ty1, ty2)
+  | A.Set (_, ty) -> Set (dpos, ty)
 let rand_function_name_for _ ts =
   let ts = List.map unannot_pos ts in
+  begin
   try Hashtbl.find rand_functions ts
   with Not_found ->
     let new_rand = new_rand_fun_ident () in
-    Hashtbl.replace rand_functions ts new_rand;
+    Hashtbl.replace rand_functions ts new_rand ;
     new_rand
+  end
 
 let undef_expr pos_sv_map const_expr typ expr =
   let pos = H.pos_of_expr expr in
   match pos_sv_map with
   | None -> A.Ident (pos, HString.mk_hstring "_")
-  | Some pos_sv_map -> (
-      if const_expr then expr
-        (* a call to __rand is not a valid constant expression *)
-      else
-        let svs =
-          try PosMap.find pos pos_sv_map with Not_found -> SVSet.empty
-        in
-        if SVSet.is_empty svs then (
+  | Some pos_sv_map ->
+    if const_expr then expr (* a call to __rand is not a valid constant expression *)
+    else
+      let svs = try PosMap.find pos pos_sv_map with Not_found -> SVSet.empty in
+      if SVSet.is_empty svs
+      then begin
+        let i = counter () in
+        let n = (List.length typ) in
+        if n > !max_nb_args then max_nb_args := n ;
+        A.Call(*Param*)
+          (pos, [], NI.mk_node_id (HString.mk_hstring (rand_function_name_for n typ)),
+            (*typ,*) [Const (dpos, Num (HString.mk_hstring (string_of_int i)))])
+      end else begin
+        try Hashtbl.find previous_rands svs
+        with Not_found ->
           let i = counter () in
-          let n = List.length typ in
-          if n > !max_nb_args then max_nb_args := n;
-          A.Call
-            (*Param*)
-            ( pos,
-              [],
-              HString.mk_hstring (rand_function_name_for n typ),
-              (*typ,*)
-              [ Const (dpos, Num (HString.mk_hstring (string_of_int i))) ] ))
-        else
-          try Hashtbl.find previous_rands svs
-          with Not_found ->
-            let i = counter () in
-            let n = List.length typ in
-            if n > !max_nb_args then max_nb_args := n;
-            let res =
-              A.Call
-                (*Param*)
-                ( pos,
-                  [],
-                  HString.mk_hstring (rand_function_name_for n typ),
-                  (*typ,*)
-                  [ Const (dpos, Num (HString.mk_hstring (string_of_int i))) ]
-                )
-            in
-            Hashtbl.replace previous_rands svs res;
-            res)
+          let n = (List.length typ) in
+          if n > !max_nb_args then max_nb_args := n ;
+          let res = A.Call(*Param*)
+            (pos, [], NI.mk_node_id (HString.mk_hstring (rand_function_name_for n typ)),
+              (*typ,*) [Const (dpos, Num (HString.mk_hstring (string_of_int i)))])
+          in Hashtbl.replace previous_rands svs res ; res
+      end
 
 (*
 let parametric_rand_node nb_outputs =
@@ -226,195 +216,181 @@ let rand_node name ts =
   let rec aux prefix acc nb =
     match nb with
     | 0 -> acc
-    | n -> aux prefix ((prefix ^ string_of_int (counter ())) :: acc) (n - 1)
+    | n -> aux prefix ((prefix^(string_of_int (counter ())))::acc) (n-1)
   in
-  let outs =
-    aux "out" [] (List.length ts)
-    |> List.map2
-         (fun t out -> (dpos, HString.mk_hstring out, t, A.ClockTrue))
-         ts
+  let outs = aux "out" [] (List.length ts)
+  |> List.map2 (fun t out -> dpos,HString.mk_hstring out,t,A.ClockTrue) ts
   in
-  A.NodeDecl
-    ( dspan,
-      ( name,
-        true,
-        Opaque,
-        [],
-        [ (dpos, HString.mk_hstring "id", A.Int dpos, A.ClockTrue, false) ],
-        outs,
-        [],
-        [],
-        None ) )
+  A.NodeDecl (dspan,
+    (name, true, Opaque, [], [dpos,HString.mk_hstring "id",A.Int dpos,A.ClockTrue, false],
+    outs, [], [], None)
+  )
 
 let nodes_input_types = Hashtbl.create 10
-
 let rec minimize_node_call_args ue lst expr =
   let minimize_arg ident i arg =
     match arg with
-    | A.Ident _ | A.ModeRef _ | A.RecordProject _ | A.TupleProject _ -> arg
+    | A.Ident _ | A.ModeRef _ | A.RecordProject _ -> arg
     | _ ->
-        let t =
-          Hashtbl.find nodes_input_types ident |> fun lst -> List.nth lst i
-        in
-        let _, expr = minimize_expr ue lst [ t ] arg in
-        expr
+      let t = Hashtbl.find nodes_input_types ident |> (fun lst -> List.nth lst i) in
+      let (_, expr) = minimize_expr ue lst [t] arg in
+      expr
   in
   let rec aux expr =
     match expr with
-    | A.Const _ | A.Ident _ | A.ModeRef _ -> expr
+    | A.Const _ | A.Ident _ | A.ModeRef _ | A.EmptyMap _| A.EmptySet _
+    -> expr
     | A.Call (pos, ty_args, ident, args) ->
-        A.Call (pos, ty_args, ident, List.mapi (minimize_arg ident) args)
-    | A.RecordProject (p, e, i) -> A.RecordProject (p, aux e, i)
-    | A.TupleProject (p, e1, e2) -> A.TupleProject (p, aux e1, e2)
-    | A.StructUpdate (p, e1, ls, e2) -> A.StructUpdate (p, aux e1, ls, aux e2)
-    | A.ConvOp (p, op, e) -> A.ConvOp (p, op, aux e)
-    | A.GroupExpr (p, ge, es) -> A.GroupExpr (p, ge, List.map aux es)
-    | A.ArrayConstr (p, e1, e2) -> A.ArrayConstr (p, aux e1, aux e2)
-    | A.ArrayIndex (p, e1, e2) -> A.ArrayIndex (p, aux e1, aux e2)
-    | A.RecordExpr (p, id, ps, lst) ->
-        A.RecordExpr (p, id, ps, List.map (fun (i, e) -> (i, aux e)) lst)
-    | A.UnaryOp (p, op, e) -> A.UnaryOp (p, op, aux e)
-    | A.BinaryOp (p, op, e1, e2) -> A.BinaryOp (p, op, aux e1, aux e2)
-    | A.Quantifier (p, q, ids, e) -> A.Quantifier (p, q, ids, aux e)
-    | A.AnyOp (p, ti, e, None) -> A.AnyOp (p, ti, aux e, None)
-    | A.AnyOp (p, ti, e1, Some e2) -> A.AnyOp (p, ti, aux e1, Some (aux e2))
-    | A.TernaryOp (p, op, e1, e2, e3) ->
-        A.TernaryOp (p, op, aux e1, aux e2, aux e3)
-    | A.CompOp (p, op, e1, e2) -> A.CompOp (p, op, aux e1, aux e2)
-    | A.When (p, e, c) -> A.When (p, aux e, c)
-    | A.Condact (p, e1, e2, id, es1, es2) ->
-        A.Condact (p, aux e1, aux e2, id, List.map aux es1, List.map aux es2)
-    | A.Activate (p, id, e1, e2, es) ->
-        A.Activate (p, id, aux e1, aux e2, List.map aux es)
-    | A.Merge (p, id, lst) ->
-        A.Merge (p, id, List.map (fun (i, e) -> (i, aux e)) lst)
-    | A.RestartEvery (p, id, es, e) ->
-        A.RestartEvery (p, id, List.map aux es, aux e)
-    | A.Pre (p, e) -> A.Pre (p, aux e)
-    | A.Arrow (p, e1, e2) -> A.Arrow (p, aux e1, aux e2)
-  in
-  aux expr
+      A.Call (pos, ty_args, ident, List.mapi (minimize_arg ident) args)
+    | A.RecordProject (p,e,i) -> A.RecordProject (p,aux e,i)
+    | A.StructUpdate (p,e1,ls,Some e2) -> A.StructUpdate (p,aux e1,ls,Some (aux e2))
+    | A.StructUpdate (p,e1,ls,None) -> A.StructUpdate (p,aux e1,ls,None)
+    | A.ConvOp (p,op,e) -> A.ConvOp (p,op,aux e)
+    | A.GroupExpr (p,ge,es) -> A.GroupExpr (p,ge,List.map aux es)
+    | A.ArrayConstr (p,e1,e2) -> A.ArrayConstr (p,aux e1,aux e2)
+    | A.IndexAccess (p,e1, e2,k) -> A.IndexAccess (p,aux e1,aux e2,k)
+    | A.RecordExpr (p,id,ps,lst) ->
+      A.RecordExpr (p,id,ps,List.map (fun (i,e) -> (i, aux e)) lst)
+    | A.UnaryOp (p,op,e) -> A.UnaryOp (p,op,aux e)
+    | A.BinaryOp (p,op,e1,e2) -> A.BinaryOp (p,op,aux e1,aux e2)
+    | A.Quantifier (p,q,ids,e) -> A.Quantifier (p,q,ids,aux e)
+    | A.AnyOp (p,ti,e) -> A.AnyOp (p,ti,aux e)
+    | A.ChooseOp (p,ti,e) -> A.ChooseOp (p,ti,aux e)
+    | A.TernaryOp (p,op,e1,e2,e3) -> A.TernaryOp (p,op,aux e1,aux e2,aux e3)
+    | A.CompOp (p,op,e1,e2) -> A.CompOp (p,op,aux e1,aux e2)
+    | A.When (p,e,c) -> A.When (p,aux e,c)
+    | A.Condact (p,e1,e2,id,es1,es2) ->
+      A.Condact (p,aux e1,aux e2,id,List.map aux es1,List.map aux es2)
+    | A.Activate (p,id,e1,e2,es) ->
+      A.Activate (p,id,aux e1,aux e2,List.map aux es)
+    | A.Merge (p,id,lst) ->
+      A.Merge (p,id,List.map (fun (i,e) -> (i, aux e)) lst)
+    | A.RestartEvery (p,id,es,e) -> A.RestartEvery (p,id,List.map aux es,aux e)
+    | A.Pre (p,e) -> A.Pre (p,aux e)
+    | A.Arrow (p,e1,e2) -> A.Arrow (p,aux e1,aux e2)
+    | A.Extract (p, e, idx1, idx2) -> A.Extract(p, aux e, idx1, idx2)
+    | A.TypeAscription (p, e, ty) -> A.TypeAscription (p, aux e, ty)
+  in aux expr
 
 and ast_contains p ast =
   let rec aux ast =
     if p ast then true
-    else
-      match ast with
-      | A.Const _ | A.Ident _ | A.ModeRef _ -> false
-      | A.Call (_, _, _, args) -> List.map aux args |> List.exists (fun x -> x)
-      | A.ConvOp (_, _, e)
-      | A.UnaryOp (_, _, e)
-      | A.RecordProject (_, e, _)
-      | A.TupleProject (_, e, _)
-      | A.Quantifier (_, _, _, e)
-      | A.When (_, e, _)
-      | A.Pre (_, e)
-      | A.AnyOp (_, _, e, None) ->
-          aux e
-      | A.AnyOp (_, _, e1, Some e2) -> aux e1 || aux e2
-      | A.StructUpdate (_, e1, _, e2)
-      | A.ArrayConstr (_, e1, e2)
-      | A.ArrayIndex (_, e1, e2)
-      | A.BinaryOp (_, _, e1, e2)
-      | A.CompOp (_, _, e1, e2)
-      | A.Arrow (_, e1, e2) ->
-          aux e1 || aux e2
-      | A.GroupExpr (_, _, es) -> List.map aux es |> List.exists (fun x -> x)
-      | A.TernaryOp (_, _, e1, e2, e3) -> aux e1 || aux e2 || aux e3
-      | A.RecordExpr (_, _, _, lst) | A.Merge (_, _, lst) ->
-          List.map (fun (_, e) -> aux e) lst |> List.exists (fun x -> x)
-      | A.Condact (_, e1, e2, _, es1, es2) ->
-          List.map aux (e1 :: e2 :: (es1 @ es2)) |> List.exists (fun x -> x)
-      | A.Activate (_, _, e1, e2, es) ->
-          List.map aux (e1 :: e2 :: es) |> List.exists (fun x -> x)
-      | A.RestartEvery (_, _, es, e) ->
-          List.map aux (e :: es) |> List.exists (fun x -> x)
+    else match ast with
+    | A.Const _ | A.Ident _ | A.ModeRef _ | A.EmptyMap _ | A.EmptySet _
+      -> false
+    | A.Call (_, _, _, args) ->
+      List.map aux args
+      |> List.exists (fun x -> x)
+    | A.ConvOp (_,_,e) | A.UnaryOp (_,_,e) | A.RecordProject (_,e,_)
+      | A.Quantifier (_,_,_,e)
+      | A.When (_,e,_) | A.Pre (_,e) | A.StructUpdate (_, e, _, None) 
+      | A.ChooseOp (_,_,e) | A.AnyOp (_,_,e) | A.Extract (_,e,_,_) ->
+      aux e
+    | A.StructUpdate (_,e1,_,Some e2) | A.ArrayConstr (_,e1,e2)
+    | A.IndexAccess (_,e1,e2,_) 
+    | A.BinaryOp (_,_,e1,e2) | A.CompOp (_,_,e1,e2)
+    | A.Arrow (_,e1,e2) -> aux e1 || aux e2
+    | A.TypeAscription (_, e, _) -> aux e
+    | A.GroupExpr (_,_,es) ->
+      List.map aux es
+      |> List.exists (fun x -> x)
+    | A.TernaryOp (_,_,e1,e2,e3) ->
+      aux e1 || aux e2 || aux e3
+    | A.RecordExpr (_,_,_,lst) | A.Merge (_,_,lst) ->
+      List.map (fun (_,e) -> aux e) lst
+      |> List.exists (fun x -> x)
+    | A.Condact (_,e1,e2,_,es1,es2) ->
+      List.map aux (e1::e2::(es1@es2))
+      |> List.exists (fun x -> x)
+    | A.Activate (_,_,e1,e2,es) ->
+      List.map aux (e1::e2::es)
+      |> List.exists (fun x -> x)
+    | A.RestartEvery (_,_,es,e) ->
+      List.map aux (e::es)
+      |> List.exists (fun x -> x)
   in
   aux ast
 
 and minimize_expr ue lst typ expr =
   let all_pos = PosSet.of_list lst in
-  let keep_expr expr = PosSet.mem (H.pos_of_expr expr) all_pos in
-  if ast_contains keep_expr expr then
-    (false, minimize_node_call_args ue lst expr)
+  let keep_expr expr =
+    PosSet.mem (H.pos_of_expr expr) all_pos
+  in
+  if ast_contains keep_expr expr
+  then (false, minimize_node_call_args ue lst expr)
   else (true, ue typ expr)
 
 let tyof_lhs id_typ_map lhs =
-  let (A.StructDef (pos, items)) = lhs in
+  let A.StructDef (pos, items) = lhs in
   let aux = function
-    | A.SingleIdent (_, id) as e -> [ (e, IdMap.find id id_typ_map) ]
-    | A.ArrayDef (pos, id, _) ->
-        [ (A.SingleIdent (pos, id), IdMap.find id id_typ_map) ]
-    | A.TupleStructItem _ | A.ArraySliceStructItem _ | A.FieldSelection _
-    | A.TupleSelection _ ->
-        assert false
+  | A.SingleIdent (_,id) as e -> [e, IdMap.find id id_typ_map]
+  | A.ArrayDef (pos,id,_) -> [A.SingleIdent (pos,id), IdMap.find id id_typ_map]
+  | A.TupleStructItem _ | A.ArraySliceStructItem _ | A.FieldSelection _ | A.TupleSelection _
+    -> assert false
   in
-  let items, typ = List.map aux items |> List.flatten |> List.split in
+  let (items,typ) = List.map aux items |> List.flatten |> List.split in
   (A.StructDef (pos, items), typ)
 
 let minimize_node_eq id_typ_map ue lst = function
-  | A.Assert (pos, expr) when List.exists (fun p -> Lib.equal_pos p pos) lst ->
-      Some (A.Assert (pos, expr))
+  | A.Assert (pos, expr) when
+    List.exists (fun p -> Lib.equal_pos p pos) lst ->
+    Some (A.Assert (pos, expr))
   | A.Assert _ -> None
   | A.Equation (pos, lhs, expr) ->
-      let novarindex_lhs, typ = tyof_lhs id_typ_map lhs in
-      let b, expr = minimize_expr (ue false) lst typ expr in
-      let lhs = if b then novarindex_lhs else lhs in
-      Some (A.Equation (pos, lhs, expr))
+    let (novarindex_lhs, typ) = tyof_lhs id_typ_map lhs in
+    let (b, expr) = minimize_expr (ue false) lst typ expr in
+    let lhs = if b then novarindex_lhs else lhs in
+    Some (A.Equation (pos, lhs, expr))
 
 let rec minimize_item id_typ_map ue lst = function
-  | A.AnnotMain (p, b) -> [ A.AnnotMain (p, b) ]
-  | A.AnnotProperty (p, str, e, k) -> [ A.AnnotProperty (p, str, e, k) ]
+  | A.AnnotMain (p, b) -> [A.AnnotMain (p, b)]
+  | A.AnnotProperty (p, str, e, k) -> [A.AnnotProperty (p, str, e, k)]
   | A.Body eq -> (
-      match minimize_node_eq id_typ_map ue lst eq with
+    match minimize_node_eq id_typ_map ue lst eq with
       | None -> []
-      | Some eq -> [ A.Body eq ])
-  | A.IfBlock (pos, e, l1, l2) ->
-      [
-        A.IfBlock
-          ( pos,
-            e,
-            List.map (minimize_item id_typ_map ue lst) l1 |> List.flatten,
-            List.map (minimize_item id_typ_map ue lst) l2 |> List.flatten );
-      ]
-  | A.FrameBlock (pos, vars, nes, nis) ->
-      [
-        A.FrameBlock
-          ( pos,
-            vars,
-            List.map
-              (fun eq ->
-                match minimize_node_eq id_typ_map ue lst eq with
-                | None -> []
-                | Some eq -> [ eq ])
-              nes
-            |> List.flatten,
-            List.map (minimize_item id_typ_map ue lst) nis |> List.flatten );
-      ]
+      | Some eq -> [A.Body eq]
+  )
+  | A.IfBlock (pos, e, l1, l2) -> 
+    [A.IfBlock (pos, e, List.map (minimize_item id_typ_map ue lst) l1 |> List.flatten, 
+                        List.map (minimize_item id_typ_map ue lst) l2 |> List.flatten)]
+  | A.WhenBlock (pos, e, l1, l2) ->
+    [A.WhenBlock (pos, e, List.map (minimize_item id_typ_map ue lst) l1 |> List.flatten,
+                         List.map (minimize_item id_typ_map ue lst) l2 |> List.flatten)]
+  | A.FrameBlock (pos, vars, nes, nis) -> 
+    [A.FrameBlock(pos, vars, List.map (fun eq -> match (minimize_node_eq id_typ_map ue lst eq) 
+                                         with | None -> [] | Some eq -> [eq]) 
+                                      nes 
+                                      |> List.flatten, 
+                       List.map (minimize_item id_typ_map ue lst) nis |> List.flatten)]
 
 let minimize_const_decl _ue _lst = function
-  | A.UntypedConst (p, id, e) -> A.UntypedConst (p, id, e)
-  | A.FreeConst (p, id, t) -> A.FreeConst (p, id, t)
-  | A.TypedConst (p, id, e, t) ->
-      (* Constants are inlined most of time so they may not appear as equations *)
-      (* Therefore we should not minimize them *)
-      (*let (_,e) = minimize_expr (ue true) lst [t] e in*)
-      A.TypedConst (p, id, e, t)
+  | A.UntypedConst (p,id,e) -> A.UntypedConst (p,id,e)
+  | A.FreeConst (p,id,t) -> A.FreeConst (p,id,t)
+  | A.TypedConst (p,id,e,t) ->
+    (* Constants are inlined most of time so they may not appear as equations *)
+    (* Therefore we should not minimize them *)
+    (*let (_,e) = minimize_expr (ue true) lst [t] e in*)
+    A.TypedConst (p,id,e,t)
 
 let minimize_node_local_decl ue lst = function
-  | A.NodeConstDecl (p, d) -> A.NodeConstDecl (p, minimize_const_decl ue lst d)
-  | A.NodeVarDecl (p, d) -> A.NodeVarDecl (p, d)
+  | A.NodeConstDecl (p,d) ->
+    A.NodeConstDecl (p,minimize_const_decl ue lst d)
+  | A.NodeVarDecl (p,d) -> A.NodeVarDecl (p,d)
 
 let build_id_typ_map input output local =
-  let add_input acc (_, id, t, _, _) = IdMap.add id t acc in
-  let add_output acc (_, id, t, _) = IdMap.add id t acc in
+  let add_input acc (_,id,t,_,_) =
+    IdMap.add id t acc
+  in
+  let add_output acc (_,id,t,_) =
+    IdMap.add id t acc
+  in
   let add_local acc = function
-    | A.NodeVarDecl (_, d) -> add_output acc d
-    | A.NodeConstDecl (_, A.FreeConst (_, id, t))
-    | A.NodeConstDecl (_, A.TypedConst (_, id, _, t)) ->
-        IdMap.add id t acc
-    | A.NodeConstDecl (_, A.UntypedConst _) ->
-        acc (* It is a const anyway, it will not appear at lhs *)
+  | A.NodeVarDecl (_,d) -> add_output acc d
+  | A.NodeConstDecl (_, A.FreeConst (_,id,t))
+  | A.NodeConstDecl (_, A.TypedConst (_,id,_,t)) ->
+    IdMap.add id t acc
+  | A.NodeConstDecl (_, A.UntypedConst _) ->
+    acc (* It is a const anyway, it will not appear at lhs *)
   in
   let acc = List.fold_left add_input IdMap.empty input in
   let acc = List.fold_left add_output acc output in
@@ -422,120 +398,115 @@ let build_id_typ_map input output local =
 
 let minimize_contract_node_eq ue lst cne =
   match cne with
-  | A.ContractCall _ -> [ cne ]
-  | A.GhostConst d -> [ A.GhostConst (minimize_const_decl ue lst d) ]
-  | A.GhostVars (pos, (GhostVarDec (_, til) as lhs), expr) ->
-      let typ = List.map (fun (_, _, t) -> t) til in
-      let _, expr = minimize_expr (ue false) lst typ expr in
-      [ A.GhostVars (pos, lhs, expr) ]
-  | A.Assume (pos, _, _, _) | A.Guarantee (pos, _, _, _) ->
-      if List.exists (fun p -> Lib.equal_pos p pos) lst then [ cne ] else []
-  | A.Mode (pos, id, req, ens) ->
-      let ens =
-        ens
-        |> List.filter (fun (pos, _, _) ->
-               List.exists (fun p -> Lib.equal_pos p pos) lst)
-      in
-      [ A.Mode (pos, id, req, ens) ]
-  | A.AssumptionVars _ -> [ cne ]
+  | A.ContractCall _ -> [cne]
+  | A.GhostConst d -> [A.GhostConst (minimize_const_decl ue lst d)]
+  | A.GhostVars (pos, (GhostVarDec(_, til) as lhs), expr) ->
+    let typ = List.map (fun (_, _, t) -> t) til in
+    let (_, expr) = minimize_expr (ue false) lst typ expr in
+    [A.GhostVars (pos, lhs, expr)]
+  | A.Assume (pos,_,_,_)
+  | A.Guarantee (pos,_,_,_) ->
+    if List.exists (fun p -> Lib.equal_pos p pos) lst
+    then [cne] else []
+  | A.Mode (pos,id,req,ens) ->
+    let ens = ens |> List.filter
+      (fun (pos,_,_) -> List.exists (fun p -> Lib.equal_pos p pos) lst)
+    in
+    [A.Mode (pos,id,req,ens)]
+  | A.AssumptionVars _ -> [cne]
 
 let minimize_node_decl ue loc_core
-    ((id, extern, opac, tparams, inputs, outputs, locals, items, spec) as ndecl)
-    =
-  let id' = HString.string_of_hstring id in
+  ((node_id, extern, opac, tparams, inputs, outputs, locals, items, spec) as ndecl) =
+
+  let id' = NI.get_internal_name node_id |> HString.string_of_hstring in
   let id_typ_map = build_id_typ_map inputs outputs locals in
 
   let minimize_with_lst lst =
-    let items =
-      List.map (minimize_item id_typ_map ue lst) items |> List.flatten
-    in
-    let spec =
-      match spec with
+    let items = List.map (minimize_item id_typ_map ue lst) items |> List.flatten in
+    let spec = 
+    begin match spec with
       | None -> None
-      | Some (p, spec) ->
-          List.map (minimize_contract_node_eq ue lst) spec |> List.flatten
-          |> fun s -> if s = [] then None else Some (p, s)
+      | Some (p, spec) -> List.map (minimize_contract_node_eq ue lst) spec 
+      |> List.flatten |> (fun s -> if s = [] then None else Some (p, s))
+    end
     in
     let locals = List.map (minimize_node_local_decl ue lst) locals in
-    (id, extern, opac, tparams, inputs, outputs, locals, items, spec)
+    (node_id, extern, opac, tparams, inputs, outputs, locals, items, spec)
   in
-
-  let scope = Scope.mk_scope [ id' ] in
+  
+  let scope = (Scope.mk_scope [id']) in
   if List.exists (fun sc -> Scope.equal sc scope) (scopes_of_loc_core loc_core)
-  then
+  then (
     get_model_elements_of_scope loc_core scope
     |> List.map get_positions_of_model_element
     |> List.flatten |> minimize_with_lst
-  else if Flags.IVC.ivc_only_main_node () then ndecl
-  else minimize_with_lst []
+  )
+  else (
+    if Flags.IVC.ivc_only_main_node ()
+    then ndecl
+    else minimize_with_lst []
+  )
 
-let minimize_contract_decl ue loc_core (id, tparams, inputs, outputs, (p, body))
-    =
-  let lst =
-    scopes_of_loc_core loc_core
+let minimize_contract_decl ue loc_core (id, tparams, inputs, outputs, (p, body)) =
+  let lst = scopes_of_loc_core loc_core
     |> List.map (get_model_elements_of_scope loc_core)
     |> List.flatten
     |> List.map get_positions_of_model_element
     |> List.flatten
   in
-  let body =
-    body |> List.map (minimize_contract_node_eq ue lst) |> List.flatten
+  let body = body
+    |> List.map (minimize_contract_node_eq ue lst)
+    |> List.flatten
   in
-  let body =
-    if body = [] then
-      [ A.Guarantee (dpos, None, false, A.Const (dpos, A.True)) ]
+  let body = if body = []
+    then [A.Guarantee (dpos, None, false, A.Const(dpos, A.True))]
     else body
   in
   (id, tparams, inputs, outputs, (p, body))
 
 let minimize_decl ue loc_core = function
   | A.NodeDecl (span, ndecl) ->
-      A.NodeDecl (span, minimize_node_decl ue loc_core ndecl)
+    A.NodeDecl (span, minimize_node_decl ue loc_core ndecl)
   | A.FuncDecl (span, ndecl) ->
-      A.FuncDecl (span, minimize_node_decl ue loc_core ndecl)
+    A.FuncDecl (span, minimize_node_decl ue loc_core ndecl)
   | A.ContractNodeDecl (span, cdecl) ->
-      A.ContractNodeDecl (span, minimize_contract_decl ue loc_core cdecl)
-  | decl -> decl
+    A.ContractNodeDecl (span, minimize_contract_decl ue loc_core cdecl)
+  | decl -> decl 
 
 let fill_input_types_hashtbl ast =
   let aux_node_decl (id, _, _, _, inputs, _, _, _, _) =
-    let typ_of_input (_, _, t, _, _) = t in
-    Hashtbl.replace nodes_input_types id (List.map typ_of_input inputs)
+    let typ_of_input (_,_,t,_,_) = t in
+    Hashtbl.replace nodes_input_types id (List.map typ_of_input inputs) ;
   in
   let aux_decl = function
-    | A.NodeDecl (_, ndecl) | A.FuncDecl (_, ndecl) -> aux_node_decl ndecl
-    | _ -> ()
+  | A.NodeDecl (_, ndecl) | A.FuncDecl (_, ndecl) -> aux_node_decl ndecl
+  | _ -> ()
   in
   List.iter aux_decl ast
 
-let minimize_lustre_ast ?(valid_lustre = false) in_sys (_, loc_core, _) ast =
-  fill_input_types_hashtbl ast;
+let minimize_lustre_ast ?(valid_lustre=false) in_sys (_,loc_core,_) ast =
+  fill_input_types_hashtbl ast ;
   let undef_expr =
-    if valid_lustre then
+    if valid_lustre
+    then
       (* We construct a map that associate to each position a list of state vars
           that correspond to the state vars characterizing this position (if any) *)
-      let pos_sv_map =
+      let pos_sv_map = List.fold_left
+      (fun acc node ->
         List.fold_left
-          (fun acc node ->
-            List.fold_left
-              (fun acc sv ->
-                List.fold_left
-                  (fun acc def ->
-                    let pos = LustreNode.pos_of_state_var_def def in
-                    let old =
-                      try PosMap.find pos acc with Not_found -> SVSet.empty
-                    in
-                    PosMap.add pos (SVSet.add sv old) acc)
-                  acc
-                  (LustreNode.get_state_var_defs sv |> fun (x, y) -> x @ y))
-              acc
-              (LustreNode.get_all_state_vars node))
-          PosMap.empty
-          (InputSystem.retrieve_lustre_nodes in_sys)
-      in
+        (fun acc sv ->
+          List.fold_left
+          (fun acc def ->
+            let pos = LustreNode.pos_of_state_var_def def in
+            let old = try PosMap.find pos acc with Not_found -> SVSet.empty in
+            PosMap.add pos (SVSet.add sv old) acc
+          )
+          acc ((LustreNode.get_state_var_defs sv) |> ((fun (x, y) -> x @ y)))
+        )
+        acc (LustreNode.get_all_state_vars node)
+      ) PosMap.empty (InputSystem.retrieve_lustre_nodes in_sys) in
       undef_expr (Some pos_sv_map)
-    else undef_expr None
-  in
+    else undef_expr None in
   let minimized = List.map (minimize_decl undef_expr loc_core) ast in
 
   (*let rec aux acc nb =
@@ -544,9 +515,11 @@ let minimize_lustre_ast ?(valid_lustre = false) in_sys (_, loc_core, _) ast =
     | n -> aux ((rand_node n)::acc) (nb-1)
   in
   aux minimized (!max_nb_args)*)
-  Hashtbl.fold
-    (fun ts n acc -> rand_node (HString.mk_hstring n) ts :: acc)
-    rand_functions minimized
+  Hashtbl.fold (fun ts n acc ->
+    (rand_node (NI.mk_node_id (HString.mk_hstring n)) ts)::acc
+  )
+  rand_functions
+  minimized
 
 (* ---------- UTILITIES ---------- *)
 
@@ -568,19 +541,20 @@ let rec simplify_term t =
 *)
 
 let rec interval imin imax =
-  if imin > imax then [] else imin :: interval (imin + 1) imax
+  if imin > imax then []
+  else imin::(interval (imin+1) imax)
 
-let make_ts_analyzer in_sys ?(stop_after_disprove = true) ?(no_copy = false)
-    param analyze sys =
+let make_ts_analyzer in_sys ?(stop_after_disprove=true) ?(no_copy=false) param analyze sys =
   let param = Analysis.param_clone param in
   let sys = if no_copy then sys else TS.copy sys in
   let modules = Flags.enabled () in
-  ( sys,
-    fun sys -> analyze false stop_after_disprove false modules in_sys param sys
-  )
+  sys, (fun sys -> analyze false stop_after_disprove false modules in_sys param sys)
 
-let props_names props = List.map (fun { Property.prop_name = n } -> n) props
-let props_terms props = List.map (fun { Property.prop_term = p } -> p) props
+let props_names props =
+  List.map (fun { Property.prop_name = n } -> n) props
+
+let props_terms props =
+  List.map (fun { Property.prop_term = p } -> p) props
 
 let extract_all_props_names sys =
   List.map (fun { Property.prop_name = n } -> n) (TS.get_properties sys)
@@ -589,26 +563,22 @@ let separate_loc_core_by_category scope cats =
   filter_loc_core_by_categories scope cats
 
 let separate_ivc_by_category scope (props, core, info) =
-  let core1, core2 =
-    separate_loc_core_by_category scope (Flags.IVC.ivc_category ()) core
-  in
-  ((props, core1, info), (props, core2, info))
+  let (core1, core2) = separate_loc_core_by_category scope (Flags.IVC.ivc_category ()) core
+  in (props, core1, info), (props, core2, info)
 
 let separate_mcs_by_category scope (data, core, info) =
-  let core1, core2 =
-    separate_loc_core_by_category scope (Flags.MCS.mcs_category ()) core
-  in
-  ((data, core1, info), (data, core2, info))
+  let (core1, core2) = separate_loc_core_by_category scope (Flags.MCS.mcs_category ()) core
+  in (data, core1, info), (data, core2, info)
 
 let complement_of_ivc in_sys sys (props, core, info) =
   let only_top_level = Flags.IVC.ivc_only_main_node () in
   loc_core_diff (full_loc_core_for_sys in_sys sys ~only_top_level) core
-  |> fun x -> (props, x, info)
+  |> (fun x -> (props, x, info))
 
 let complement_of_mcs in_sys sys (props_cex, core, info) =
   let only_top_level = Flags.MCS.mcs_only_main_node () in
   loc_core_diff (full_loc_core_for_sys in_sys sys ~only_top_level) core
-  |> fun x -> (props_cex, x, info)
+  |> (fun x -> (props_cex, x, info))
 
 let reset_ts enter_nodes sys =
   let set_props_unknown sys =
@@ -616,12 +586,15 @@ let reset_ts enter_nodes sys =
       (fun str -> TS.set_prop_unknown sys str)
       (extract_all_props_names sys)
   in
-  if enter_nodes then (
-    TS.clear_all_invariants sys;
-    TS.iter_subsystems ~include_top:true set_props_unknown sys)
+  if enter_nodes
+  then (
+    TS.clear_all_invariants sys ;
+    TS.iter_subsystems ~include_top:true set_props_unknown sys
+  )
   else (
-    TS.clear_invariants sys;
-    set_props_unknown sys)
+    TS.clear_invariants sys ;
+    set_props_unknown sys
+  )
 
 let remove_other_props sys prop_names =
   let aux prop_names acc sys =
@@ -633,61 +606,63 @@ let remove_other_props sys prop_names =
     List.filter aux props
     |> TS.set_subsystem_properties acc (TS.scope_of_trans_sys sys)
   in
-  let sys = TS.fold_subsystems ~include_top:false (aux []) sys sys in
-  aux prop_names sys sys
+  let sys = TS.fold_subsystems ~include_top:false (aux []) sys sys
+  in aux prop_names sys sys
 
 let add_as_candidate os_invs sys =
   let _cnt = ref 0 in
   let cnt () =
-    _cnt := !_cnt + 1;
+    _cnt := !_cnt + 1 ;
     !_cnt
   in
   let create_candidate t =
-    Property.
-      {
-        prop_name = Format.sprintf "%%inv_%i" (cnt ());
-        prop_source = Property.Candidate None;
-        prop_term = t;
-        prop_status = PropUnknown;
-        prop_kind = Invariant;
-      }
+    Property.{
+      prop_name = Format.sprintf "%%inv_%i" (cnt ()) ;
+      prop_source = Property.Candidate None ;
+      prop_term = t ;
+      prop_status = PropUnknown ;
+      prop_kind = Invariant ;
+      prop_expr = None;
+    }
   in
   let props = List.map create_candidate os_invs in
-  let props = props @ TS.get_properties sys in
+  let props = props @ (TS.get_properties sys) in
   TS.set_subsystem_properties sys (TS.scope_of_trans_sys sys) props
 
 let actlits_of_core core =
-  let aux acc scope = get_actlits_of_scope core scope @ acc in
+  let aux acc scope =
+    (get_actlits_of_scope core scope)@acc
+  in
   List.fold_left aux [] (scopes_of_core core)
 
 let actsvs_of_core core =
-  actlits_of_core core |> List.map (get_sv_of_actlit core)
+  actlits_of_core core
+  |> List.map (get_sv_of_actlit core)
 
 let term_of_scope term_map scope =
   try ScMap.find scope term_map with Not_found -> Term.mk_true ()
 
-let is_empty_core c = core_size c = 0
+let is_empty_core c = (core_size c) = 0
 
 let lstmap_union scmap1 scmap2 =
-  let merge _ lst1 lst2 =
-    match (lst1, lst2) with
-    | None, None -> None
-    | Some lst, None | None, Some lst -> Some lst
-    | Some lst1, Some lst2 -> Some (lst1 @ lst2)
+  let merge _ lst1 lst2 = match lst1, lst2 with
+  | None, None -> None
+  | Some lst, None | None, Some lst -> Some lst
+  | Some lst1, Some lst2 -> Some (lst1@lst2)
   in
   ScMap.merge merge scmap1 scmap2
 
 let generate_initial_cores in_sys sys enter_nodes cats =
-  timeout := false;
-  let full_loc_core =
-    full_loc_core_for_sys in_sys sys ~only_top_level:(not enter_nodes)
-  in
+  timeout := false ;
+  let full_loc_core = full_loc_core_for_sys in_sys sys ~only_top_level:(not enter_nodes) in
   let scope = TransSys.scope_of_trans_sys sys in
-  let test, keep = separate_loc_core_by_category scope cats full_loc_core in
+  let (test, keep) = separate_loc_core_by_category scope cats full_loc_core in
   (loc_core_to_new_core keep, loc_core_to_new_core test)
 
 let pick_element_of_core core =
-  match pick_element_of_core core with None -> assert false | Some r -> r
+  match pick_element_of_core core with
+  | None -> assert false
+  | Some r -> r
 
 (* ---------- MCS COMPUTATION ---------- *)
 
@@ -697,70 +672,69 @@ let is_model_value_true = function
 
 let get_counterexample_actsvs prop_names sys actsvs =
   let rec aux = function
-    | [] ->
-        if
-          List.for_all
-            (fun p ->
-              match TS.get_prop_status sys p with
-              | Property.PropInvariant _ -> true
-              | _ -> false)
-            prop_names
-        then None
-        else (
-          print_timeout_warning ();
-          None)
-    | p :: prop_names -> (
-        match TS.get_prop_status sys p with
-        | Property.PropFalse cex ->
-            let svs = SVSet.of_list actsvs in
-            cex
-            |> List.filter (fun (sv, values) ->
-                   SVSet.mem sv svs && is_model_value_true (List.hd values))
-            |> List.map fst
-            |> fun x -> Some (x, (p, cex))
-        | _ -> aux prop_names)
+  | [] ->
+    if List.for_all (fun p ->
+      match TS.get_prop_status sys p with
+      | Property.PropInvariant _ -> true
+      | _ -> false) prop_names
+    then None
+    else (print_timeout_warning () ; None)
+  | p::prop_names ->
+    begin match TS.get_prop_status sys p with
+      | Property.PropFalse cex ->
+        let svs = SVSet.of_list actsvs in
+        cex
+        |> List.filter (fun (sv, values) ->
+          SVSet.mem sv svs && is_model_value_true (List.hd values)
+        )
+        |> List.map fst
+        |> (fun x -> Some (x, (p,cex)))
+      | _ -> aux prop_names
+    end
   in
   aux prop_names
 
 let get_counterexamples_actsvs prop_names sys actsvs =
   let rec aux = function
-    | [] -> []
-    | p :: prop_names -> (
-        match TS.get_prop_status sys p with
-        | Property.PropFalse cex ->
-            let svs = SVSet.of_list actsvs in
-            cex
-            |> List.filter (fun (sv, values) ->
-                   SVSet.mem sv svs && is_model_value_true (List.hd values))
-            |> List.map fst
-            |> fun x -> (x, (p, cex)) :: aux prop_names
-        | _ -> aux prop_names)
+  | [] -> []
+  | p::prop_names ->
+    begin match TS.get_prop_status sys p with
+      | Property.PropFalse cex ->
+        let svs = SVSet.of_list actsvs in
+        cex
+        |> List.filter (fun (sv, values) ->
+          SVSet.mem sv svs && is_model_value_true (List.hd values)
+        )
+        |> List.map fst
+        |> (fun x -> (x, (p,cex))::(aux prop_names))
+      | _ -> aux prop_names
+    end
   in
   aux prop_names
 
 let exactly_k_true svs k =
-  let cptl =
-    svs
-    |> List.map (fun sv -> Term.mk_var (Var.mk_const_state_var sv))
-    |> List.map (fun t ->
-           Term.mk_ite t (Term.mk_num_of_int 1) (Term.mk_num_of_int 0))
+  let cptl = svs
+  |> List.map (fun sv -> Term.mk_var (Var.mk_const_state_var sv))
+  |> List.map (fun t -> Term.mk_ite t (Term.mk_num_of_int 1) (Term.mk_num_of_int 0))
   in
   let sum =
-    match cptl with [] -> Term.mk_num_of_int 0 | _ -> Term.mk_plus cptl
+    match cptl with
+    | [] -> Term.mk_num_of_int 0
+    | _ -> Term.mk_plus cptl
   in
-  Term.mk_eq [ sum; Term.mk_num_of_int k ]
+  Term.mk_eq [sum; Term.mk_num_of_int k]
 
 let at_most_k_true svs k =
-  let cptl =
-    svs
-    |> List.map (fun sv -> Term.mk_var (Var.mk_const_state_var sv))
-    |> List.map (fun t ->
-           Term.mk_ite t (Term.mk_num_of_int 1) (Term.mk_num_of_int 0))
+  let cptl = svs
+  |> List.map (fun sv -> Term.mk_var (Var.mk_const_state_var sv))
+  |> List.map (fun t -> Term.mk_ite t (Term.mk_num_of_int 1) (Term.mk_num_of_int 0))
   in
   let sum =
-    match cptl with [] -> Term.mk_num_of_int 0 | _ -> Term.mk_plus cptl
+    match cptl with
+    | [] -> Term.mk_num_of_int 0
+    | _ -> Term.mk_plus cptl
   in
-  Term.mk_leq [ sum; Term.mk_num_of_int k ]
+  Term.mk_leq [sum; Term.mk_num_of_int k]
 
 let at_least_one_false svs =
   svs
@@ -774,153 +748,163 @@ let at_least_one_true svs =
 
 let get_logic_with_IA sys =
   match TS.get_logic sys with
-  | `Inferred features -> `Inferred (TermLib.FeatureSet.add TermLib.IA features)
+  | `Inferred features -> (
+    `Inferred (TermLib.FeatureSet.add TermLib.IA features)
+  )
   | l -> l (* Rely on original logic *)
 
 let prepare_ts_for_cs_check sys enter_nodes init_consts keep test =
   let eq_of_actlit = eq_of_actlit_sv (core_union keep test) in
   let main_scope = TS.scope_of_trans_sys sys in
-  reset_ts enter_nodes sys;
+  reset_ts enter_nodes sys ;
   let prepare_subsystem acc sys =
     let scope = TS.scope_of_trans_sys sys in
-    let keep_actlits, test_actlits =
-      if enter_nodes || Scope.equal scope main_scope then
-        ( Some (get_actlits_of_scope keep scope),
-          Some (get_actlits_of_scope test scope) )
+    let (keep_actlits, test_actlits) =
+      if enter_nodes || Scope.equal scope main_scope
+      then (Some (get_actlits_of_scope keep scope),
+            Some (get_actlits_of_scope test scope))
       else (None, None)
     in
     let actlits =
-      match (keep_actlits, test_actlits) with
+      match keep_actlits, test_actlits with
       | None, None -> None
       | Some k, None -> Some (k, [])
       | None, Some t -> Some ([], t)
       | Some k, Some t -> Some (k, t)
     in
-    match actlits with
+    begin match actlits with
     | None -> acc
-    | Some (ks, ts) ->
-        let eqs =
-          List.map (fun k -> eq_of_actlit ~with_act:false k) ks
-          @ List.map (fun t -> eq_of_actlit ~with_act:true t) ts
-        in
-        let init_eq = List.map (fun eq -> eq.init_opened) eqs |> Term.mk_and in
-        let trans_eq =
-          List.map (fun eq -> eq.trans_opened) eqs |> Term.mk_and
-        in
-        TS.set_subsystem_equations acc scope init_eq trans_eq
+    | Some (ks,ts) ->
+      let eqs =
+        (List.map (fun k -> eq_of_actlit ~with_act:false k) ks) @
+        (List.map (fun t -> eq_of_actlit ~with_act:true t) ts)
+      in
+      let init_eq = List.map (fun eq -> eq.init_opened) eqs
+      |> Term.mk_and in
+      let trans_eq = List.map (fun eq -> eq.trans_opened) eqs
+      |> Term.mk_and in
+      TS.set_subsystem_equations acc scope init_eq trans_eq
+    end
   in
   let sys = TS.fold_subsystems ~include_top:true prepare_subsystem sys sys in
-  let _, init_eq, trans_eq = TS.init_trans_open sys in
-  let init_eq = Term.mk_and (List.rev_append init_consts [ init_eq ]) in
+  let (_,init_eq,trans_eq) = TS.init_trans_open sys in
+  let init_eq =
+    Term.mk_and (List.rev_append init_consts [init_eq])
+  in
   let sys = TS.set_logic sys (get_logic_with_IA sys) in
   TS.set_subsystem_equations sys (TS.scope_of_trans_sys sys) init_eq trans_eq
 
-let compute_cs_aux check_ts sys enter_nodes keep test k ?(exact_card = true)
-    already_found =
+
+let compute_cs_aux check_ts sys enter_nodes keep test k ?(exact_card=true) already_found =
   let actsvs = actsvs_of_core test in
 
   let not_already_found =
-    already_found |> List.map at_least_one_false |> Term.mk_and
+    already_found
+    |> List.map at_least_one_false
+    |> Term.mk_and
   in
 
   let init_consts =
     [
-      not_already_found;
-      (* 'Not already found' constraint *)
-      (if exact_card then exactly_k_true actsvs k
-       else at_most_k_true actsvs k (* Cardinality constraint *));
+      not_already_found;         (* 'Not already found' constraint *)
+      (if exact_card then exactly_k_true actsvs k else at_most_k_true actsvs k) (* Cardinality constraint *)
     ]
   in
   let sys = prepare_ts_for_cs_check sys enter_nodes init_consts keep test in
   let old_log_level = Lib.get_log_level () in
-  Format.print_flush ();
-  Lib.set_log_level L_off;
-  check_ts sys;
+  Format.print_flush () ;
+  Lib.set_log_level L_off ;
+  check_ts sys ;
   Lib.set_log_level old_log_level;
   (sys, actsvs)
 
-let compute_cs check_ts sys prop_names enter_nodes keep test k
-    ?(exact_card = true) already_found =
-  let sys, actsvs =
-    compute_cs_aux check_ts sys enter_nodes keep test k ~exact_card
-      already_found
-  in
+let compute_cs check_ts sys prop_names enter_nodes keep test k ?(exact_card=true) already_found =
+  let (sys, actsvs) =
+    compute_cs_aux check_ts sys enter_nodes keep test k ~exact_card already_found in
   match get_counterexample_actsvs prop_names sys actsvs with
   | None -> None
   | Some (actsvs, cex) ->
-      assert (List.length actsvs <= k);
-      Some (filter_core_svs actsvs test, cex)
+    assert (List.length actsvs <= k) ;
+    Some (filter_core_svs actsvs test, cex)
 
 let compute_approx_mcs_for_each_prop check_ts sys prop_names enter_nodes
-    ?(max_mcs_cardinality = -1) keep test =
-  KEvent.log L_info "Computing a correction set of maximal cardinality...";
+  ?(max_mcs_cardinality= -1) keep test =
+  KEvent.log L_info "Computing a correction set of maximal cardinality..." ;
   let n = core_size test in
   let n =
-    if max_mcs_cardinality >= 0 && max_mcs_cardinality < n then
-      max_mcs_cardinality
+    if max_mcs_cardinality >= 0 && max_mcs_cardinality < n
+    then max_mcs_cardinality
     else n
   in
-  let sys, actsvs =
-    compute_cs_aux check_ts sys enter_nodes keep test n ~exact_card:false []
-  in
+  let (sys, actsvs) =
+    compute_cs_aux check_ts sys enter_nodes keep test n ~exact_card:false [] in
   get_counterexamples_actsvs prop_names sys actsvs
-  |> List.map (fun (actsvs, cex) ->
-         assert (List.length actsvs <= n);
-         (filter_core_svs actsvs test, cex))
+  |> List.map (fun(actsvs, cex) ->
+    assert (List.length actsvs <= n) ;
+    (filter_core_svs actsvs test, cex)
+  )
 
-let compute_all_cs check_ts sys prop_names enter_nodes ?(cont = fun _ -> ())
-    keep test k already_found =
+let compute_all_cs check_ts sys prop_names enter_nodes ?(cont=(fun _ -> ()))
+  keep test k already_found =
+
   let rec aux acc already_found =
-    match
-      compute_cs check_ts sys prop_names enter_nodes keep test k already_found
-    with
+    match compute_cs
+      check_ts sys prop_names enter_nodes keep test k already_found with
     | None -> acc
     | Some (core, cex) ->
-        cont (core, cex);
-        aux ((core, cex) :: acc) (actsvs_of_core core :: already_found)
+      cont (core, cex) ;
+      aux ((core, cex)::acc) (actsvs_of_core core::already_found)
   in
   aux [] already_found
+
 
 let create_smt_solver logic =
   let solver = Flags.Smt.solver () in
   match solver with
-  | `Z3_SMTLIB ->
-      SMTSolver.create_instance (TermLib.add_quantifiers logic) solver
-  | _ ->
-      failwith
-        "Max-SMT is not supported by SMT solver or implementation is not \
-         available"
+  | `Z3_SMTLIB -> (
+    SMTSolver.create_instance
+      (TermLib.add_quantifiers logic)
+      solver
+  )
+  | _ -> (
+    failwith "Max-SMT is not supported by SMT solver or \
+              implementation is not available"
+  )
 
 (* Computes a Minimal Cut Set that is minimal with respect to
    any solution whose associated counterexample has the same
    length than the counterexample provided ([cex]).
 *)
 let compute_local_cs sys prop_names enter_nodes cex keep test =
-  let k = Property.length_of_cex cex - 1 in
+  let k = (Property.length_of_cex cex) - 1 in
 
   let num_k = Numeral.of_int k in
 
   let sys = prepare_ts_for_cs_check sys enter_nodes [] keep test in
 
   let solver = create_smt_solver (TS.get_logic sys) in
-  TS.define_and_declare_of_bounds sys
+  TS.define_and_declare_of_bounds
+    sys
     (SMTSolver.define_fun solver)
     (SMTSolver.declare_fun solver)
     (SMTSolver.declare_sort solver)
     Numeral.zero num_k;
 
-  TransSys.assert_global_constraints sys (SMTSolver.assert_term solver);
+  TransSys.assert_global_constraints sys (SMTSolver.assert_term solver) ;
 
-  TS.init_of_bound None sys Numeral.zero |> SMTSolver.assert_term solver;
-  for i = 0 to k - 1 do
-    TS.trans_of_bound None sys (Numeral.of_int (i + 1))
+  TS.init_of_bound None sys Numeral.zero
+  |> SMTSolver.assert_term solver;
+  for i = 0 to (k - 1) do
+    TS.trans_of_bound None sys (Numeral.of_int (i+1))
     |> SMTSolver.assert_term solver
   done;
 
   let actsvs = actsvs_of_core test in
 
   let actsv_terms =
-    List.map (fun sv -> Term.mk_var (Var.mk_const_state_var sv)) actsvs
+    List.map
+      (fun sv -> Term.mk_var (Var.mk_const_state_var sv))
+      actsvs
   in
 
   List.iter
@@ -936,22 +920,26 @@ let compute_local_cs sys prop_names enter_nodes cex keep test =
     Term.mk_and (List.map (fun p -> p.Property.prop_term) props)
   in
 
-  let prop_at_last_step = Term.bump_state num_k prop_conj in
+  let prop_at_last_step =
+    Term.bump_state num_k prop_conj
+  in
   SMTSolver.assert_term solver (Term.negate prop_at_last_step);
 
-  try
+  try (
     let sat = SMTSolver.check_sat solver in
-    assert sat;
+    assert (sat);
 
     let model =
       (* SMTSolver.get_model solver *)
-      SMTSolver.get_var_values solver
+      SMTSolver.get_var_values
+        solver
         (TransSys.get_state_var_bounds sys)
         (TransSys.vars_of_bounds sys Numeral.zero num_k)
     in
 
     let eval term =
-      Eval.eval_term (TS.uf_defs sys) model term |> Eval.bool_of_value
+      Eval.eval_term (TS.uf_defs sys) model term
+      |> Eval.bool_of_value
     in
 
     let falsified_prop =
@@ -961,14 +949,17 @@ let compute_local_cs sys prop_names enter_nodes cex keep test =
             let prop_at_last_step =
               Term.bump_state num_k p.Property.prop_term
             in
-            not (eval prop_at_last_step))
+            not (eval prop_at_last_step)
+          )
           props
-      with Not_found -> assert false
+      with Not_found ->
+        assert false
     in
 
     (* Extract counterexample from solver *)
     let cex =
-      Model.path_from_model (TS.state_vars sys) model num_k
+      Model.path_from_model
+        (TS.state_vars sys) model num_k
       |> Model.path_to_list
     in
 
@@ -981,37 +972,38 @@ let compute_local_cs sys prop_names enter_nodes cex keep test =
     let core = filter_core_svs active_svs test in
 
     Some (core, (falsified_prop.Property.prop_name, cex))
-  with SMTSolver.Unknown -> None
+  )
+  with
+  | SMTSolver.Unknown -> None
 
-let compute_mcs check_ts sys prop_names enter_nodes ?(max_mcs_cardinality = -1)
-    ?(initial_solution = None) ?(approx = false) keep test =
-  KEvent.log L_info "Computing a MCS...";
+let compute_mcs check_ts sys prop_names enter_nodes ?(max_mcs_cardinality= -1)
+  ?(initial_solution=None) ?(approx=false) keep test
+=
+  KEvent.log L_info "Computing a MCS..." ;
   let n = core_size test in
   let n =
-    if max_mcs_cardinality >= 0 && max_mcs_cardinality < n then
-      max_mcs_cardinality
+    if max_mcs_cardinality >= 0 && max_mcs_cardinality < n
+    then max_mcs_cardinality
     else n
   in
-  let n =
-    match initial_solution with
-    | None -> n
-    | Some (core, _) -> core_size core - 1
-  in
-  if approx then
+  let n = match initial_solution with
+  | None -> n
+  | Some (core, _) -> (core_size core) - 1 in
+  if approx then (
     let sol =
       match initial_solution with
-      | None ->
-          compute_cs check_ts sys prop_names enter_nodes keep test n
-            ~exact_card:false []
+      | None -> compute_cs check_ts sys prop_names enter_nodes keep test n ~exact_card:false []
       | _ -> initial_solution
     in
     match sol with
     | None -> None
     | Some (_, (_, cex)) -> (
-        match compute_local_cs sys prop_names enter_nodes cex keep test with
-        | None -> sol
-        | res -> res)
-  else
+      match compute_local_cs sys prop_names enter_nodes cex keep test with
+      | None -> sol
+      | res -> res
+    )
+  )
+  else (
     (* Increasing cardinality... *)
     (*let rec aux k =
       if k <= n
@@ -1024,390 +1016,380 @@ let compute_mcs check_ts sys prop_names enter_nodes ?(max_mcs_cardinality = -1)
     aux 0*)
     (* Decreasing cardinality... *)
     let rec aux k previous_res =
-      if k >= 0 then
-        match
-          compute_cs check_ts sys prop_names enter_nodes keep test k
-            ~exact_card:false []
-        with
+      if k >= 0
+      then
+        match compute_cs check_ts sys prop_names enter_nodes keep test k ~exact_card:false [] with
         | None -> previous_res
-        | Some (core, cex) -> aux (core_size core - 1) (Some (core, cex))
+        | Some (core, cex) -> aux ((core_size core)-1) (Some (core, cex))
       else previous_res
     in
     aux n initial_solution
+  )
 
 let compute_all_mcs check_ts sys prop_names enter_nodes
-    ?(max_mcs_cardinality = -1) ?(initial_solution = None) ?(cont = fun _ -> ())
-    keep test =
-  KEvent.log L_info "Computing all MCSs...";
-  match
-    compute_mcs check_ts sys prop_names enter_nodes ~max_mcs_cardinality
-      ~initial_solution keep test
-  with
+  ?(max_mcs_cardinality= -1) ?(initial_solution=None) ?(cont=(fun _ -> ())) keep test =
+
+  KEvent.log L_info "Computing all MCSs..." ;
+  match compute_mcs check_ts sys prop_names enter_nodes
+    ~max_mcs_cardinality ~initial_solution keep test with
   | None -> []
   | Some (res, res_cex) ->
-      cont (res, res_cex);
-      let n = core_size test in
-      let n =
-        if max_mcs_cardinality >= 0 && max_mcs_cardinality < n then
-          max_mcs_cardinality
-        else n
-      in
-      let k = core_size res in
-      let rec aux acc already_found k =
-        if k < n
-        (* We do not need to go up to 'n', because if the whole set is a MCS, 
+    cont (res, res_cex) ;
+    let n = core_size test in
+    let n =
+      if max_mcs_cardinality >= 0 && max_mcs_cardinality < n
+      then max_mcs_cardinality
+      else n
+    in
+    let k = core_size res in
+    let rec aux acc already_found k =
+      if k < n
+      (* We do not need to go up to 'n', because if the whole set is a MCS, 
          then it will be found by the initial 'compute_mcs' call *)
-        then
-          let new_mcs, cex =
-            compute_all_cs check_ts sys prop_names enter_nodes ~cont keep test k
-              already_found
-            |> List.split
-          in
-          let already_found = List.map actsvs_of_core new_mcs @ already_found in
-          aux (List.combine new_mcs cex @ acc) already_found (k + 1)
-        else acc
-      in
-      aux [ (res, res_cex) ] [ actsvs_of_core res ] k
+      then
+        let (new_mcs, cex) = compute_all_cs
+          check_ts sys prop_names enter_nodes ~cont keep test k already_found
+          |> List.split in
+        let already_found = (List.map actsvs_of_core new_mcs)@already_found in
+        aux ((List.combine new_mcs cex)@acc) already_found (k+1)
+      else acc
+    in
+    aux [(res, res_cex)] [actsvs_of_core res] k
 
 (* ---------- IVC_UC ---------- *)
 
 let are_props_safe props =
-  props
-  |> List.for_all (function
-       | { Property.prop_status = Property.PropInvariant _ } -> true
-       | _ -> false)
+  props |> List.for_all
+  (function
+  | { Property.prop_status = Property.PropInvariant _ } -> true
+  | _ -> false)
 
-let get_logic ?(pathcomp = false) sys =
+let get_logic ?(pathcomp=false) sys =
   let open TermLib in
   match TS.get_logic sys with
   | `Inferred fs when pathcomp ->
-      `Inferred TermLib.FeatureSet.(sup_logics [ fs; of_list [ IA; LA; UF ] ])
+    `Inferred
+      TermLib.FeatureSet.(sup_logics [fs; of_list [IA; LA; UF]])
   | l -> l
 
-let create_solver ?(pathcomp = false) ?(approximate = false) sys actlits bmin
-    bmax =
+let create_solver ?(pathcomp=false) ?(approximate=false) sys actlits bmin bmax =
   let solver =
-    SMTSolver.create_instance
-      ~timeout:(Flags.IVC.ivc_uc_timeout ())
-      ~produce_models:pathcomp ~produce_unsat_assumptions:true
-      ~minimize_cores:(not approximate) (get_logic ~pathcomp sys)
-      (Flags.Smt.solver ())
-  in
-  List.iter (SMTSolver.declare_fun solver) actlits;
-  TS.declare_sorts_ufs_const sys
+    SMTSolver.create_instance ~timeout:(Flags.IVC.ivc_uc_timeout ())
+    ~produce_models:pathcomp ~produce_unsat_assumptions:true
+    ~minimize_cores:(not approximate) (get_logic ~pathcomp sys) (Flags.Smt.solver ()) in
+  List.iter (SMTSolver.declare_fun solver) actlits ;
+  TS.declare_sorts_ufs_const sys (SMTSolver.declare_fun solver) (SMTSolver.declare_sort solver) ;
+  TS.declare_vars_of_bounds
+    sys
     (SMTSolver.declare_fun solver)
-    (SMTSolver.declare_sort solver);
-  TS.declare_vars_of_bounds sys
-    (SMTSolver.declare_fun solver)
-    (Numeral.of_int bmin) (Numeral.of_int bmax);
-  if pathcomp then (
-    Compress.init (SMTSolver.declare_fun solver) sys;
-    Compress.incr_k ());
+    (Numeral.of_int bmin) (Numeral.of_int bmax) ;
+  if pathcomp
+  then begin
+    Compress.init (SMTSolver.declare_fun solver) sys ;
+    Compress.incr_k ()
+  end ;
   solver
 
 let check_sat_assuming solver actlits =
   let act_terms = List.map Actlit.term_of_actlit actlits in
   SMTSolver.check_sat_assuming solver
-    (fun _ -> (true, []))
-    (fun _ -> (false, SMTSolver.get_unsat_core_lits solver))
+    (fun _ -> true, [])
+    (fun _ -> false, SMTSolver.get_unsat_core_lits solver)
     act_terms
 
-let actlit_of_term t =
-  match Term.destruct t with
-  | Var _ -> assert false
-  | Const s -> Symbol.uf_of_symbol s
-  | App _ -> assert false
+let actlit_of_term t = match Term.destruct t with
+    | Var _ -> assert false
+    | Const s -> Symbol.uf_of_symbol s
+    | App _ -> assert false
 
 let base_k b0 init_eq trans_eq prop_eq os_prop_eq k =
   let prop_eq = if k = 0 then os_prop_eq else prop_eq in
 
-  let init_eq = init_eq |> Term.bump_state (Numeral.of_int b0) in
+  let init_eq =
+    init_eq
+    |> Term.bump_state (Numeral.of_int b0)
+  in
 
   let trans_eq =
-    interval (b0 + 1) (b0 + k)
+    interval (b0+1) (b0+k)
     |> List.map (fun i -> Term.bump_state (Numeral.of_int i) trans_eq)
     |> Term.mk_and
   in
 
-  let prop_eq = prop_eq |> Term.bump_state (Numeral.of_int (b0 + k)) in
+  let prop_eq =
+    prop_eq
+    |> Term.bump_state (Numeral.of_int (b0 + k))
+  in
 
-  (b0 + k + 1, Term.mk_implies [ Term.mk_and [ init_eq; trans_eq ]; prop_eq ])
+  (b0 + k + 1, Term.mk_implies [Term.mk_and [init_eq ; trans_eq]; prop_eq])
 
 let base_until_k b0 init_eq trans_eq prop_eq os_prop_eq k =
   interval 0 k
-  |> List.fold_left
-       (fun (b0, base) i ->
-         let b0, t = base_k b0 init_eq trans_eq prop_eq os_prop_eq i in
-         (b0, Term.mk_and [ base; t ]))
-       (b0, Term.mk_true ())
+  |> List.fold_left (
+    fun (b0, base) i ->
+      let (b0, t) = base_k b0 init_eq trans_eq prop_eq os_prop_eq i in
+      (b0, Term.mk_and [base; t])
+  )
+  (b0, Term.mk_true ())
 
 let ind_k sys b0 trans_eq inv_eq os_inv_eq prop_eq k =
+
   let trans_eq =
-    interval (b0 + 1) (b0 + 1 + k)
+    interval (b0+1) (b0+1+k)
     |> List.map (fun i -> Term.bump_state (Numeral.of_int i) trans_eq)
     |> Term.mk_and
   in
 
   let os_inv_eq = Term.bump_state (Numeral.of_int b0) os_inv_eq in
   let inv_eq =
-    interval (b0 + 1) (b0 + k)
+    interval (b0+1) (b0+k)
     |> List.map (fun i -> Term.bump_state (Numeral.of_int i) inv_eq)
-    |> (fun eqs -> os_inv_eq :: eqs)
+    |> (fun eqs -> os_inv_eq::eqs)
     |> Term.mk_and
   in
 
-  let prop_eq = prop_eq |> Term.bump_state (Numeral.of_int (b0 + k + 1)) in
-
+  let prop_eq =
+    prop_eq
+    |> Term.bump_state (Numeral.of_int (b0 + k + 1))
+  in
+  
   let path_compress solver =
     (* Try to block the counterexample with path compression *)
     let svi = TS.get_state_var_bounds sys in
-    let model =
-      SMTSolver.get_var_values solver svi
-        (TS.vars_of_bounds sys (Numeral.of_int b0)
-           (Numeral.of_int (b0 + k + 1)))
-    in
-    let path =
-      Model.path_from_model (TS.state_vars sys) model
-        (Numeral.of_int (b0 + k + 1))
-    in
+    let model = SMTSolver.get_var_values solver svi
+        (TS.vars_of_bounds sys (Numeral.of_int b0) (Numeral.of_int (b0+k+1))) in
+    let path = Model.path_from_model (TS.state_vars sys) model
+        (Numeral.of_int (b0+k+1)) in
     match Compress.check_and_block (SMTSolver.declare_fun solver) sys path with
     | [] -> false
     | compressor ->
-        (*KEvent.log_uncond "Compressor: %n" (List.length compressor) ;*)
-        compressor |> Term.mk_and |> SMTSolver.assert_term solver;
-        true
+      (*KEvent.log_uncond "Compressor: %n" (List.length compressor) ;*)
+      compressor |> Term.mk_and |> SMTSolver.assert_term solver ;
+      true
   in
   let path_compress =
     if b0 = 0 then path_compress
-    else (
-      KEvent.log L_warn
-        "Path compression cannot be enabled for a bound different than 0";
-      fun _ -> false)
+    else begin
+      KEvent.log L_warn "Path compression cannot be enabled for a bound different than 0" ;
+      (fun _ -> false)
+  end
   in
-  ( b0 + k + 2,
-    Term.mk_implies [ Term.mk_and [ trans_eq; inv_eq ]; prop_eq ],
-    path_compress )
+  (b0+k+2, Term.mk_implies [Term.mk_and [trans_eq ; inv_eq]; prop_eq], path_compress)
 
 let k_induction sys b0 init_eq trans_eq prop_eq os_prop_eq k =
-  let b0, ind, path_compress =
-    ind_k sys b0 trans_eq prop_eq os_prop_eq prop_eq k
-  in
-  let b0, base = base_until_k b0 init_eq trans_eq prop_eq os_prop_eq k in
-  (b0, Term.mk_and [ base; ind ], path_compress)
+
+  let (b0, ind, path_compress) = ind_k sys b0 trans_eq prop_eq os_prop_eq prop_eq k in
+  let (b0, base) = base_until_k b0 init_eq trans_eq prop_eq os_prop_eq k in
+  (b0, Term.mk_and [base ; ind], path_compress)
 
 type core_result = NOT_OK | OK of core
 
-let compute_unsat_core ?(pathcomp = None) ?(approximate = false) sys enter_nodes
-    core init_terms trans_terms bmin bmax t =
+let compute_unsat_core ?(pathcomp=None) ?(approximate=false)
+  sys enter_nodes core init_terms trans_terms bmin bmax t =
+
   let enable_compr = pathcomp <> None in
   let actlits = actlits_of_core core in
   let solver =
-    create_solver ~pathcomp:enable_compr ~approximate sys actlits bmin bmax
-  in
+    create_solver ~pathcomp:enable_compr ~approximate:approximate
+    sys actlits bmin bmax in
 
   (* Define non-top-level nodes *)
-  if enter_nodes then
-    sys
-    |> TS.iter_subsystems ~include_top:false (fun t ->
-           let define = SMTSolver.define_fun solver in
-           let scope = TS.scope_of_trans_sys t in
-           let init = term_of_scope init_terms scope in
-           let trans = term_of_scope trans_terms scope in
-           define (TS.init_uf_symbol t) (TS.init_formals t) init;
-           define (TS.trans_uf_symbol t) (TS.trans_formals t) trans)
-  else TS.define_subsystems sys (SMTSolver.define_fun solver);
+  if enter_nodes
+  then
+    sys |> TS.iter_subsystems ~include_top:false (fun t ->
+      let define = SMTSolver.define_fun solver in
+      let scope = TS.scope_of_trans_sys t in
+      let init = term_of_scope init_terms scope in
+      let trans = term_of_scope trans_terms scope in
+      define (TS.init_uf_symbol t) (TS.init_formals t) init ;
+      define (TS.trans_uf_symbol t) (TS.trans_formals t) trans
+    )
+  else TS.define_subsystems sys (SMTSolver.define_fun solver) ;
 
-  TransSys.assert_global_constraints sys (SMTSolver.assert_term solver);
+  TransSys.assert_global_constraints sys (SMTSolver.assert_term solver) ;
 
-  SMTSolver.assert_term solver t |> ignore;
+  SMTSolver.assert_term solver t |> ignore ;
 
   let check_sat =
-    if actlits = [] then fun () -> (SMTSolver.check_sat solver, [])
-    else fun () -> check_sat_assuming solver actlits
+    if actlits = []
+    then (fun () -> SMTSolver.check_sat solver, [])
+    else (fun () -> check_sat_assuming solver actlits)
   in
   let rec check () =
-    let sat, unsat_core = check_sat () in
-    if sat then
-      if enable_compr then
+    let (sat, unsat_core) = check_sat () in
+    if sat
+    then
+      if enable_compr then begin
         match pathcomp with
         | None -> assert false
-        | Some f -> if f solver then check () else NOT_OK
+        | Some f ->
+          if f solver then check ()
+          else NOT_OK
+      end
       else NOT_OK
     else
-      let res = unsat_core |> List.map actlit_of_term in
-      OK (filter_core res core)
+      let res = unsat_core
+      |> List.map actlit_of_term
+      in OK (filter_core res core)
   in
 
   let res = check () in
-  SMTSolver.delete_instance solver;
+  SMTSolver.delete_instance solver ;
   res
 
-let check_k_inductive ?(approximate = false) sys enter_nodes core init_terms
-    trans_terms prop os_prop k =
+let check_k_inductive ?(approximate=false) sys enter_nodes core init_terms trans_terms prop os_prop k =
   (* In the functions above, k starts at 0 whereas it starts at 1 with Kind2 notation *)
   let k = k - 1 in
   let scope = TS.scope_of_trans_sys sys in
   let init_eq = term_of_scope init_terms scope in
   let trans_eq = term_of_scope trans_terms scope in
 
-  if Flags.BmcKind.compress () then
-    let bmax, t = base_until_k 0 init_eq trans_eq prop os_prop k in
-    let bmax = bmax - 1 in
+  if Flags.BmcKind.compress ()
+  then
+    let (bmax, t) = base_until_k 0 init_eq trans_eq prop os_prop k in
+    let bmax = bmax-1 in
     let t = Term.mk_not t in
     let res_base =
-      compute_unsat_core ~approximate sys enter_nodes core init_terms
-        trans_terms 0 bmax t
-    in
+      compute_unsat_core ~approximate:approximate
+        sys enter_nodes core init_terms trans_terms 0 bmax t in
     match res_base with
     | NOT_OK -> NOT_OK
-    | OK core' -> (
-        let bmax, t, pathcomp = ind_k sys 0 trans_eq prop os_prop prop k in
-        let bmax = bmax - 1 in
-        let t = Term.mk_not t in
-        let res_ind =
-          compute_unsat_core ~pathcomp:(Some pathcomp) ~approximate sys
-            enter_nodes core init_terms trans_terms 0 bmax t
-        in
-        match res_ind with
-        | NOT_OK -> NOT_OK
-        | OK core'' -> OK (core_union core' core''))
+    | OK core' ->
+      let (bmax, t, pathcomp) = ind_k sys 0 trans_eq prop os_prop prop k in
+      let bmax = bmax-1 in
+      let t = Term.mk_not t in
+      let res_ind =
+        compute_unsat_core ~pathcomp:(Some pathcomp) ~approximate:approximate
+          sys enter_nodes core init_terms trans_terms 0 bmax t in
+      begin match res_ind with
+      | NOT_OK -> NOT_OK
+      | OK core'' -> OK (core_union core' core'')
+      end
   else
-    let bmax, t, _ = k_induction sys 0 init_eq trans_eq prop os_prop k in
-    let bmax = bmax - 1 in
+    let (bmax, t, _) = k_induction sys 0 init_eq trans_eq prop os_prop k in
+    let bmax = bmax-1 in
     let t = Term.mk_not t in
-    compute_unsat_core ~approximate sys enter_nodes core init_terms trans_terms
-      0 bmax t
+    compute_unsat_core ~approximate:approximate
+      sys enter_nodes core init_terms trans_terms 0 bmax t
+
 
 (** Implements the approximate algorithm (using Unsat Cores) *)
-let ivc_uc_ ?(approximate = false) sys props enter_nodes keep test =
+let ivc_uc_ ?(approximate=false) sys props enter_nodes keep test =
+
   let scope = TS.scope_of_trans_sys sys in
   let props = props_terms props in
   let k, invs = CertifChecker.minimize_invariants sys (Some props) None in
-  let os_invs =
-    List.filter (fun t -> CertifChecker.is_two_state t |> not) invs
-  in
+  let os_invs = List.filter (fun t -> CertifChecker.is_two_state t |> not) invs in
   let prop = Term.mk_and props in
-  let os_prop = Term.mk_and (prop :: os_invs) in
-  let prop = Term.mk_and (prop :: invs) in
-  KEvent.log L_info "Inductive property: %a" Term.pp_print_term prop;
-  KEvent.log L_info "One-step inductive property: %a" Term.pp_print_term os_prop;
-  KEvent.log L_info "Value of k: %n" k;
+  let os_prop = Term.mk_and (prop::os_invs) in
+  let prop = Term.mk_and (prop::invs) in
+  KEvent.log L_info "Inductive property: %a" Term.pp_print_term prop ;
+  KEvent.log L_info "One-step inductive property: %a" Term.pp_print_term os_prop ;
+  KEvent.log L_info "Value of k: %n" k ;
 
   let eq_of_actlit = eq_of_actlit_uf (core_union keep test) in
   (* Minimization *)
   (* If Z3 is used, we use the 'minimize cores' feature
     so we do not need to minimize them manually *)
-  let z3_used =
-    match Flags.Smt.solver () with `Z3_SMTLIB -> true | _ -> false
-  in
+  let z3_used = match Flags.Smt.solver () with `Z3_SMTLIB -> true | _ -> false in
   let has_timeout = ref false in
-  let rec minimize ?(skip_first_check = false) check keep test =
+  let rec minimize ?(skip_first_check=false) check keep test =
     let first_check =
-      if skip_first_check then OK test
+      if skip_first_check
+      then OK test
       else
-        try check approximate keep test
-        with SMTSolver.Timeout ->
-          has_timeout := true;
+        try
+          check approximate keep test
+        with SMTSolver.Timeout -> (
+          has_timeout := true ;
           NOT_OK
+        )
     in
     match first_check with
-    | NOT_OK -> (*KEvent.log_uncond "Not k-inductive." ;*) None
-    | OK core -> (
-        if
-          (*KEvent.log_uncond "UNSAT core eliminated %n equations."
+    | NOT_OK -> (*KEvent.log_uncond "Not k-inductive." ;*) None 
+    | OK core ->
+      (*KEvent.log_uncond "UNSAT core eliminated %n equations."
         (core_size test - core_size core) ;*)
-          approximate || z3_used || is_empty_core core
-        then Some (core_union keep core)
-        else
-          let scope, actlit, test = pick_element_of_core core in
-          match minimize check keep test with
-          | None ->
-              minimize check ~skip_first_check:true
-                (add_from_other_core core scope actlit keep)
-                test
-          | Some res -> Some res)
+      if approximate || z3_used || is_empty_core core
+      then Some (core_union keep core)
+      else begin
+        let (scope, actlit, test) = pick_element_of_core core in
+        begin match minimize check keep test with
+        | None -> minimize check ~skip_first_check:true
+          (add_from_other_core core scope actlit keep) test
+        | Some res -> Some res
+        end
+      end
   in
 
   let terms_of_current_state keep test =
     let aux with_act init core =
-      List.fold_left
-        (fun acc s ->
-          let eqs =
-            get_actlits_of_scope core s
-            |> List.map (fun a ->
-                   let eq = eq_of_actlit ~with_act a in
-                   term_of_ts_eq ~init ~closed:(Scope.equal s scope) eq)
-          in
-          ScMap.add s eqs acc)
-        ScMap.empty (scopes_of_core core)
+      List.fold_left (fun acc s ->
+        let eqs =
+          get_actlits_of_scope core s
+          |> List.map 
+            (fun a ->
+              let eq = eq_of_actlit ~with_act:with_act a in
+              term_of_ts_eq ~init ~closed:(Scope.equal s scope) eq
+            )
+        in
+        ScMap.add s eqs acc
+      ) ScMap.empty (scopes_of_core core) 
     in
     let keep_init = aux false true keep in
     let keep_trans = aux false false keep in
     let test_init = aux true true test in
     let test_trans = aux true false test in
-    let init =
-      lstmap_union keep_init test_init |> ScMap.map (fun t -> Term.mk_and t)
-    in
-    let trans =
-      lstmap_union keep_trans test_trans |> ScMap.map (fun t -> Term.mk_and t)
-    in
+    let init = lstmap_union keep_init test_init
+    |> ScMap.map (fun t -> Term.mk_and t) in
+    let trans = lstmap_union keep_trans test_trans
+    |> ScMap.map (fun t -> Term.mk_and t) in
     (init, trans)
   in
 
   let check approximate keep' test =
-    let remaining = core_size test + 1 in
-    let total = remaining + core_size keep' in
-    if (not approximate) && not z3_used then
-      KEvent.log L_info
-        "Minimizing using an UNSAT core... (%i elements in the IVC, %i checks \
-         left)"
-        total remaining
-    else
-      KEvent.log L_info
-        "Minimizing using an UNSAT core... (%i elements in the IVC)" total;
-    let init, trans = terms_of_current_state (core_union keep keep') test in
-    check_k_inductive ~approximate sys enter_nodes test init trans prop os_prop
-      k
+    let remaining = (core_size test) + 1 in
+    let total = remaining + (core_size keep') in
+    if not approximate && not z3_used
+    then KEvent.log L_info "Minimizing using an UNSAT core... (%i elements in the IVC, %i checks left)" total remaining
+    else KEvent.log L_info "Minimizing using an UNSAT core... (%i elements in the IVC)" total ;
+    let (init, trans) = terms_of_current_state (core_union keep keep') test in
+    check_k_inductive ~approximate:approximate sys enter_nodes test init trans prop os_prop k
   in
-  let res =
-    match minimize check empty_core test with
-    | None ->
-        if !has_timeout then test
-        else (
-          print_uc_error_note ();
-          test)
-    | Some core ->
-        if !has_timeout then KEvent.log L_warn "The UNSAT core has timeout...";
-        core
-  in
-  (os_invs, res)
+  let res = match minimize check empty_core test with
+  | None ->
+    if !has_timeout then test
+    else (print_uc_error_note () ; test)
+  | Some core ->
+    (if !has_timeout
+    then KEvent.log L_warn "The UNSAT core has timeout..."
+    ) ; core
+  in (os_invs, res)
 
-let ivc_uc in_sys ?(approximate = false) sys props =
-  try
+let ivc_uc in_sys ?(approximate=false) sys props =
+  try (
     let enter_nodes = Flags.IVC.ivc_only_main_node () |> not in
-    let keep, test =
-      generate_initial_cores in_sys sys enter_nodes (Flags.IVC.ivc_category ())
-    in
-    let _, test = ivc_uc_ ~approximate sys props enter_nodes keep test in
-    Solution
-      ( props,
-        core_to_loc_core in_sys (core_union keep test),
-        { approximation = true } )
-  with CertifChecker.CouldNotProve _ ->
-    if are_props_safe props then (
-      KEvent.log L_error "Cannot reprove properties.";
-      Error "Cannot reprove properties")
+    let (keep, test) = generate_initial_cores in_sys sys enter_nodes (Flags.IVC.ivc_category ()) in
+    let (_, test) = ivc_uc_ ~approximate:approximate sys props enter_nodes keep test in
+    Solution (props, core_to_loc_core in_sys (core_union keep test), { approximation = true })
+  ) with
+  | CertifChecker.CouldNotProve _ ->
+    if are_props_safe props
+    then (KEvent.log L_error "Cannot reprove properties." ;
+          Error "Cannot reprove properties")
     else NoSolution
+
 
 (* ---------- MUST SET ---------- *)
 
-let must_set_ ?(uc_res = None) check_ts sys props enter_nodes keep test =
+let must_set_ ?(uc_res=None) check_ts sys props enter_nodes keep test =
+
   (* If uc_res is None,
   we minimize using UC first and we retrieve the minimized invariants in the same time *)
-  let os_invs, reduced_test =
-    match uc_res with
-    | Some (os_invs, reduced_test) -> (os_invs, reduced_test)
-    | None -> ivc_uc_ sys props enter_nodes keep test
+  let (os_invs, reduced_test) =
+  match uc_res with
+  | Some (os_invs, reduced_test) -> (os_invs, reduced_test)
+  | None -> ivc_uc_ sys props enter_nodes keep test
   in
   let increased_keep = core_diff (core_union keep test) reduced_test in
 
@@ -1417,37 +1399,29 @@ let must_set_ ?(uc_res = None) check_ts sys props enter_nodes keep test =
 
   (* Add actsvs to the CS transition system (at top level) *)
   let actsvs = actsvs_of_core reduced_test in
-  let sys =
-    List.fold_left
-      (fun acc sv -> TS.add_global_constant acc (Var.mk_const_state_var sv))
-      sys actsvs
-  in
+  let sys = List.fold_left (fun acc sv -> TS.add_global_constant acc (Var.mk_const_state_var sv)) sys actsvs in
 
   let core =
-    compute_all_cs check_ts sys prop_names enter_nodes increased_keep
-      reduced_test 1 []
+    compute_all_cs check_ts sys prop_names enter_nodes increased_keep reduced_test 1 []
     |> List.map fst
     |> List.fold_left core_union empty_core
   in
   (os_invs, core)
 
 let must_set in_sys param analyze sys props =
-  try
+  try (
     let enter_nodes = Flags.IVC.ivc_only_main_node () |> not in
-    let keep, test =
-      generate_initial_cores in_sys sys enter_nodes (Flags.IVC.ivc_category ())
-    in
-    let sys, check_ts = make_ts_analyzer in_sys param analyze sys in
-    let _, must = must_set_ check_ts sys props enter_nodes keep test in
-    Solution
-      ( props,
-        core_to_loc_core in_sys (core_union keep must),
-        { approximation = !timeout } )
-  with CertifChecker.CouldNotProve _ ->
-    if are_props_safe props then (
-      KEvent.log L_error "Cannot reprove properties.";
-      Error "Cannot reprove properties")
+    let (keep, test) = generate_initial_cores in_sys sys enter_nodes (Flags.IVC.ivc_category ()) in
+    let (sys, check_ts) = make_ts_analyzer in_sys param analyze sys in
+    let (_, must) = must_set_ check_ts sys props enter_nodes keep test in
+    Solution (props, core_to_loc_core in_sys (core_union keep must), { approximation = !timeout })
+  ) with
+  | CertifChecker.CouldNotProve _ ->
+    if are_props_safe props
+    then (KEvent.log L_error "Cannot reprove properties." ;
+          Error "Cannot reprove properties")
     else NoSolution
+
 
 (* ---------- IVC_BF ---------- *)
 
@@ -1456,181 +1430,166 @@ exception CannotProve
 let check_result_safe prop_names sys =
   if
     List.for_all
-      (fun str ->
-        match TS.get_prop_status sys str with
-        | Property.PropInvariant _ -> true
-        | _ -> false)
+      (fun str -> match TS.get_prop_status sys str with
+      | Property.PropInvariant _ -> true
+      | _ -> false)
       prop_names
   then true
-  else if
-    List.exists
-      (fun str ->
-        match TS.get_prop_status sys str with
-        | Property.PropFalse _ -> true
-        | _ -> false)
+  else if List.exists
+      (fun str -> match TS.get_prop_status sys str with
+      | Property.PropFalse _ -> true
+      | _ -> false)
       prop_names
   then false
-  else (
-    print_timeout_warning ();
-    false)
+  else (print_timeout_warning () ; false)
 
 let check_core check_ts sys prop_names enter_nodes core =
   let main_scope = TS.scope_of_trans_sys sys in
   let prepare_ts_for_check sys core =
-    reset_ts enter_nodes sys;
+    reset_ts enter_nodes sys ;
     let prepare_subsystem acc sys =
       let scope = TS.scope_of_trans_sys sys in
       let eqs =
-        if enter_nodes || Scope.equal scope main_scope then
-          Some
-            (get_actlits_of_scope core scope
-            |> List.map (get_ts_equation_of_actlit core))
+        if enter_nodes || Scope.equal scope main_scope
+        then Some (get_actlits_of_scope core scope |> List.map (get_ts_equation_of_actlit core))
         else None
       in
-      match eqs with
+      begin match eqs with
       | None -> acc
       | Some eqs ->
-          let init_eq =
-            List.map (fun eq -> eq.init_opened) eqs |> Term.mk_and
-          in
-          let trans_eq =
-            List.map (fun eq -> eq.trans_opened) eqs |> Term.mk_and
-          in
-          TS.set_subsystem_equations acc scope init_eq trans_eq
+        let init_eq = List.map (fun eq -> eq.init_opened) eqs
+        |> Term.mk_and in
+        let trans_eq = List.map (fun eq -> eq.trans_opened) eqs
+        |> Term.mk_and in
+        TS.set_subsystem_equations acc scope init_eq trans_eq 
+      end
     in
     TS.fold_subsystems ~include_top:true prepare_subsystem sys sys
   in
   let check core =
     let sys = prepare_ts_for_check sys core in
     let old_log_level = Lib.get_log_level () in
-    Format.print_flush ();
-    Lib.set_log_level L_off;
-    check_ts sys;
+    Format.print_flush () ;
+    Lib.set_log_level L_off ;
+    check_ts sys ;
     Lib.set_log_level old_log_level;
     check_result_safe prop_names sys
   in
   check core
 
 (** Implements the bruteforce algorithm *)
-let ivc_bf_ ?(os_invs = []) check_ts sys props enter_nodes keep test =
+let ivc_bf_ ?(os_invs=[]) check_ts sys props enter_nodes keep test =
   let prop_names = props_names props in
   let sys = remove_other_props sys prop_names in
   let sys = add_as_candidate os_invs sys in
   (* Minimization *)
-  let rec minimize ?(skip_first_check = false) check keep test =
+  let rec minimize ?(skip_first_check=false) check keep test =
     if skip_first_check || check keep test then
-      if is_empty_core test then Some keep
+      if is_empty_core test
+      then Some keep
       else
-        let scope, actlit, test' = pick_element_of_core test in
+        let (scope, actlit, test') = pick_element_of_core test in
         match minimize check keep test' with
         | None ->
-            minimize ~skip_first_check:true check
-              (add_from_other_core test scope actlit keep)
-              test'
+          minimize ~skip_first_check:true check (add_from_other_core test scope actlit keep) test'
         | Some res -> Some res
     else None
   in
 
   let check keep' test =
-    let remaining = core_size test + 1 in
-    let total = remaining + core_size keep' in
-    KEvent.log L_info
-      "Minimizing using bruteforce... (%i elements in the IVC, %i checks left)"
-      total remaining;
-    core_union keep keep' |> core_union test
+    let remaining = (core_size test) + 1 in
+    let total = remaining + (core_size keep') in
+    KEvent.log L_info "Minimizing using bruteforce... (%i elements in the IVC, %i checks left)" total remaining ;
+    core_union keep keep'
+    |> core_union test
     |> check_core check_ts sys prop_names enter_nodes
   in
 
-  match minimize check empty_core test with
+  begin match minimize check empty_core test with
   | None -> raise CannotProve
   | Some core -> core
+  end
 
 (** Compute the MUST set and then call IVC_BF if needed *)
-let ivc_must_bf_ test must_cont ?(os_invs = []) check_ts sys props enter_nodes
-    keep reduced_test =
+let ivc_must_bf_ test must_cont ?(os_invs=[]) check_ts sys props enter_nodes keep reduced_test =
   let prop_names = props_names props in
 
   let timeout_bkp = !timeout in
-  let os_invs, must =
+  let (os_invs, must) =
     let uc_res = Some (os_invs, reduced_test) in
-    must_set_ ~uc_res check_ts sys props enter_nodes keep test
-  in
-  must_cont must;
+    must_set_ ~uc_res check_ts sys props enter_nodes keep test in
+  must_cont must ;
   let keep = core_union keep must in
   let test = core_diff test must in
   let sys = remove_other_props sys prop_names in
   let sys = add_as_candidate os_invs sys in
-  if check_core check_ts sys prop_names enter_nodes keep then (
-    KEvent.log L_info "MUST set is a valid IVC.";
-    keep)
+  if check_core check_ts sys prop_names enter_nodes keep
+  then (
+    KEvent.log L_info "MUST set is a valid IVC." ;
+    keep
+  )
   else (
-    timeout := timeout_bkp;
-    KEvent.log L_info
-      "MUST set is not a valid IVC. Minimizing with bruteforce...";
-    ivc_bf_ ~os_invs check_ts sys props enter_nodes keep test |> core_union must)
+    timeout := timeout_bkp ;
+    KEvent.log L_info "MUST set is not a valid IVC. Minimizing with bruteforce..." ;
+    ivc_bf_ ~os_invs check_ts sys props enter_nodes keep test
+    |> core_union must
+  )
 
 (** Implements the algorithm 'Unsat Core, then bruteforce' *)
-let ivc_ucbf in_sys ?(use_must_set = None) param analyze sys props =
-  try
+let ivc_ucbf in_sys ?(use_must_set=None) param analyze sys props =
+  try (
     let enter_nodes = Flags.IVC.ivc_only_main_node () |> not in
-    let keep, test =
-      generate_initial_cores in_sys sys enter_nodes (Flags.IVC.ivc_category ())
-    in
-    let ivc_bf_ =
-      match use_must_set with
-      | Some f ->
-          (fun x ->
-            ( props,
-              core_to_loc_core in_sys (core_union keep x),
-              { approximation = !timeout } )
-            |> f)
-          |> ivc_must_bf_ test
-      | None -> ivc_bf_
-    in
-    let sys, check_ts = make_ts_analyzer in_sys param analyze sys in
-    let os_invs, test = ivc_uc_ sys props enter_nodes keep test in
+    let (keep, test) = generate_initial_cores in_sys sys enter_nodes (Flags.IVC.ivc_category ()) in
+    let ivc_bf_ = match use_must_set with
+    | Some f ->
+      (fun x -> (props, core_to_loc_core in_sys (core_union keep x), { approximation = !timeout }) |> f)
+      |> ivc_must_bf_ test
+    | None -> ivc_bf_ in
+    let (sys, check_ts) = make_ts_analyzer in_sys param analyze sys in
+    let (os_invs, test) = ivc_uc_ sys props enter_nodes keep test in
     let test = ivc_bf_ ~os_invs check_ts sys props enter_nodes keep test in
-    Solution
-      ( props,
-        core_to_loc_core in_sys (core_union keep test),
-        { approximation = !timeout } )
-  with CannotProve | CertifChecker.CouldNotProve _ ->
-    if are_props_safe props then (
-      KEvent.log L_error "Cannot reprove properties.";
-      Error "Cannot reprove properties")
+    Solution (props, core_to_loc_core in_sys (core_union keep test), { approximation = !timeout })
+  ) with
+  | CannotProve | CertifChecker.CouldNotProve _ ->
+    if are_props_safe props
+    then (KEvent.log L_error "Cannot reprove properties." ;
+          Error "Cannot reprove properties")
     else NoSolution
+
 
 (* ---------- UMIVC ---------- *)
 
 let get_unexplored map actsvs =
-  if SMTSolver.check_sat map then
+  if SMTSolver.check_sat map
+  then
     let hashtbl = StateVar.StateVarHashtbl.create 0 in
     let model =
       List.map (fun sv -> Var.mk_const_state_var sv) actsvs
-      |> SMTSolver.get_var_values map hashtbl
-    in
+      |> SMTSolver.get_var_values map hashtbl in
     actsvs
     |> List.filter (fun sv ->
-           Var.mk_const_state_var sv |> Var.VarHashtbl.find model
-           |> is_model_value_true)
-    |> fun x -> Some x
-  else None
+      Var.mk_const_state_var sv
+      |> Var.VarHashtbl.find model
+      |> is_model_value_true
+    )
+    |> (fun x -> Some x)
+  else
+    None
 
 let get_unexplored_with_card map actsvs n =
-  SMTSolver.push map;
-  exactly_k_true actsvs n |> SMTSolver.assert_term map;
+  SMTSolver.push map ;
+  exactly_k_true actsvs n |> SMTSolver.assert_term map ;
   let res = get_unexplored map actsvs in
-  SMTSolver.pop map;
+  SMTSolver.pop map ;
   res
 
 let get_unexplored_min map actsvs =
   let n = List.length actsvs in
   let rec aux k =
     if k > n then None
-    else
-      match get_unexplored_with_card map actsvs k with
-      | None -> aux (k + 1)
-      | Some res -> Some res
+    else match get_unexplored_with_card map actsvs k with
+    | None -> aux (k+1)
+    | Some res -> Some res
   in
   aux 0
 
@@ -1638,24 +1597,28 @@ let get_unexplored_max map actsvs =
   let n = List.length actsvs in
   let rec aux k =
     if k < 0 then None
-    else
-      match get_unexplored_with_card map actsvs k with
-      | None -> aux (k - 1)
-      | Some res -> Some res
+    else match get_unexplored_with_card map actsvs k with
+    | None -> aux (k-1)
+    | Some res -> Some res
   in
   aux n
 
-let block_up map s = at_least_one_false s |> SMTSolver.assert_term map
-let block_down map s = at_least_one_true s |> SMTSolver.assert_term map
+let block_up map s =
+  at_least_one_false s
+  |> SMTSolver.assert_term map
+
+let block_down map s =
+  at_least_one_true s
+  |> SMTSolver.assert_term map
 
 type unexplored_type = Min | Max
 
-let umivc_ ?(os_invs = []) make_ts_analyzer sys props k enter_nodes
-    ?(stop_after = 0) cont keep test =
+let umivc_ ?(os_invs=[]) make_ts_analyzer sys props k enter_nodes
+  ?(stop_after=0) cont keep test =
   let prop_names = props_names props in
   (*let sys_original = sys in*)
-  let sys_cs, check_ts_cs = make_ts_analyzer sys in
-  let sys, check_ts = make_ts_analyzer sys in
+  let (sys_cs, check_ts_cs) = make_ts_analyzer sys in
+  let (sys, check_ts) = make_ts_analyzer sys in
   let sys = remove_other_props sys prop_names in
   let sys = add_as_candidate os_invs sys in
   let sys_cs = remove_other_props sys_cs prop_names in
@@ -1665,27 +1628,18 @@ let umivc_ ?(os_invs = []) make_ts_analyzer sys props k enter_nodes
   (* If test is empty, we can return *)
   let n = core_size test in
   if not (are_props_safe props) then (true, [])
-  else if n = 0 then (
-    cont test;
-    (true, [ test ]))
-  else
+  else if n = 0 then (cont test ; (true, [test]))
+  else (
     (* Add actsvs to the CS transition system (at top level) *)
     let actsvs = actsvs_of_core test in
-    let sys_cs =
-      List.fold_left
-        (fun acc sv -> TS.add_global_constant acc (Var.mk_const_state_var sv))
-        sys_cs actsvs
-    in
+    let sys_cs = List.fold_left (fun acc sv -> TS.add_global_constant acc (Var.mk_const_state_var sv)) sys_cs actsvs in
 
     (* Initialize the seed map *)
-    let map =
-      SMTSolver.create_instance ~produce_models:true
-        (`Inferred (TermLib.FeatureSet.of_list [ IA; LA ]))
-        (Flags.Smt.solver ())
-    in
+    let map = SMTSolver.create_instance ~produce_models:true
+      (`Inferred (TermLib.FeatureSet.of_list [IA; LA])) (Flags.Smt.solver ()) in
     actsvs
     |> List.map Var.mk_const_state_var
-    |> Var.declare_constant_vars (SMTSolver.declare_fun map);
+    |> Var.declare_constant_vars (SMTSolver.declare_fun map) ;
 
     (* Utility functions *)
     (*let get_unexplored () = get_unexplored map actsvs in*)
@@ -1694,224 +1648,205 @@ let umivc_ ?(os_invs = []) make_ts_analyzer sys props k enter_nodes
     let block_up = block_up map in
     let block_down = block_down map in
     let compute_mcs = compute_mcs check_ts_cs sys_cs prop_names enter_nodes in
-    let compute_mcs k t =
-      match compute_mcs k t with None -> t | Some (r, _) -> r
-    in
-    let compute_all_mcs =
-      compute_all_mcs check_ts_cs sys_cs prop_names enter_nodes
-    in
+    let compute_mcs k t = match compute_mcs k t with
+      | None -> t
+      | Some (r, _) -> r in
+    let compute_all_mcs = compute_all_mcs check_ts_cs sys_cs prop_names enter_nodes in
     let compute_all_mcs k t max_mcs_cardinality =
-      List.map fst (compute_all_mcs ~max_mcs_cardinality k t)
-    in
+      List.map fst (compute_all_mcs ~max_mcs_cardinality k t) in
 
     (* Check safety *)
     let main_scope = TS.scope_of_trans_sys sys in
     let prepare_ts_for_check sys keep =
-      reset_ts enter_nodes sys;
+      reset_ts enter_nodes sys ;
       let prepare_subsystem acc sys =
         let scope = TS.scope_of_trans_sys sys in
         let actlits =
-          if enter_nodes || Scope.equal scope main_scope then
-            Some (get_actlits_of_scope keep scope)
+          if enter_nodes || Scope.equal scope main_scope
+          then Some (get_actlits_of_scope keep scope)
           else None
         in
-        match actlits with
+        begin match actlits with
         | None -> acc
         | Some actlits ->
-            let eqs = List.map eq_of_actlit actlits in
-            let init_eq =
-              List.map (fun eq -> eq.init_opened) eqs |> Term.mk_and
-            in
-            let trans_eq =
-              List.map (fun eq -> eq.trans_opened) eqs |> Term.mk_and
-            in
-            TS.set_subsystem_equations acc scope init_eq trans_eq
+          let eqs = List.map eq_of_actlit actlits in
+          let init_eq = List.map (fun eq -> eq.init_opened) eqs
+          |> Term.mk_and in
+          let trans_eq = List.map (fun eq -> eq.trans_opened) eqs
+          |> Term.mk_and in
+          TS.set_subsystem_equations acc scope init_eq trans_eq 
+        end
       in
       TS.fold_subsystems ~include_top:true prepare_subsystem sys sys
     in
     let check keep =
-      KEvent.log L_info "Testing safety of next seed...";
+      KEvent.log L_info "Testing safety of next seed..." ;
       let sys = prepare_ts_for_check sys keep in
       let old_log_level = Lib.get_log_level () in
-      Format.print_flush ();
-      Lib.set_log_level L_off;
-      check_ts sys;
+      Format.print_flush () ;
+      Lib.set_log_level L_off ;
+      check_ts sys ;
       Lib.set_log_level old_log_level;
       check_result_safe prop_names sys
     in
 
     (* Compute MIVC *)
     let compute_mivc core =
-      (*check (core_union keep core) |> ignore ;*)
-      (* Not needed because a check is done before *)
-      let os_invs, test = ivc_uc_ sys props enter_nodes keep core in
+      (*check (core_union keep core) |> ignore ;*) (* Not needed because a check is done before *)
+      let (os_invs, test) = ivc_uc_ sys props enter_nodes keep core in
       ivc_bf_ ~os_invs check_ts sys props enter_nodes keep test
     in
 
     (* ----- Part 1 : CAMUS ----- *)
-    KEvent.log L_info "Phase 1: CAMUS";
+    KEvent.log L_info "Phase 1: CAMUS" ;
     let k = if k > n || k < 0 then n else k in
     let is_camus = k >= n in
     let is_marco = k <= 0 in
 
     let timeout_bkp = !timeout in
     if not is_marco then (
-      KEvent.log L_info "Computing all MCS of cardinality smaller than %n..." k;
-      compute_all_mcs keep test k
-      |> List.iter (fun mcs ->
-             let mua = core_diff test mcs in
-             block_down (actsvs_of_core mua)));
+      KEvent.log L_info "Computing all MCS of cardinality smaller than %n..." k ;
+      compute_all_mcs keep test k |>
+      List.iter (
+        fun mcs ->
+          let mua = core_diff test mcs in
+          block_down (actsvs_of_core mua)
+      )
+    ) ;
     let is_camus = is_camus && not !timeout in
-    timeout := timeout_bkp;
+    timeout := timeout_bkp ;
 
     (* ----- Part 2 : DETERMINING STRATEGY ----- *)
     let get_unexplored_auto =
-      if is_camus then fun () -> (Min, get_unexplored_min ())
-      else if is_marco then fun () -> (Max, get_unexplored_max ())
-      else (* Implements GetUnexploredZZ *)
+      if is_camus
+      then (fun () -> Min, get_unexplored_min ())
+      else if is_marco
+      then (fun () -> Max, get_unexplored_max ())
+      else (* Implements GetUnexploredZZ *) (
         let last_was_min = ref true in
-        fun () ->
-          last_was_min := not !last_was_min;
-          if !last_was_min then (Min, get_unexplored_min ())
-          else (Max, get_unexplored_max ())
+        (fun () ->
+          last_was_min := not (!last_was_min) ;
+          if !last_was_min
+          then Min, get_unexplored_min ()
+          else Max, get_unexplored_max ()
+        )
+      )
     in
     (* ----- Part 3 : MARCO ----- *)
     let approx = ref false in
-    KEvent.log L_info "Phase 2: MARCO";
+    KEvent.log L_info "Phase 2: MARCO" ;
     let rec next acc =
       match get_unexplored_auto () with
       | _, None -> acc
       | typ, Some actsvs ->
-          let seed = filter_core_svs actsvs test in
-          if is_camus || check (core_union keep seed) then (
-            (* Implements shrink(seed) using UCBF *)
-            let mivc =
-              if typ = Min && not !approx then seed else compute_mivc seed
-            in
-            (* Save and Block up *)
-            cont mivc;
-            let new_acc = mivc :: acc in
-            timeout := timeout_bkp;
-            if List.length new_acc = stop_after then (
-              approx := true;
-              new_acc)
-            else (
-              block_up (actsvs_of_core mivc);
-              next new_acc))
+        let seed = filter_core_svs actsvs test in
+        if is_camus || check (core_union keep seed)
+        then (
+          (* Implements shrink(seed) using UCBF *)
+          let mivc = if typ = Min && not !approx then seed else compute_mivc seed in
+          (* Save and Block up *)
+          cont mivc ;
+          let new_acc = mivc::acc in
+          timeout := timeout_bkp ;
+          if List.length new_acc = stop_after
+          then (approx := true ; new_acc)
           else (
-            approx := !approx || !timeout;
-            (* If the safety check failed, we cannot guarantee that solutions will be complete *)
-            (* Implements grow(seed) using MCS computation *)
-            let mcs =
-              if typ = Max then core_diff test seed
-              else compute_mcs (core_union keep seed) (core_diff test seed)
-            in
-            timeout := timeout_bkp;
-            (* Block down *)
-            block_down (actsvs_of_core mcs);
-            next acc)
+            block_up (actsvs_of_core mivc) ;
+            next new_acc
+          )
+        ) else (
+          approx := !approx || !timeout ; (* If the safety check failed, we cannot guarantee that solutions will be complete *)
+          (* Implements grow(seed) using MCS computation *)
+          let mcs = if typ = Max then (core_diff test seed)
+          else compute_mcs (core_union keep seed) (core_diff test seed) in
+          timeout := timeout_bkp ;
+          (* Block down *)
+          block_down (actsvs_of_core mcs) ;
+          next acc
+        )
     in
 
     let all_mivc = next [] in
-    SMTSolver.delete_instance map;
+    SMTSolver.delete_instance map ;
     (not !approx, all_mivc)
+  )
 
 let must_umivc_ must_cont make_ts_analyzer sys props k enter_nodes
-    ?(stop_after = 0) cont keep test =
+  ?(stop_after=0) cont keep test =
   let prop_names = props_names props in
-  let sys', check_ts' = make_ts_analyzer sys in
+  let (sys', check_ts') = make_ts_analyzer sys in
 
   let timeout_bkp = !timeout in
-  let os_invs, must = must_set_ check_ts' sys' props enter_nodes keep test in
-  must_cont must;
+  let (os_invs, must) = must_set_ check_ts' sys' props enter_nodes keep test in
+  must_cont must ;
   let keep = core_union keep must in
   let test = core_diff test must in
   let sys' = remove_other_props sys' prop_names in
   let sys' = add_as_candidate os_invs sys' in
-  if check_core check_ts' sys' prop_names enter_nodes keep then (
-    KEvent.log L_info "MUST set is a valid IVC.";
-    cont keep;
-    (true, [ keep ]))
+  if check_core check_ts' sys' prop_names enter_nodes keep
+  then (
+    KEvent.log L_info "MUST set is a valid IVC." ;
+    cont keep ;
+    true, [keep]
+  )
   else (
-    timeout := timeout_bkp;
-    KEvent.log L_info "MUST set is not a valid IVC. Running UMIVC...";
+    timeout := timeout_bkp ;
+    KEvent.log L_info "MUST set is not a valid IVC. Running UMIVC..." ;
     let post core = core_union core must in
     let cont core = core |> post |> cont in
-    umivc_ ~os_invs make_ts_analyzer sys props k enter_nodes ~stop_after cont
-      keep test
-    |> fun (complete, ivcs) -> (complete, List.map post ivcs))
+    umivc_ ~os_invs make_ts_analyzer sys props k enter_nodes ~stop_after cont keep test
+    |> (fun (complete, ivcs) -> complete, List.map post ivcs)
+  )
 
 (** Implements the algorithm UMIVC. *)
-let umivc in_sys ?(use_must_set = None) ?(stop_after = 0) param analyze sys
-    props k cont =
-  try
+let umivc in_sys ?(use_must_set=None) ?(stop_after=0) param analyze sys props k cont =
+  try (
     let enter_nodes = Flags.IVC.ivc_only_main_node () |> not in
-    let keep, test =
-      generate_initial_cores in_sys sys enter_nodes (Flags.IVC.ivc_category ())
-    in
+    let (keep, test) = generate_initial_cores in_sys sys enter_nodes (Flags.IVC.ivc_category ()) in
     let make_ts_analyzer = make_ts_analyzer in_sys param analyze in
-    let umivc_ =
-      match use_must_set with
+    let umivc_ = match use_must_set with
       | Some f ->
-          (fun x ->
-            ( props,
-              core_to_loc_core in_sys (core_union keep x),
-              { approximation = !timeout } )
-            |> f)
-          |> fun cont -> must_umivc_ cont make_ts_analyzer
-      | None -> umivc_ make_ts_analyzer
-    in
+        (fun x -> (props, core_to_loc_core in_sys (core_union keep x), { approximation = !timeout }) |> f)
+        |> (fun cont -> must_umivc_ cont make_ts_analyzer)
+      | None -> umivc_ make_ts_analyzer in
     let res = ref [] in
     let cont test =
-      let ivc =
-        ( props,
-          core_to_loc_core in_sys (core_union keep test),
-          { approximation = !timeout } )
-      in
-      res := ivc :: !res;
+      let ivc = (props, core_to_loc_core in_sys (core_union keep test), { approximation = !timeout }) in
+      res := ivc::(!res) ;
       cont ivc
     in
-    let complete, _ =
-      umivc_ sys props k enter_nodes ~stop_after cont keep test
-    in
-    (complete, List.rev !res)
-  with CannotProve | CertifChecker.CouldNotProve _ ->
-    if are_props_safe props then (
-      KEvent.log L_error "Cannot reprove properties.";
-      (false, []))
+    let (complete, _) = umivc_ sys props k enter_nodes ~stop_after cont keep test in
+    complete, List.rev (!res)
+  ) with
+  | CannotProve | CertifChecker.CouldNotProve _ ->
+    if are_props_safe props
+    then (KEvent.log L_error "Cannot reprove properties." ; (false, []))
     else (false, [])
+
 
 (* ---------- MINIMAL CORRECTION SETS ---------- *)
 
-let mcs_ ?(os_invs = []) check_ts sys props all enter_nodes
-    ?(initial_solution = None) ?(max_mcs_cardinality = -1) ?(approx = false)
-    cont keep test =
+let mcs_ ?(os_invs=[]) check_ts sys props all enter_nodes
+  ?(initial_solution=None) ?(max_mcs_cardinality= -1) ?(approx= false) cont keep test =
   let prop_names = props_names props in
   let sys = remove_other_props sys prop_names in
   let sys = add_as_candidate os_invs sys in
 
   (* Add actsvs to the CS transition system (at top level) *)
   let actsvs = actsvs_of_core test in
-  let sys =
-    List.fold_left
-      (fun acc sv -> TS.add_global_constant acc (Var.mk_const_state_var sv))
-      sys actsvs
-  in
+  let sys = List.fold_left (fun acc sv -> TS.add_global_constant acc (Var.mk_const_state_var sv)) sys actsvs in
 
-  let initial_solution =
-    match initial_solution with
-    | None -> None
-    | Some (({ Property.prop_name }, cex), loc_core, _) ->
-        Some (loc_core_to_filtered_core loc_core test, (prop_name, cex))
+  let initial_solution = match initial_solution with
+  | None -> None
+  | Some (({ Property.prop_name }, cex), loc_core, _) ->
+    Some (loc_core_to_filtered_core loc_core test, (prop_name, cex))
   in
 
   let compute_mcs =
-    compute_mcs check_ts sys prop_names enter_nodes ~max_mcs_cardinality
-      ~initial_solution ~approx
+    compute_mcs check_ts sys prop_names enter_nodes ~max_mcs_cardinality ~initial_solution ~approx
   in
   let compute_all_mcs =
-    compute_all_mcs check_ts sys prop_names enter_nodes ~max_mcs_cardinality
-      ~initial_solution ~cont
+    compute_all_mcs check_ts sys prop_names enter_nodes ~max_mcs_cardinality ~initial_solution ~cont
   in
 
   let mcs =
@@ -1919,38 +1854,34 @@ let mcs_ ?(os_invs = []) check_ts sys props all enter_nodes
     else
       match compute_mcs keep test with
       | None -> []
-      | Some res ->
-          cont res;
-          [ res ]
+      | Some res -> cont res ; [res]
   in
   mcs |> List.map (fun (core, cex) -> (core, cex))
 
 (* Compute one/all Maximal Unsafe Abstraction(s). *)
-let mcs in_sys param analyze sys props ?(initial_solution = None)
-    ?(max_mcs_cardinality = -1) all approx cont =
-  let approx = approx && not all in
+let mcs in_sys param analyze sys props
+  ?(initial_solution=None) ?(max_mcs_cardinality= -1) all approx cont =
+  let approx = approx && (not all) in
   let enter_nodes = Flags.MCS.mcs_only_main_node () |> not in
-  let elements = Flags.MCS.mcs_category () in
-  let keep, test = generate_initial_cores in_sys sys enter_nodes elements in
-  let sys, check_ts = make_ts_analyzer in_sys param analyze sys in
+  let elements = (Flags.MCS.mcs_category ()) in
+  let (keep, test) = generate_initial_cores in_sys sys enter_nodes elements in
+  let (sys, check_ts) = make_ts_analyzer in_sys param analyze sys in
   let res = ref [] in
-  let cont (test, (prop, cex)) =
-    let mcs =
-      ( (TS.property_of_name sys prop, cex),
-        core_to_loc_core in_sys (core_union keep test),
-        { approximation = !timeout || approx } )
-    in
-    res := mcs :: !res;
+  let cont (test, (prop,cex)) =
+    let mcs = ((TS.property_of_name sys prop, cex),
+               core_to_loc_core in_sys (core_union keep test),
+               { approximation = !timeout || approx }) in
+    res := mcs::(!res) ;
     cont mcs
   in
   let _ =
-    mcs_ check_ts sys props all enter_nodes ~initial_solution
-      ~max_mcs_cardinality ~approx cont keep test
+    mcs_ check_ts sys props all enter_nodes ~initial_solution ~max_mcs_cardinality ~approx cont keep test
   in
-  (not (!timeout || approx), List.rev !res)
+  not (!timeout || approx), List.rev (!res)
 
-let mcs_initial_analysis_ ?(os_invs = []) check_ts sys enter_nodes
-    ?(max_mcs_cardinality = -1) keep test =
+
+let mcs_initial_analysis_ ?(os_invs=[]) check_ts sys enter_nodes
+  ?(max_mcs_cardinality= -1) keep test =
   let props = TS.get_real_properties sys in
   let prop_names = props_names props in
   let sys = remove_other_props sys prop_names in
@@ -1958,30 +1889,23 @@ let mcs_initial_analysis_ ?(os_invs = []) check_ts sys enter_nodes
 
   (* Add actsvs to the CS transition system (at top level) *)
   let actsvs = actsvs_of_core test in
-  let sys =
-    List.fold_left
-      (fun acc sv -> TS.add_global_constant acc (Var.mk_const_state_var sv))
-      sys actsvs
-  in
+  let sys = List.fold_left (fun acc sv -> TS.add_global_constant acc (Var.mk_const_state_var sv)) sys actsvs in
 
-  compute_approx_mcs_for_each_prop check_ts sys prop_names enter_nodes
-    ~max_mcs_cardinality keep test
+  compute_approx_mcs_for_each_prop check_ts sys prop_names enter_nodes ~max_mcs_cardinality keep test
   |> List.map (fun (core, (p, cex)) -> (p, (core, (p, cex))))
 
-let mcs_initial_analysis in_sys param analyze ?(max_mcs_cardinality = -1) sys =
+let mcs_initial_analysis in_sys param analyze ?(max_mcs_cardinality= -1) sys =
   let enter_nodes = Flags.MCS.mcs_only_main_node () |> not in
-  let elements = Flags.MCS.mcs_category () in
-  let keep, test = generate_initial_cores in_sys sys enter_nodes elements in
-  let sys, check_ts =
-    make_ts_analyzer in_sys ~stop_after_disprove:false ~no_copy:true param
-      analyze sys
-  in
+  let elements = (Flags.MCS.mcs_category ()) in
+  let (keep, test) = generate_initial_cores in_sys sys enter_nodes elements in
+  let (sys, check_ts) = make_ts_analyzer in_sys ~stop_after_disprove:false ~no_copy:true param analyze sys in
 
-  let res_to_mcs (test, (prop, cex)) =
-    ( (TS.property_of_name sys prop, cex),
+  let res_to_mcs (test, (prop,cex)) =
+    ((TS.property_of_name sys prop, cex),
       core_to_loc_core in_sys (core_union keep test),
-      { approximation = true } )
+      { approximation = true })
   in
 
   mcs_initial_analysis_ check_ts sys enter_nodes ~max_mcs_cardinality keep test
   |> List.map (fun (p, res) -> (TS.property_of_name sys p, res_to_mcs res))
+

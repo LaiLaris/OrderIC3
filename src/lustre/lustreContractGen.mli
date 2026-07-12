@@ -16,13 +16,16 @@
 
 *)
 
-val generate_contracts :
-  'a InputSystem.t -> Analysis.param -> TransSys.t -> string -> string -> unit
 (** Generates contract for an input system given an analysis parameter. *)
+val generate_contracts:
+  'a InputSystem.t -> Analysis.param -> TransSys.t -> string -> string -> unit
 
-val generate_contract_for :
-  'a InputSystem.t -> TransSys.t -> string -> Term.t list -> string -> unit
 (** Generates a contract for an input system for some terms. *)
+val generate_contract_for :
+  'a InputSystem.t -> TransSys.t -> string ->
+  Term.t list -> string -> unit
+
+
 
 (* 
    Local Variables:

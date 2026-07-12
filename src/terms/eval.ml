@@ -26,50 +26,64 @@ type value =
   | ValUBV of Bitvector.t
   | ValTerm of Term.t
 
+
 (* Pretty-print a value *)
-let pp_print_value ppf = function
-  | ValBool true -> Format.fprintf ppf "true"
-  | ValBool false -> Format.fprintf ppf "false"
-  | ValNum n -> Format.fprintf ppf "%a" Numeral.pp_print_numeral n
-  | ValDec d -> Format.fprintf ppf "%a" Decimal.pp_print_decimal d
-  | ValUBV b ->
-      Format.fprintf ppf "%a" Bitvector.pp_print_unsigned_machine_integer b
-  | ValTerm t -> Format.fprintf ppf "%a" Term.pp_print_term t
+let pp_print_value ppf =
+  function 
+    | ValBool true -> Format.fprintf ppf "true"
+    | ValBool false -> Format.fprintf ppf "false"
+    | ValNum n -> Format.fprintf ppf "%a" Numeral.pp_print_numeral n
+    | ValDec d -> Format.fprintf ppf "%a" Decimal.pp_print_decimal d
+    | ValUBV b -> Format.fprintf ppf "%a" Bitvector.pp_print_unsigned_machine_integer b
+    | ValTerm t -> Format.fprintf ppf "%a" Term.pp_print_term t
+
 
 (* Extract the Boolean value from the value of an expression *)
-let bool_of_value = function
+let bool_of_value = function 
   | ValBool b -> b
-  | ValTerm t ->
-      invalid_arg ("bool_of_value for term " ^ string_of_t Term.pp_print_term t)
-  | ValDec d ->
-      invalid_arg
-        (Format.asprintf "bool_of_value: value %a is decimal"
-           Decimal.pp_print_decimal d)
-  | ValNum n ->
-      invalid_arg
-        (Format.asprintf "bool_of_value: value %a is numeric"
-           Numeral.pp_print_numeral n)
+  | ValTerm t -> 
+    invalid_arg ("bool_of_value for term " ^ (string_of_t Term.pp_print_term t))
+  | ValDec d -> 
+    invalid_arg
+      (Format.asprintf
+         "bool_of_value: value %a is decimal"
+         Decimal.pp_print_decimal d)
+  | ValNum n -> 
+    invalid_arg 
+      (Format.asprintf
+         "bool_of_value: value %a is numeric" 
+         Numeral.pp_print_numeral n)
   | ValUBV b ->
-      invalid_arg
-        (Format.asprintf "bool_of_value: value %a is unsigned machine integer"
-           Bitvector.pp_print_unsigned_machine_integer b)
+    invalid_arg
+      (Format.asprintf
+         "bool_of_value: value %a is unsigned machine integer"
+          Bitvector.pp_print_unsigned_machine_integer b)
 
 (* Extract the integer value from the value of an expression *)
-let num_of_value = function
+let num_of_value = function 
   | ValNum b -> b
-  | ValTerm t ->
-      invalid_arg ("num_of_value for term " ^ string_of_t Term.pp_print_term t)
+  | ValTerm t -> 
+    invalid_arg ("num_of_value for term " ^ (string_of_t Term.pp_print_term t))
   | _ -> invalid_arg "num_of_value"
 
+
 (* Extract the float value from the value of an expression *)
-let dec_of_value = function ValDec b -> b | _ -> invalid_arg "dec_of_value"
-let ubv_of_value = function ValUBV b -> b | _ -> invalid_arg "ubv_of_value"
+let dec_of_value = function 
+  | ValDec b -> b
+  | _ -> invalid_arg "dec_of_value"
+
+let ubv_of_value = function
+  | ValUBV b -> b
+  | _ -> invalid_arg "ubv_of_value"
 
 (* Check if the value is unknown *)
-let value_is_unknown = function ValTerm _ -> true | _ -> false
+let value_is_unknown = function 
+  | ValTerm _ -> true
+  | _ -> false
+
 
 (* Convert a value to a term *)
-let term_of_value = function
+let term_of_value = function 
   | ValBool true -> Term.mk_true ()
   | ValBool false -> Term.mk_false ()
   | ValNum n -> Term.mk_num n
@@ -77,50 +91,82 @@ let term_of_value = function
   | ValUBV b -> Term.mk_bv b
   | ValTerm t -> t
 
+
 (* Convert a term to a value *)
-let value_of_term term =
-  match Term.destruct term with
+let value_of_term term = match Term.destruct term with 
+
   (* Term is a constant *)
-  | Term.T.Const s -> (
+  | Term.T.Const s -> 
+
+    (
+
       (* Unhashcons constant symbol *)
-      match Symbol.node_of_symbol s with
-      (* Term is an integer numeral *)
-      | `NUMERAL n -> ValNum n
-      (* Term is a real decimal *)
-      | `DECIMAL d -> ValDec d
-      (* Term is a propositional constant *)
-      | `TRUE -> ValBool true
-      | `FALSE -> ValBool false (* Term is a constructor *)
-      (* Term is an unsigned bitvector *)
-      | `UBV b -> ValUBV b
-      | `BV b -> ValUBV b
-      (* Uninterpreted constant *)
-      | `UF _ -> ValTerm term
-      (* Fail in remaining cases, which are not constants *)
-      | _ -> assert false)
+      match Symbol.node_of_symbol s with 
+
+        (* Term is an integer numeral *)
+        | `NUMERAL n -> ValNum n
+
+        (* Term is a real decimal *)
+        | `DECIMAL d -> ValDec d
+
+        (* Term is a propositional constant *)
+        | `TRUE -> ValBool true
+        | `FALSE -> ValBool false
+
+        (* Term is a constructor *)
+
+        (* Term is an unsigned bitvector *)
+        | `UBV b -> ValUBV b
+        | `BV b -> ValUBV b
+
+        (* Uninterpreted constant *)
+        | `UF _ -> ValTerm term 
+
+        (* Fail in remaining cases, which are not constants *)
+        | _ -> assert false 
+
+    ) 
+
   (* Term is a negative constant symbol *)
-  | Term.T.App (s, [ c ]) when s == Symbol.s_minus && Term.is_leaf c -> (
+  | Term.T.App (s, [c]) when s == Symbol.s_minus && Term.is_leaf c -> 
+
+    (
+
+      (* Get symbol of constant *)
+      match Symbol.node_of_symbol (Term.leaf_of_term c) with 
+        
+        (* Term is an integer numeral *)
+        | `NUMERAL n -> ValNum (Numeral.neg n)
+                          
+        (* Term is a real decimal *)
+        | `DECIMAL d -> ValDec (Decimal.neg d)
+
+        (* Term is not a constant *)
+        | _ -> ValTerm term)
+
+  (* Term is a negative constant symbol *)
+  | Term.T.App (s, [c]) when s == Symbol.s_bvneg && Term.is_leaf c ->
+
+    (
+
       (* Get symbol of constant *)
       match Symbol.node_of_symbol (Term.leaf_of_term c) with
-      (* Term is an integer numeral *)
-      | `NUMERAL n -> ValNum (Numeral.neg n)
-      (* Term is a real decimal *)
-      | `DECIMAL d -> ValDec (Decimal.neg d)
-      (* Term is not a constant *)
-      | _ -> ValTerm term)
-  (* Term is a negative constant symbol *)
-  | Term.T.App (s, [ c ]) when s == Symbol.s_bvneg && Term.is_leaf c -> (
-      (* Get symbol of constant *)
-      match Symbol.node_of_symbol (Term.leaf_of_term c) with
+
       | `BV b -> ValUBV (Bitvector.sbv_neg b)
-      | _ -> assert false)
+
+      | _ -> assert false
+
+    )
+
   (* Term is not a constant *)
   | _ -> ValTerm term
+
 
 (* Evaluate a term to a value *)
 let eval_term uf_defs model term =
   (* Simplify term with the model and return a value *)
   value_of_term (Simplify.simplify_term_model uf_defs model term)
+
 
 (*
 let num = Term.mk_num_of_int 

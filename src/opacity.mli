@@ -16,9 +16,13 @@
 
 *)
 
-(** @author Daniel Larraz *)
+(**  @author Daniel Larraz *) 
 
 type t =
-  | Opaque  (** Always use the contract *)
-  | Translucent  (** Use the contract, and refine with the body if required *)
-  | Transparent  (** Always use the body *)
+  | Opaque
+  (** Always use the contract *)
+  | Translucent
+  (** Use the contract, and refine with the body if required *)
+  | Transparent
+  (** Always use the body *)
+

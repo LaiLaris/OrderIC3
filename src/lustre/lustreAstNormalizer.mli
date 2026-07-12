@@ -17,87 +17,101 @@
  *)
 (** Normalize a Lustre AST to ease in translation to a transition system
 
-    The two main requirements of this normalization are to: 1. Guard any
-    unguarded pre expressions 2. Generate any needed local identifiers or
-    oracles
+  The two main requirements of this normalization are to:
+    1. Guard any unguarded pre expressions 
+    2. Generate any needed local identifiers or oracles
 
-    Identifiers are constructed with a numeral prefix followed by a type suffix.
-    e.g. 2_glocal or 6_oracle. These are not valid lustre identifiers and are
-    expected to be transformed into indexes with the numeral as a branch and the
-    suffix type as the leaf.
+  Identifiers are constructed with a numeral prefix followed by a type suffix.
+  e.g. 2_glocal or 6_oracle. These are not valid lustre identifiers and are
+  expected to be transformed into indexes with the numeral as a branch and the
+  suffix type as the leaf.
 
-    Generated locals/oracles are referenced inside the AST via an Ident
-    expression but the actual definition is not added to the AST. Instead it is
-    recoreded in the generated_identifiers record.
+  Generated locals/oracles are referenced inside the AST via an Ident expression
+  but the actual definition is not added to the AST. Instead it is recoreded in
+  the generated_identifiers record.
 
-    pre operators are explicitly guarded in the AST by an oracle variable if
-    they were originally unguarded e.g. pre expr => oracle -> pre expr
+  pre operators are explicitly guarded in the AST by an oracle variable
+  if they were originally unguarded
+    e.g. pre expr => oracle -> pre expr
 
-    The following parts of the AST are abstracted by locals:
+  The following parts of the AST are abstracted by locals:
 
-    1. Arguments to node calls that are not identifiers e.g. Node expr1 expr2
-    ... exprn => Node l1 l2 ... ln where each li is a local variable and li =
-    expri
+  1. Arguments to node calls that are not identifiers
+    e.g.
+      Node expr1 expr2 ... exprn
+      =>
+      Node l1 l2 ... ln
+    where each li is a local variable and li = expri
 
-    2. Arguments to the pre operator that are not identifiers e.g. pre expr =>
-    pre l where l = expr
+  2. Arguments to the pre operator that are not identifiers
+    e.g.
+      pre expr => pre l
+    where l = expr
 
-    3. Node calls e.g. x1, ..., xn = ... op node_call(a, b, c) op ... => x1,
-    ..., xn = ... op (l1, ..., ln) op ... where (l1, ..., ln) is a group (list)
-    expression and each li corresponds to an output of the node_call If
-    node_call has only one output, it is instead just an ident expression (Note
-    that there is no generated equality here, how the node call is referenced at
-    the stage of a LustreNode is by the node_call record where the output holds
-    the state variables produced by the node call)
+  3. Node calls
+    e.g.
+      x1, ..., xn = ... op node_call(a, b, c) op ...
+      => x1, ..., xn = ... op (l1, ..., ln) op ...
+    where (l1, ..., ln) is a group (list) expression
+      and each li corresponds to an output of the node_call
+      If node_call has only one output, it is instead just an ident expression
+    (Note that there is no generated equality here, how the node call is
+      referenced at the stage of a LustreNode is by the node_call record where
+      the output holds the state variables produced by the node call)
 
-    4. Properties checked expression 5. Assertions checked expression 6.
-    Condition of node calls (if it is not equivalent to true) 7. Restarts of
-    node calls (if it is not a constant)
+  4. Properties checked expression
+  5. Assertions checked expression
+  6. Condition of node calls (if it is not equivalent to true)
+  7. Restarts of node calls (if it is not a constant)
 
-    @author Andrew Marmaduke *)
+     @author Andrew Marmaduke *)
 
-type error = [ `LustreAstNormalizerError ]
+type error = [
+  | `LustreAstNormalizerError
+]
 
 type warning_kind =
   | UnguardedPreWarning of LustreAst.expr
   | UseOfAssertionWarning
 
-type warning = [ `LustreAstNormalizerWarning of Lib.position * warning_kind ]
+type warning = [
+  | `LustreAstNormalizerWarning of Lib.position * warning_kind
+]
 
 val warning_message : warning_kind -> string
+
+val error_if_lus_strict : warning_kind -> bool
+
 val mk_fresh_dummy_index : 'a -> HString.t
 
-val mk_range_expr :
+val mk_enum_range_expr : ?force_prop:bool ->
+  ?mk_enum:bool ->
+  ?mk_range:bool ->
   TypeCheckerContext.tc_context ->
-  HString.t option ->
+  NodeId.t option ->
   LustreAst.lustre_type ->
   LustreAst.expr ->
   (LustreAst.expr * bool) list
 
-val mk_ref_type_expr :
-  TypeCheckerContext.tc_context ->
+val mk_ref_type_expr : TypeCheckerContext.tc_context ->
+  NodeId.t option ->
   LustreAst.expr ->
   LustreAst.lustre_type ->
   LustreAst.expr list
 
-val mk_enum_range_expr :
-  TypeCheckerContext.tc_context ->
-  HString.t option ->
+val mk_range_expr : ?force_prop:bool -> TypeCheckerContext.tc_context -> 
+  NodeId.t option ->
   LustreAst.lustre_type ->
   LustreAst.expr ->
   (LustreAst.expr * bool) list
 
-val normalize :
-  TypeCheckerContext.tc_context ->
+val normalize : TypeCheckerContext.tc_context ->
   LustreAbstractInterpretation.context ->
-  LustreAst.SI.t ->
+  NodeId.Set.t ->
   LustreAst.t ->
-  GeneratedIdentifiers.t GeneratedIdentifiers.StringMap.t ->
-  ( LustreAst.declaration list
-    * GeneratedIdentifiers.t GeneratedIdentifiers.StringMap.t
-    * [> warning ] list,
-    [> error ] )
+    GeneratedIdentifiers.t NodeId.Map.t ->
+  (LustreAst.declaration list * GeneratedIdentifiers.t NodeId.Map.t *
+   [> warning] list, [> error])
   result
 
-val pp_print_generated_identifiers :
-  Format.formatter -> GeneratedIdentifiers.t -> unit
+val pp_print_generated_identifiers : Format.formatter -> GeneratedIdentifiers.t -> unit

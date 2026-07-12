@@ -16,21 +16,23 @@
 
 *)
 
-(** Conversions from and to Presburger arithmetic formulas
+(** Conversions from and to Presburger arithmetic formulas 
 
-    @author Ruoyu Zhang *)
+    @author Ruoyu Zhang
+*)
 
-exception Not_in_LIA
 (** Formula is not in linear integer arithmetic *)
+exception Not_in_LIA
 
-val to_presburger : Var.t list -> Term.t -> Poly.cformula
 (** Normalize the term into a Presburger formula *)
+val to_presburger : Var.t list -> Term.t -> Poly.cformula
 
-val term_of_poly : Poly.poly -> Term.t
 (** Convert a polynomial to a term *)
+val term_of_poly : Poly.poly -> Term.t
 
-val term_of_cformula : Poly.cformula -> Term.t list
 (** Convert a presburger formula to a term *)
+val term_of_cformula : Poly.cformula -> Term.t list 
+
 
 (* 
    Local Variables:

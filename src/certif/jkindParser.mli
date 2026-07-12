@@ -18,18 +18,21 @@
 
 (** Extract the transition system from the dumpfiles of jKind
 
-    @author Alain Mebsout *)
+    @author Alain Mebsout
+*)
 
 val jkind_scope : Scope.t
 
+(** Returns all jKind variables corresponding to a Kind2 variable, given a map
+    for lustre streams and callsites information. *)
 val jkind_vars_of_kind2_statevar :
   TransSys.t ->
   (StateVar.t * (LustreIdent.t * int * LustreNode.call_cond list) list) list
-  StateVar.StateVarMap.t ->
-  StateVar.t ->
-  StateVar.t list
-(** Returns all jKind variables corresponding to a Kind2 variable, given a map
-    for lustre streams and callsites information. *)
+    StateVar.StateVarMap.t
+  -> StateVar.t -> StateVar.t list
 
-val get_jkind_transsys : string -> TransSys.t
 (** Return a transition system extracted from a call to jKind. *)
+val get_jkind_transsys : string -> TransSys.t
+
+(** Identifier for jKind nodes*)
+val jkind_id : string

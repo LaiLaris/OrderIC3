@@ -18,9 +18,11 @@
 
 open Lib
 
+
 (* ********************************************************************* *)
 (* Types and hash-consing                                                *)
 (* ********************************************************************* *)
+
 
 (* An attribute for a term annotation *)
 type attr =
@@ -28,12 +30,14 @@ type attr =
   | FunDef (* definition of recurisve function with quantifiers *)
   | InterpGroup of string (* interpolation group (required by MathSAT) *)
 
+
 (* A private type that cannot be constructed outside this module
 
    This is necessary to ensure the invariant that all subterms of a
    term are hashconsed. We can construct and thus pattern match on the
    {!attr} type, but not on the {!attr_node} type *)
 type attr_node = attr
+
 
 (* Properties of an attribute
 
@@ -44,11 +48,14 @@ type attr_node = attr
    No properties for now *)
 type attr_prop = unit
 
+
 (* Hashconsed attribute *)
 type t = (attr_node, attr_prop) Hashcons.hash_consed
 
+
 (* Hashing and equality on attributes *)
 module Attr_node = struct
+
   (* The type of an attribute *)
   type t = attr_node
 
@@ -58,8 +65,7 @@ module Attr_node = struct
   type prop = attr_prop
 
   (* Equality of two variables *)
-  let equal v1 v2 =
-    match (v1, v2) with
+  let equal v1 v2 = match v1, v2 with
     | FunDef, FunDef -> true
     (* Two name attributes, use equality on integers *)
     | Named (s1, n1), Named (s2, n2) -> s1 = s2 && n1 = n2
@@ -67,48 +73,58 @@ module Attr_node = struct
     | _ -> false
 
   let hash = Hashtbl.hash
+
 end
+
 
 (* Hashconsed attributes *)
 module Hattr = Hashcons.Make (Attr_node)
 
+
 (* Storage for hashconsed attributes *)
 let ht = Hattr.create 251
+
 
 (* ********************************************************************* *)
 (* Hashtables, maps and sets                                             *)
 (* ********************************************************************* *)
 
+
 (* Comparison function on attributes *)
 let compare_attrs = Hashcons.compare
 
 (* Equality function on attributes *)
-let equal_attrs = Hashcons.equal
+let equal_attrs = Hashcons.equal 
 
 (* Hashing function on attribute *)
-let hash_attr = Hashcons.hash
+let hash_attr = Hashcons.hash 
+
 
 (* Module as input to functors *)
-module HashedAttr = struct
+module HashedAttr = struct 
+
   (* Dummy type to prevent writing [type t = t] which is cyclic *)
   type z = t
   type t = z
 
   (* Compare tags of hashconsed attributes for equality *)
   let equal = equal_attrs
-
+    
   (* Use hash of attributes *)
   let hash = hash_attr
+
 end
 
 (* Module as input to functors *)
-module OrderedAttr = struct
+module OrderedAttr = struct 
+
   (* Dummy type to prevent writing [type t = t] which is cyclic *)
   type z = t
   type t = z
 
   (* Compare tags of hashconsed attributes *)
   let compare = compare_attrs
+
 end
 
 (* Hashtable of attributes *)
@@ -120,64 +136,76 @@ module AttrHashtbl = Hashtbl.Make (HashedAttr)
    gain in efficiency. *)
 module AttrSet = Set.Make (OrderedAttr)
 
+
 (* Map of attributes
 
    Try to turn this into a patricia set with Hset for another small
    gain in efficiency. *)
 module AttrMap = Map.Make (OrderedAttr)
 
+
 (* ********************************************************************* *)
 (* Pretty-printing                                                       *)
 (* ********************************************************************* *)
 
-module type Printer = sig
-  val pp_print_attr : Format.formatter -> t -> unit
-  val print_attr : t -> unit
-  val string_of_attr : t -> string
-end
+module type Printer =
+  sig
+    val pp_print_attr : Format.formatter -> t -> unit
+                                                   
+    val print_attr : t -> unit
+                            
+    val string_of_attr : t -> string 
 
-module SMTLIBPrinter : Printer = struct
-  (* Pretty-print an attribute *)
-  let pp_print_attr_node ppf = function
-    | Named (s, n) -> Format.fprintf ppf ":named@ %s%d" s n
-    | FunDef -> Format.fprintf ppf ":fun-def"
-    | InterpGroup s -> Format.fprintf ppf ":interpolation-group@ %s" s
+  end
 
-  (*
+module SMTLIBPrinter : Printer =
+  struct
+
+    (* Pretty-print an attribute *)
+    let pp_print_attr_node ppf = function 
+      | Named (s, n) -> Format.fprintf ppf ":named@ %s%d" s n
+      | FunDef -> Format.fprintf ppf ":fun-def"
+      | InterpGroup s ->
+        Format.fprintf ppf ":interpolation-group@ %s" s
+
+    (*
     (* Pretty-print an attribute to the standard formatter *)
     let print_attr_node = pp_print_attr_node Format.std_formatter 
     *)
+    
+    (* Pretty-print a hashconsed attribute *)
+    let pp_print_attr ppf { Hashcons.node = v } = pp_print_attr_node ppf v
 
-  (* Pretty-print a hashconsed attribute *)
-  let pp_print_attr ppf { Hashcons.node = v } = pp_print_attr_node ppf v
+    (* Pretty-print a hashconsed attribute to the standard formatter *)
+    let print_attr = pp_print_attr Format.std_formatter 
 
-  (* Pretty-print a hashconsed attribute to the standard formatter *)
-  let print_attr = pp_print_attr Format.std_formatter
+    (* Return a string representation of a hashconsed attribute *)
+    let string_of_attr { Hashcons.node = v } = string_of_t pp_print_attr_node v 
+  end
 
-  (* Return a string representation of a hashconsed attribute *)
-  let string_of_attr { Hashcons.node = v } = string_of_t pp_print_attr_node v
-end
+module YicesPrinter : Printer =
+  struct
 
-module YicesPrinter : Printer = struct
-  (* Pretty-print an attribute *)
-  let pp_print_attr_node _ = function
-    (* Ignore attributes for yices *)
-    | Named _ | FunDef | InterpGroup _ -> ()
-
-  (*
+    (* Pretty-print an attribute *)
+    let pp_print_attr_node _ = function 
+      (* Ignore attributes for yices *)
+      | Named _ | FunDef | InterpGroup _ -> ()
+    
+    (*
     (* Pretty-print an attribute to the standard formatter *)
     let print_attr_node = pp_print_attr_node Format.std_formatter 
      *)
+     
+    (* Pretty-print a hashconsed attribute *)
+    let pp_print_attr ppf { Hashcons.node = v } = pp_print_attr_node ppf v
 
-  (* Pretty-print a hashconsed attribute *)
-  let pp_print_attr ppf { Hashcons.node = v } = pp_print_attr_node ppf v
+    (* Pretty-print a hashconsed attribute to the standard formatter *)
+    let print_attr = pp_print_attr Format.std_formatter 
 
-  (* Pretty-print a hashconsed attribute to the standard formatter *)
-  let print_attr = pp_print_attr Format.std_formatter
-
-  (* Return a string representation of a hashconsed attribute *)
-  let string_of_attr { Hashcons.node = v } = string_of_t pp_print_attr_node v
-end
+    (* Return a string representation of a hashconsed attribute *)
+    let string_of_attr { Hashcons.node = v } = string_of_t pp_print_attr_node v 
+  end
+        
 
 (* Select apropriate printer based on solver *)
 let select_printer () =
@@ -185,8 +213,10 @@ let select_printer () =
   | `Yices_native -> (module YicesPrinter : Printer)
   | _ -> (module SMTLIBPrinter : Printer)
 
-module SelectedPrinter : Printer = (val select_printer ())
+module SelectedPrinter : Printer = (val (select_printer ()))
+  
 include SelectedPrinter
+
 
 (* ********************************************************************* *)
 (* Accessor functions                                                    *)
@@ -201,26 +231,29 @@ let named_of_attr = function
   | _ -> raise (Invalid_argument "Not a name attribute")
 
 let interp_group_of_attr = function
-  | { Hashcons.node = InterpGroup s } -> s
+| { Hashcons.node = InterpGroup s } -> s
   | _ -> raise (Invalid_argument "Not an interpolation group attribute")
 
 (* Return true if the attribute is a recursive function definition annotation *)
 let is_fundef = function { Hashcons.node = FunDef } -> true | _ -> false
 
 let is_interp_group = function
-  | { Hashcons.node = InterpGroup _ } -> true
+    { Hashcons.node = InterpGroup _ } -> true
   | _ -> false
 
 (* ********************************************************************* *)
 (* Constructors                                                          *)
 (* ********************************************************************* *)
 
-(* Return a hashconsed attribute which is a name *)
+
+(* Return a hashconsed attribute which is a name *)    
 let mk_named s n = Hattr.hashcons ht (Named (s, n)) ()
+
 let mk_interp_group s = Hattr.hashcons ht (InterpGroup s) ()
 
-(* Return a hashconsed attribute which is a fun-def *)
+(* Return a hashconsed attribute which is a fun-def *)    
 let fundef = Hattr.hashcons ht FunDef ()
+
 
 (* 
    Local Variables:

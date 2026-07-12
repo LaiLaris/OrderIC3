@@ -18,43 +18,25 @@
 
 (** Module generating candidate terms for invariant generation. *)
 module type CandGen = sig
-  val mine : bool -> bool -> TransSys.t -> (TransSys.t * Term.TermSet.t) list
   (** Generates sets of candidate terms from a transition system, and its
-      subsystems if the second flag require it. First flag is for two-state. *)
+  subsystems if the second flag require it. First flag is for two-state. *)
+  val mine : bool -> bool -> TransSys.t -> (TransSys.t * Term.TermSet.t) list
 end
 
-module Bool : CandGen
 (** Bool candidate term miner. *)
+module Bool : CandGen
 
-module Int : CandGen
 (** Integer candidate term miner. *)
+module Int : CandGen
 
-module Int8 : CandGen
-(** Int8 candidate term miner. *)
+(** BV candidate term miner. *)
+module BV (L : sig val length : int end) : CandGen
 
-module Int16 : CandGen
-(** Int16 candidate term miner. *)
+(** UBV candidate term miner. *)
+module UBV (L : sig val length : int end): CandGen
 
-module Int32 : CandGen
-(** Int32 candidate term miner. *)
-
-module Int64 : CandGen
-(** Int64 candidate term miner. *)
-
-module UInt8 : CandGen
-(** UInt8 candidate term miner. *)
-
-module UInt16 : CandGen
-(** UInt16 candidate term miner. *)
-
-module UInt32 : CandGen
-(** UInt32 candidate term miner. *)
-
-module UInt64 : CandGen
-(** UInt64 candidate term miner. *)
-
-module Real : CandGen
 (** Real candidate term miner. *)
+module Real : CandGen
 
 (* 
    Local Variables:

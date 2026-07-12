@@ -16,58 +16,49 @@
 
 *)
 
-(** Conversion of a counterexample to a Lustre model
+(** Conversion of a counterexample to a Lustre model 
 
     @author Kevin Clancy, Christoph Sticksel *)
 
+(** Output a counterexample as a Lustre execution in XML format *)
 val pp_print_path_xml :
   TransSys.t ->
-  LustreGlobals.t ->
-  LustreNode.t SubSystem.t ->
-  bool ->
-  Format.formatter ->
-  Model.path ->
-  unit
-(** Output a counterexample as a Lustre execution in XML format *)
+  LustreGlobals.t -> LustreNode.t SubSystem.t -> bool ->
+  Format.formatter -> Model.path -> unit
 
-val pp_print_path_pt :
-  TransSys.t ->
-  LustreGlobals.t ->
-  LustreNode.t SubSystem.t ->
-  bool ->
-  Format.formatter ->
-  Model.path ->
-  unit
 (** Output a counterexample as a Lustre execution as plain text with
     pre-processing reverted *)
+val pp_print_path_pt :
+  ?full_contract:bool -> 
+  TransSys.t ->
+  LustreGlobals.t -> LustreNode.t SubSystem.t -> bool ->
+  Format.formatter -> Model.path -> unit
 
+(** Output a counterexample as a Lustre execution in JSON format *)
 val pp_print_path_json :
   TransSys.t ->
-  LustreGlobals.t ->
-  LustreNode.t SubSystem.t ->
-  bool ->
-  Format.formatter ->
-  Model.path ->
-  unit
-(** Output a counterexample as a Lustre execution in JSON format *)
+  LustreGlobals.t -> LustreNode.t SubSystem.t -> bool ->
+  Format.formatter -> Model.path -> unit
 
+val pp_print_path_json_testgen :
+  TransSys.t ->
+  LustreGlobals.t -> LustreNode.t SubSystem.t -> bool ->
+  Format.formatter -> Model.path -> unit
+
+
+(** Outputs a model as a sequence of inputs in CSV. *)
 val pp_print_path_in_csv :
   TransSys.t ->
-  LustreGlobals.t ->
-  LustreNode.t SubSystem.t ->
-  bool ->
-  Format.formatter ->
-  Model.path ->
-  unit
-(** Outputs a model as a sequence of inputs in CSV. *)
+  LustreGlobals.t -> LustreNode.t SubSystem.t -> bool ->
+  Format.formatter -> Model.path -> unit
 
+(** Reconstruct Lustre streams from state variables *)
 val reconstruct_lustre_streams :
-  LustreNode.t SubSystem.t list ->
+  LustreNode.t SubSystem.t list -> 
   (* LustreNode.t list -> *)
   StateVar.t list ->
   (StateVar.t * (LustreIdent.t * int * LustreNode.call_cond list) list) list
-  StateVar.StateVarMap.t
-(** Reconstruct Lustre streams from state variables *)
+    StateVar.StateVarMap.t
 
 (* 
    Local Variables:

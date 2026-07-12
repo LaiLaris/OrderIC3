@@ -20,14 +20,23 @@ module TS = Term.TermSet
 
 type t = TS.t
 
-module CubeSet = Set.Make (TS)
-module CubeMap = Map.Make (TS)
+module CubeSet = Set.Make(TS)
+
+module CubeMap = Map.Make(TS)
 
 let empty = TS.empty
+
 let add = TS.add
+
 let remove = TS.remove
+
 let literals = TS.elements
+
 let subsumes = TS.subset
+
 let contains = TS.mem
+
 let to_term c = literals c |> Term.mk_and
-let pp_print_cube fmt c = Format.fprintf fmt "%a" Term.pp_print_term (to_term c)
+
+let pp_print_cube fmt c =
+   Format.fprintf fmt "%a" Term.pp_print_term (to_term c)

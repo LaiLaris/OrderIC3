@@ -18,41 +18,42 @@
 
 (** Wraps the candidate invariants with info about their cost etc. *)
 
-type t
-(** Contains the info needed for the moves on a candidate. *)
 
-val mk : TransSys.t -> t
+(** Contains the info needed for the moves on a candidate. *)
+type t
+
 (** Creates a new candidate that can be randomly moved. Should be called only
     once as it mines the init and trans predicates. Use [reset] to launch a new
     C2I run. *)
+val mk: TransSys.t -> t
 
-val reset : t -> t
 (** Resets a candidate. *)
+val reset: t -> t
 
-val terms_of : t -> Term.t list list
 (** Term of a candidate as a [Term.t list list] (dnf). *)
+val terms_of: t -> Term.t list list
 
-val term_of : t -> Term.t
 (** Term of a candidate as a [Term.t]. *)
+val term_of: t -> Term.t
 
-val move : t -> t
 (** Makes a move on a candidate. *)
+val move: t -> t
 
-type rated_t
 (** A candidate augmented with a cost and a rating. *)
+type rated_t
 
-val cost_of_rated : rated_t -> int
 (** The cost of a rated candidate. *)
+val cost_of_rated: rated_t -> int
 
-val candidate_of_rated : rated_t -> t
 (** The candidate of a rated candidate. *)
+val candidate_of_rated: rated_t -> t
 
-val rated_cost_function :
-  t -> Model.t list -> (Model.t * Model.t) list -> Model.t list -> rated_t
 (** Computes the cost of a candidate and rates its atoms. *)
+val rated_cost_function:
+  t -> Model.t list -> (Model.t * Model.t) list -> Model.t list -> rated_t
 
-val rated_move : rated_t -> t
 (** Moves a rated candidate. *)
+val rated_move: rated_t -> t
 
 (* 
    Local Variables:

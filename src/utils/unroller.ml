@@ -19,30 +19,38 @@
 module Num = Numeral
 module Smt = SMTSolver
 
+
 (** Asserts some terms from [k] to [k'-1]. *)
 let assert_between solver k k' term =
   let rec loop i =
     if Num.(i < k') then (
-      Term.bump_state i term |> Smt.assert_term solver;
-      Num.succ i |> loop)
+      Term.bump_state i term |> Smt.assert_term solver ;
+      Num.succ i |> loop
+    )
   in
   loop k
 
 (** Asserts some terms from [0] to [k-1]. *)
-let assert_0_to solver = assert_between solver Num.zero
+let assert_0_to solver =
+  assert_between solver Num.zero
 
 (** Asserts some terms from [1] to [k-1]. *)
-let assert_1_to solver = assert_between solver Num.one
+let assert_1_to solver =
+  assert_between solver Num.one
 
-(** Asserts some new one- and two-state invariant up to [k-1], starting at * [0]
-    for one-state invariants, * [1] for two-state invariants. *)
-let assert_new_invs_to solver k (os, ts) =
-  (match Term.TermSet.elements os with
-  | [] -> ()
-  | nu -> Term.mk_and nu |> assert_0_to solver k);
-  match Term.TermSet.elements ts with
-  | [] -> ()
-  | nu -> Term.mk_and nu |> assert_1_to solver k
+(** Asserts some new one- and two-state invariant up to [k-1], starting at
+  * [0] for one-state invariants,
+  * [1] for two-state invariants. *)
+let assert_new_invs_to solver k (os,ts) =
+  ( match Term.TermSet.elements os with
+    | [] -> ()
+    | nu -> Term.mk_and nu |> assert_0_to solver k
+  ) ;
+  ( match Term.TermSet.elements ts with
+    | [] -> ()
+    | nu -> Term.mk_and nu |> assert_1_to solver k
+  )
+
 
 (* 
    Local Variables:

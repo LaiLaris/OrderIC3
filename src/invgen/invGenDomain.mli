@@ -16,91 +16,75 @@
 
 *)
 
-exception TrivialRelation
+
 (** Exception thrown when a domain is asked to build a trivial implication. *)
+exception TrivialRelation
+
 
 (** Signature of the modules describing an order relation over some values. *)
 module type Domain = sig
-  val name : string
   (** Short string description of the values, used in the logging prefix. *)
+  val name : string
 
-  type t
   (** Type of the values of the candidate terms. *)
+  type t
 
-  val fmt : Format.formatter -> t -> unit
   (** Value formatter. *)
+  val fmt : Format.formatter -> t -> unit
 
-  val eq : t -> t -> bool
   (** Equality over values. *)
+  val eq : t -> t -> bool
 
-  val cmp : t -> t -> bool
   (** Ordering relation. *)
+  val cmp : t -> t -> bool
 
-  val mk_eq : Term.t -> Term.t -> Term.t
   (** Creates the term corresponding to the equality of two terms. *)
+  val mk_eq : Term.t -> Term.t -> Term.t
 
-  val mk_cmp : Term.t -> Term.t -> Term.t
   (** Creates the term corresponding to the ordering of two terms. *)
+  val mk_cmp : Term.t -> Term.t -> Term.t
 
-  val eval : TransSys.t -> Model.t -> Term.t -> t
   (** Evaluates a term. *)
+  val eval : TransSys.t -> Model.t -> Term.t -> t
 
-  val mine :
-    bool ->
-    bool ->
-    Analysis.param ->
-    TransSys.t ->
-    (TransSys.t * Term.TermSet.t) list
   (** Mines a transition system for candidate terms. *)
-
-  val first_rep_of : Term.TermSet.t -> Term.t * Term.TermSet.t
+  val mine : bool -> bool -> Analysis.param -> TransSys.t -> (
+    TransSys.t * Term.TermSet.t
+  ) list
+  
   (** Representative of the first equivalence class.
 
-      [False] for bool, a random term in the set for arith. *)
+  [False] for bool, a random term in the set for arith. *)
+  val first_rep_of : Term.TermSet.t -> Term.t * Term.TermSet.t
 
-  val is_bot : Term.t -> bool
   (** Returns true iff the input term is bottom. *)
+  val is_bot: Term.t -> bool
 
-  val is_top : Term.t -> bool
   (** Returns true iff the input term is top. *)
-
-  val is_os_running : unit -> bool
+  val is_top: Term.t -> bool
+  
   (** Returns true iff the one state invgen technique for this domain is
-      running. *)
+  running. *)
+  val is_os_running: unit -> bool
 end
 
-module Bool : Domain
 (** Boolean domain with implication. *)
+module Bool : Domain
 
-module Int : Domain
 (** Integer domain with less than or equal to. *)
+module Int : Domain
 
-module Int8 : Domain
-(** Int8 domain with less than or equal to. *)
+(** BV domain with less than or equal to. *)
+module BV (L : sig val length : int end) : Domain
 
-module Int16 : Domain
-(** Int16 domain with less than or equal to. *)
+(** UBV domain with less than or equal to. *)
+module UBV (L : sig val length : int end) : Domain
 
-module Int32 : Domain
-(** Int32 domain with less than or equal to. *)
-
-module Int64 : Domain
-(** Int64 domain with less than or equal to. *)
-
-module UInt8 : Domain
-(** UInt8 domain with less than or equal to. *)
-
-module UInt16 : Domain
-(** UInt16 domain with less than or equal to. *)
-
-module UInt32 : Domain
-(** UInt32 domain with less than or equal to. *)
-
-module UInt64 : Domain
-(** UInt64 domain with less than or equal to. *)
-
-module Real : Domain
 (** Real domain with less than or equal to. *)
+module Real : Domain
+
+
+
 
 (* 
    Local Variables:

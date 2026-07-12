@@ -16,40 +16,66 @@
 
 *)
 
+
+
 (** {1 Solver commands and responses} *)
 
-type error_response = [ `Error of string | `Timeout ]
-(** Type of reponses for errors *)
 
+(** Type of reponses for errors *)
+type error_response = [ `Error of string | `Timeout ]
+                      
 type no_response = [ `NoResponse ]
 
-type decl_response = [ no_response | `Unsupported | `Success | error_response ]
 (** Type of reponses for declaration and definition commands *)
+type decl_response = [
+  | no_response
+  | `Unsupported
+  | `Success 
+  | error_response
+]
 
-type check_sat_response = [ `Sat | `Unsat | `Unknown | error_response ]
 (** Type of reponses for check-sat commands *)
+type check_sat_response = [
+  | `Sat
+  | `Unsat
+  | `Unknown
+  | error_response
+]
 
-type get_value_response = [ `Values of (Term.t * Term.t) list | error_response ]
 (** Type of reponses for get-value commands. It carries the model. *)
+type get_value_response = [
+  | `Values of (Term.t * Term.t) list
+  | error_response
+]
 
-type get_model_response =
-  [ `Model of (UfSymbol.t * Model.value) list | error_response ]
 (** Type of reponses for get-model commands. It carries the model. *)
+type get_model_response = [
+  | `Model of (UfSymbol.t * Model.value) list
+  | error_response
+]
 
-type get_unsat_core_response = [ `Unsat_core of string list | error_response ]
 (** Type of reponses for get-unsat-core commands. It carries the unsat core. *)
+type get_unsat_core_response = [
+  | `Unsat_core of string list
+  | error_response
+]
 
-type custom_response = [ `Custom of HStringSExpr.t list | error_response ]
 (** Type of reponses for custom commands *)
+type custom_response = [
+  | `Custom of HStringSExpr.t list
+  | error_response
+]
 
-type response =
-  [ decl_response
+(** Type of all possible responses of a solver *)
+type response = [
+  | decl_response
   | check_sat_response
   | get_value_response
   | get_model_response
   | get_unsat_core_response
-  | custom_response ]
-(** Type of all possible responses of a solver *)
+  | custom_response
+]
 
-val pp_print_response : Format.formatter -> response -> unit
+
 (** Pretty-print a response to a command *)
+val pp_print_response : Format.formatter -> response -> unit

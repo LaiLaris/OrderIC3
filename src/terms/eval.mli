@@ -30,36 +30,40 @@ type value =
 
 val pp_print_value : Format.formatter -> value -> unit
 
+(** Cast a value to a Boolean, raise [Invalid_argument] if value is
+    not a Boolean *)
 val bool_of_value : value -> bool
-(** Cast a value to a Boolean, raise [Invalid_argument] if value is not a
-    Boolean *)
 
+(** Cast a value to an integer, raise [Invalid_argument] if value is
+    not an integer *)
 val num_of_value : value -> Numeral.t
-(** Cast a value to an integer, raise [Invalid_argument] if value is not an
-    integer *)
 
+(** Cast a value to a float, raise [Invalid_argument] if value is
+    not a float *)
 val dec_of_value : value -> Decimal.t
-(** Cast a value to a float, raise [Invalid_argument] if value is not a float *)
 
-val ubv_of_value : value -> Bitvector.t
 (** Cast a value to an unsigned bit-vector, raise [Invalid_argument] if value is
     not an unsigned bit-vector *)
+val ubv_of_value : value -> Bitvector.t
 
+(** Cast a value to a term, raise [Invalid_argument] if value is
+    unknown *)
 val term_of_value : value -> Term.t
-(** Cast a value to a term, raise [Invalid_argument] if value is unknown *)
 
-val value_is_unknown : value -> bool
 (** Check if the value is unknown *)
+val value_is_unknown : value -> bool
 
-val eval_term :
-  (UfSymbol.t * (Var.t list * Term.t)) list -> Model.t -> Term.t -> value
-(** Evaluate a term to a value, given an assignment to all free variables *)
+
+(** Evaluate a term to a value, given an assignment to all free
+    variables *)
+val eval_term : (UfSymbol.t * (Var.t list * Term.t)) list -> Model.t -> Term.t -> value
 
 (*
 (** Evaluate all subterms of the term to values and add to the hash
     table *)
 val eval_subterms : value Term.TermNodeHashtbl.t -> Term.t -> (Var.t * Term.t) list -> unit
 *)
+
 
 (* 
    Local Variables:

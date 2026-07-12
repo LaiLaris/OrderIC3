@@ -15,14 +15,12 @@
    permissions and limitations under the License. 
  *)
 
-(** @author Rob Lorch *)
+ (** @author Rob Lorch *)
 
 module A = LustreAst
+module NI = NodeId
 module Ctx = TypeCheckerContext
 module GI = GeneratedIdentifiers
 
 val instantiate_polymorphic_nodes :
-  Ctx.tc_context ->
-  GI.t GI.StringMap.t ->
-  A.declaration list ->
-  Ctx.tc_context * GI.t GI.StringMap.t * A.declaration list
+  Ctx.tc_context -> GI.t NI.Map.t  -> A.declaration list -> Ctx.tc_context * GI.t NI.Map.t * A.declaration list 

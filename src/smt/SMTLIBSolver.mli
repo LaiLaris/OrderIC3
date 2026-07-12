@@ -16,9 +16,12 @@
 
 *)
 
-(** An interface to any SMT solver that accepts the SMTLIB2 command language
+(** An interface to any SMT solver that accepts the SMTLIB2 command
+    language 
 
-    @author Alain Mebsout, Christoph Sticksel *)
+    @author Alain Mebsout, Christoph Sticksel
+
+ *)
 
 val trace_suffix : string ref
 
@@ -26,12 +29,16 @@ module type SMTLIBSolverDriver = sig
   include SolverDriver.S
 
   val s_define_fun : HString.t
+
   val expr_of_string_sexpr : HStringSExpr.t -> Term.t
-  val expr_or_lambda_of_string_sexpr : HStringSExpr.t -> HString.t * Model.value
+
+  val expr_or_lambda_of_string_sexpr : HStringSExpr.t -> (HString.t * Model.value)
+
 end
 
-module Make : functor (D : SMTLIBSolverDriver) -> SolverSig.S
 
+module Make : functor (D : SMTLIBSolverDriver) -> SolverSig.S
+                                            
 (* 
    Local Variables:
    compile-command: "make -C .. -k"

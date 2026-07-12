@@ -16,25 +16,26 @@
 
 *)
 
-(** Path compression for k-induction
+(** Path compression for k-induction 
 
     @author Christoph Sticksel *)
 
+
 val function_symbol_name : unit -> string
 
+(** Initialize compression 
+
+    The first argument is the function to declare an uninterpreted
+    function symbol in a solver instance, the second the transition
+    system. *)
 val init : (UfSymbol.t -> unit) -> TransSys.t -> unit
-(** Initialize compression
 
-    The first argument is the function to declare an uninterpreted function
-    symbol in a solver instance, the second the transition system. *)
+val incr_k : unit -> unit 
 
-val incr_k : unit -> unit
-
-val check_and_block :
-  (UfSymbol.t -> unit) -> TransSys.t -> Model.path -> Term.t list
-(** Given an inductive counterexample return a list of terms to force those
-    states on the path to be different that are equivalent under some simulation
-    relations. *)
+(** Given an inductive counterexample return a list of terms to force
+    those states on the path to be different that are equivalent under
+    some simulation relations. *)
+val check_and_block : (UfSymbol.t -> unit) -> TransSys.t -> Model.path -> Term.t list
 
 val only_bv : TransSys.t -> bool
 
@@ -44,3 +45,4 @@ val only_bv : TransSys.t -> bool
    indent-tabs-mode: nil
    End: 
 *)
+  

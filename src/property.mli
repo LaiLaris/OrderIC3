@@ -16,86 +16,134 @@
 
 *)
 
+
 (** Current status of a property *)
 type prop_status =
-  | PropUnknown  (** Status of property is unknown *)
-  | PropKTrue of int  (** Property is true for at least k steps *)
-  | PropInvariant of Certificate.t
-      (** Property is true in all reachable states *)
-  | PropFalse of (StateVar.t * Model.value list) list
-      (** Property is false at some step *)
 
-type prop_bound =
+  | PropUnknown
+  (** Status of property is unknown *)
+
+  | PropKTrue of int
+  (** Property is true for at least k steps *)
+
+  | PropInvariant of Certificate.t
+  (** Property is true in all reachable states *)
+
+  | PropFalse of (StateVar.t * Model.value list) list
+  (** Property is false at some step *)
+
+  type prop_bound =
   | From of int
   | Within of int
   | At of int
   | FromWithin of int * int
 
-type prop_kind = Invariant | Reachable of prop_bound option
+type prop_kind =
+  | Invariant
+  | Reachable of prop_bound option
 
-type t = {
-  prop_name : string;  (** Identifier for the property *)
-  prop_source : prop_source;  (** Source of the property *)
-  prop_kind : prop_kind;
-      (** Kind of property (do we wish to prove it invariant or reachable) *)
-  prop_term : Term.t;
-      (** Term with variables at offsets [prop_base] and [prop_base - 1] *)
-  mutable prop_status : prop_status;  (** Current status *)
-}
 (** A property of a transition system *)
+type t = {
+  prop_name : string ;
+  (** Identifier for the property *)
+
+  prop_source : prop_source ;
+  (** Source of the property *)
+
+  prop_kind : prop_kind ;
+  (** Kind of property (do we wish to prove it invariant or reachable) *)
+
+  prop_term : Term.t ;
+  (** Term with variables at offsets [prop_base] and [prop_base - 1] *)
+
+  prop_expr : string option;
+  (* Expression of property *)
+  
+
+  mutable prop_status : prop_status ;
+  (** Current status *)
+}
+
+and generated_source = Contract | Body
 
 (** Source of a property *)
 and prop_source =
-  | PropAnnot of Lib.position  (** Property is from an annotation *)
-  | Generated of Lib.position option * StateVar.t list
-      (** Property was generated, for example, from a subrange constraint *)
-  | Instantiated of Scope.t * t
-      (** Property is an instance of a property in a called node.
 
-          Reference the instantiated property by the [scope] of the subsystem
-          and the name of the property *)
+  | PropAnnot of Lib.position
+  (** Property is from an annotation *)
+
+  | Generated of Lib.position option * StateVar.t list * generated_source
+  (** Property was generated, for example, from a subrange constraint *)
+
+  | Instantiated of (Scope.t * Lib.position) * t
+  (** Property is an instance of a property in a called node.
+
+     Reference the instantiated property by the [scope] of the subsystem and
+     the name of the property *)
+
   | Assumption of Lib.position * (Scope.t * Lib.position)
-      (** Contract assumption that a caller has to prove.
+  (** Contract assumption that a caller has to prove.
 
-          Reference the assumption by its position, the scope of the subsystem,
-          and the position of the node call *)
-  | Guarantee of (Lib.position * Scope.t)  (** Contract guarantees. *)
+     Reference the assumption by its position, the scope of the subsystem,
+     and the position of the node call *)
+
+  | Guarantee of (Lib.position * Scope.t)
+  (** Contract guarantees. *)
+                 
   | GuaranteeOneModeActive of (Lib.position * Scope.t)
-      (** Contract: at least one mode active. *)
+  (** Contract: at least one mode active. *)
+
   | GuaranteeModeImplication of (Lib.position * Scope.t)
-      (** Contract: mode implication. *)
-  | NonVacuityCheck of (Lib.position * Scope.t)  (** Non-vacuity check *)
-  | Candidate of prop_source option  (** User supplied candidate invariant *)
+  (** Contract: mode implication. *)
+
+  | NonVacuityCheck of (Lib.position * Scope.t)
+  (** Non-vacuity check *)
+
+  | Candidate of prop_source option
+  (** User supplied candidate invariant *)
+
 
 val copy : t -> t
 
-val pp_print_prop_source : Format.formatter -> prop_source -> unit
 (** Pretty-prints a property source. *)
+val pp_print_prop_source : Format.formatter -> prop_source -> unit
 
-val is_candidate : prop_source -> bool
-(** Returns true iff the input property source is candidate *)
+(** Returns true iff the input property is a candidate property *)
+val is_candidate : t -> bool
 
-val pp_print_prop_status : Format.formatter -> prop_status -> unit
+(** Returns true iff the input property is not a candidate property *)
+val is_real : t -> bool
+
 (** Pretty-prints a property status. *)
+val pp_print_prop_status : Format.formatter -> prop_status -> unit
 
-val pp_print_prop_quiet : Format.formatter -> t -> unit
 (** Pretty-prints a property (name and source only). *)
+val pp_print_prop_quiet : Format.formatter -> t -> unit
 
-val pp_print_property : Format.formatter -> t -> unit
 (** Pretty-prints a property. *)
+val pp_print_property : Format.formatter -> t -> unit
 
-val prop_status_known : prop_status -> bool
+val pp_print_generated_source : Format.formatter -> generated_source -> unit
+
 (** Return [true] if the status of the property is known *)
+val prop_status_known : prop_status -> bool
 
 val set_prop_status : t -> prop_status -> unit
-val set_prop_invariant : t -> Certificate.t -> unit
+val set_prop_invariant : t -> Certificate.t ->unit
 val set_prop_ktrue : t -> int -> unit
 val set_prop_false : t -> (StateVar.t * Model.value list) list -> unit
+
 val set_prop_unknown : t -> unit
-val length_of_cex : (StateVar.t * Model.value list) list -> int
+
+val length_of_cex :  (StateVar.t * Model.value list) list -> int
+
 val get_prop_status : t -> prop_status
+
 val get_prop_original_source : t -> prop_source
 
+val get_prop_term : t -> Term.t
+
+val get_pos_from_prop_source : prop_source -> Lib.position option
 (* 
    Local Variables:
    compile-command: "make -C .. -k"
@@ -103,3 +151,4 @@ val get_prop_original_source : t -> prop_source
    indent-tabs-mode: nil
    End: 
 *)
+  

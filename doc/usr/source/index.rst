@@ -29,6 +29,11 @@ Table of Contents
     2_input/6_history_type
     2_input/7_abstract_types
     2_input/8_polymorphic_types
+    2_input/9_tuples
+    2_input/10_sets
+    2_input/11_maps
+    2_input/12_subranges
+    2_input/13_records
     3_output/2_machine_readable
     3_output/3_exit_codes
 
@@ -39,11 +44,11 @@ Table of Contents
     9_other/2_contract_semantics
     9_other/1_post_analyses
     9_other/3_test_generation
-    9_other/4_rust_compilation
     9_other/5_proofs
     9_other/6_contract_generation
     9_other/9_invariant_printing
     9_other/8_interpreter
+    9_other/14_contract_monitor
     9_other/10_inductive_validity_core
     9_other/11_minimal_cut_set
     9_other/12_contract_check

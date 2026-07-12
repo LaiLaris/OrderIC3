@@ -16,8 +16,8 @@
 
 *)
 
-(** A strategy returns an [Analysis.param option] which is [None] if done. It
-    takes
+(** A strategy returns an [Analysis.param option] which is [None] if done.
+    It takes
     - the results so far, and
     - a list of scope / [bool] pairs with the scopes sorted in topological
       order, starting from the top-most one. Booleans indicate whether the
@@ -25,39 +25,45 @@
 
 module A = Analysis
 
-type info = {
-  opacity : Opacity.t;
-      (** Whether the node should be always abstracted by its contract, never,
-          or sometimes *)
-  has_contract : bool;  (** Does the system have a contract? *)
-  has_impl : bool;  (** Does the system have an implementation? *)
-  has_modes : bool;  (** Does the system have modes? *)
-}
 (** Information used by the strategy module. *)
+type info = {
+  opacity: Opacity.t ; (** Whether the node should be always abstracted by its contract, never, or sometimes *)
+  has_contract: bool ; (** Does the system have a contract? *)
+  has_impl: bool ;     (** Does the system have an implementation? *)
+  has_modes: bool ;    (** Does the system have modes? *)
+}
 
-val next_monolithic_analysis :
-  A.results -> (Scope.t * info) list -> (Scope.t * info) list -> A.param option
-(** Takes some results and some information about (sub)systems, and returns the
-    next monolithic analysis to perform, if any. The information it takes is
+(** Takes some results and some information about (sub)systems, and returns
+the next monolithic analysis to perform, if any.
+The information it takes is
 
-    - a list of the scopes of the main systems and their strategy info;
-    - a list of all the scopes of all the systems and their strategy info. *)
+- a list of the scopes of the main systems and their strategy info;
+- a list of all the scopes of all the systems and their strategy info.
+*)
+val next_monolithic_analysis:
+  A.results ->
+  (Scope.t * info) list ->
+  (Scope.t * info) list ->
+  A.param option
 
-val next_modular_analysis :
+(** Takes some results and some information about (sub)systems, and returns
+the next modular analysis to perform, if any.
+The information it takes is
+
+- a function which, given the scope of a system, returns the scope of its
+  direct subsystems and its strategy info;
+- a list of all the scopes of all the systems and their strategy info. *)
+val next_modular_analysis:
   A.results ->
   (Scope.t -> (Scope.t * info) list) ->
   (Scope.t * info) list ->
   A.param option
-(** Takes some results and some information about (sub)systems, and returns the
-    next modular analysis to perform, if any. The information it takes is
 
-    - a function which, given the scope of a system, returns the scope of its
-      direct subsystems and its strategy info;
-    - a list of all the scopes of all the systems and their strategy info. *)
-
+(** Takes information about a (sub)system, and returns
+whether the subsystem is candidate for analysis
+*)
 val is_candidate_for_analysis : info -> bool
-(** Takes information about a (sub)system, and returns whether the subsystem is
-    candidate for analysis *)
+
 
 (* 
    Local Variables:

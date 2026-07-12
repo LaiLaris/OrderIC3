@@ -18,16 +18,17 @@
 
 (** Debug ouput, controlled by {!Flags}. *)
 
-type 'a t = ('a, Format.formatter, unit) format -> 'a
+
 (** Types of debug functions *)
+type 'a t = ('a, Format.formatter, unit) format -> 'a
 
-val set_formatter : Format.formatter -> unit
 (** Set the formatter for debugging *)
+val set_formatter : Format.formatter -> unit
 
-val set_dflags : string list -> unit
 (** Set all debug flags based on input list *)
+val set_dflags : string list -> unit
 
-(** {3 Available debug functions} *)
+(** {3 Available debug functions } *)
 
 val certif : 'a t
 val event : 'a t
@@ -49,7 +50,7 @@ val ic3 : 'a t
 val compress : 'a t
 val native : 'a t
 val realiz : 'a t
-val assump : 'a t
+val assump : 'a t 
 
 (* 
    Local Variables:
@@ -58,3 +59,4 @@ val assump : 'a t
    indent-tabs-mode: nil
    End: 
 *)
+

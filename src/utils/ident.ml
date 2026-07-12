@@ -18,6 +18,7 @@
 
 open Lib
 
+
 (* TODO: 
 
    - Hashccons identifiers and use for StateVar, UfSymbol etc. 
@@ -47,20 +48,25 @@ type namespace =
 *)
 
 module Ident = struct
+
   (* Identifier with namespace *)
   (* type t = namespace * string *)
   type t = string
-
+    
   (* Equality on identifiers *)
   let equal = String.equal
-
+              
   (* Total order on identifiers *)
-  let compare = String.compare
+  let compare = String.compare 
+
 end
 
 include Ident
+
 module IdentSet = Set.Make (Ident)
+
 module IdentMap = Map.Make (Ident)
+
 
 let pp_print_ident ppf i = Format.fprintf ppf "%s" i
 
@@ -68,7 +74,8 @@ let pp_print_ident ppf i = Format.fprintf ppf "%s" i
 
    Simply return the string for now, later do some smarter things. *)
 let of_string s = s
-let to_string = string_of_t pp_print_ident
+
+let to_string = string_of_t pp_print_ident 
 
 (* 
    Local Variables:

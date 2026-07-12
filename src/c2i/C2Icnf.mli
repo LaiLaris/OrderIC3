@@ -18,11 +18,11 @@
 
 (** C2I, CNF version. *)
 
-val on_exit : TransSys.t option -> unit
 (** Clean exit. *)
+val on_exit : TransSys.t option -> unit
 
-val main : 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
 (** Runs C2I CNF version. *)
+val main : 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
 
 (* 
    Local Variables:

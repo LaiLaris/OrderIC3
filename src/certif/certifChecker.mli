@@ -16,39 +16,42 @@
 
 *)
 
-exception CouldNotProve of (Format.formatter -> unit)
 (** Error the certification can raise. *)
+exception CouldNotProve of (Format.formatter -> unit)
 
-val generate_certificate : TransSys.t -> string -> unit
-(** Generate a certificate from a (possibly) proved system. It is written in the
-    file <input_file>.certificate.smt2 placed in the current directory by
+(** Generate a certificate from a (possibly) proved system. It is written in
+    the file <input_file>.certificate.smt2 placed in the current directory by
     default. It is bundled with an SMT2 script to check its validity. *)
+val generate_certificate : TransSys.t -> string -> unit
 
-(** Generate a system for observational equivalence for the frontend translation
-    / simplification phases as a system in native input. To be verified, this
-    certificate is expected to be fed back to Kind 2. *)
+
+(** Generate a system for observational equivalence for the frontend
+    translation / simplification phases as a system in native input. To be
+    verified, this certificate is expected to be fed back to Kind 2. *)
 (* val generate_frontend_obs : 'a InputSystem.t -> TransSys.t -> string -> unit *)
 
-val generate_smt2_certificates : 'a InputSystem.t -> TransSys.t -> unit
+
 (** Generate intermediate SMT-LIB 2 certificates in the directory given by
     {!Flags.output_dir}. *)
+val generate_smt2_certificates : 'a InputSystem.t -> TransSys.t -> unit
 
+(** Generate intermediate slicing certificates in the directory given by
+    {!Flags.output_dir}. *)
+val generate_slicing_certificates : 'a InputSystem.t -> TransSys.t -> Analysis.param -> unit
+
+(** Generate CPC proofs in the directory given by {!Flags.output_dir}. *)
 val generate_all_proofs : int -> 'a InputSystem.t -> TransSys.t -> unit
-(** Generate LFSC proofs in the directory given by {!Flags.output_dir}. *)
 
-val minimize_invariants :
-  TransSys.t ->
-  Term.t list option ->
-  (Term.t -> bool) option ->
-  int * Term.t list
-(** Minimization of certificate: returns the minimum bound for k-induction and a
-    list of useful invariants for this preservation step.
+(** Minimization of certificate: returns the minimum bound for k-induction and
+  a list of useful invariants for this preservation step.
 
-    The second parameter is an optional list of properties (if None, all the
-    safe properties are considered).
+  The second parameter is an optional list of properties
+  (if None, all the safe properties are considered).
 
-    The third parameter is an optional predicate that forces the minimization to
-    only consider invariants that evaluates to true. *)
+  The third parameter is an optional predicate that forces the minimization
+  to only consider invariants that evaluates to true. *)
+val minimize_invariants : TransSys.t -> Term.t list option ->
+    (Term.t -> bool) option -> int * Term.t list
 
-val is_two_state : Term.t -> bool
 (** Returns true if the term contains at least two different var offsets *)
+val is_two_state : Term.t -> bool

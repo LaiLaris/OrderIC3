@@ -18,94 +18,114 @@
 
 (** Logging and messaging *)
 
-(** Every relevant event must be logged through the functions in this module but
-    only for ingle-process mode. Use {! Event} for multi-process mode.
+(** Every relevant event must be logged through the functions in this module
+    but only for ingle-process mode. Use {! Event} for multi-process mode.
 
-    @author Christoph Sticksel, Alain Mebsout *)
+    @author Christoph Sticksel, Alain Mebsout
+*)
 
 module type Sig = sig
+
   type 'a log_printer =
-    Lib.log_level -> ('a, Format.formatter, unit) format -> 'a
-
-  type 'a m_log_printer = Lib.kind_module -> 'a log_printer
-
+    Lib.log_level ->
+    ('a, Format.formatter, unit) format -> 'a
+  
+  type 'a m_log_printer =
+    Lib.kind_module -> 'a log_printer
+  
   (** {1 Logging} *)
 
-  val set_module : Lib.kind_module -> unit
   (** Set module currently running *)
+  val set_module : Lib.kind_module -> unit 
 
-  val get_module : unit -> Lib.kind_module
   (** Get module currently running *)
+  val get_module : unit -> Lib.kind_module
 
   (** Format of log messages *)
-  type log_format =
-    | F_pt  (** Plain text *)
-    | F_xml  (** XML *)
+  type log_format = 
+    | F_pt    (** Plain text *)
+    | F_xml   (** XML *)
     | F_json  (** JSON *)
-    | F_relay  (** Relayed *)
+    | F_relay (** Relayed *) 
 
-  val get_log_format : unit -> log_format
   (** Returns the log format *)
+  val get_log_format : unit -> log_format
 
-  val set_log_format : log_format -> unit
   (** Chooses the log format *)
+  val set_log_format : log_format -> unit
 
-  val set_log_format_pt : unit -> unit
   (** Set log format to plain text *)
+  val set_log_format_pt : unit -> unit
 
-  val set_log_format_xml : unit -> unit
   (** Set log format to XML *)
+  val set_log_format_xml : unit -> unit
 
-  val set_log_format_json : unit -> unit
   (** Set log format to JSON *)
+  val set_log_format_json : unit -> unit
 
-  val set_relay_log : unit -> unit
+  (** Returns whether to show properties' constraints*)
+  val get_show_props : unit -> bool
+  
+  (** Set whether to show properties' constraints *)
+  val set_show_props : bool -> unit
+
   (** Relay log messages to invariant manager, takes printing function as
       argument for relay messages. *)
+  val set_relay_log : unit -> unit
 
-  val unset_relay_log : unit -> unit
   (** Cancel relaying of log messages *)
+  val unset_relay_log : unit -> unit
 
   (** {1 Auxiliary functions} *)
 
   val pp_print_kind_module_xml_src : Format.formatter -> Lib.kind_module -> unit
+
   val print_xml_trailer : unit -> unit
+
   val printf_xml : 'a m_log_printer
+
   val printf_json : 'a m_log_printer
+
   val parse_log_xml : Lib.log_level -> Lib.position -> string -> unit
+
   val parse_log_json : Lib.log_level -> Lib.position -> string -> unit
+
 end
 
-include Sig
 (** Logging functions accessible directly *)
+include Sig
 
 module type SLog = sig
-  val log : 'a log_printer
+
   (** [log m l f v ...] outputs a message from module [m] on level [l],
       formatted with the parameterized string [f] and the values [v ...] *)
+  val log : 'a log_printer
 
-  val log_uncond : ('a, Format.formatter, unit) format -> 'a
   (** [log_uncond m f v ...] outputs a message from module [m] unconditionally,
       formatted with the parameterized string [f] and the values [v ...] *)
+  val log_uncond : ('a, Format.formatter, unit) format -> 'a
 
-  val log_result :
-    (Format.formatter -> 'a -> unit) ->
-    (Format.formatter -> 'a -> unit) ->
-    (Format.formatter -> 'a -> unit) ->
-    'a ->
-    unit
-  (** [log_result pt xml json a] outputs a result (for instance, for a post
-      analysis) by choosing the right printing function depending on the output
-      format *)
+  (** [log_result pt xml json a] outputs a result
+    (for instance, for a post analysis) by choosing the right printing
+    function depending on the output format *)
+  val log_result : (Format.formatter -> 'a -> unit)
+    -> (Format.formatter -> 'a -> unit)
+    -> (Format.formatter -> 'a -> unit)
+    -> 'a
+    -> unit
+
 end
 
-(** Create a logging module parameterized by a relay function *)
-module Make (R : sig
-  val printf_relay : 'a m_log_printer
-end) : SLog
 
-include SLog
+(** Create a logging module parameterized by a relay function *)
+module Make (R : sig val printf_relay : 'a m_log_printer end) : SLog
+
+
 (** One instance without relay is available directly *)
+include SLog
+
+
+
 
 (* 
    Local Variables:

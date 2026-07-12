@@ -16,17 +16,18 @@
 
 *)
 
-type t
 (** Unique file identifier *)
+type t
 
-val get_id : string -> t
 (** Returns a unique file identifier from a filename *)
+val get_id : string -> t
 
-val equal : t -> t -> bool
 (** Equality of identifiers *)
+val equal : t -> t -> bool
 
-val compare : t -> t -> int
 (** Total order of identifiers *)
+val compare : t -> t -> int
 
-module FileIdSet : Set.S with type elt = t
 (** Set of identifiers *)
+module FileIdSet : Set.S with type elt = t
+

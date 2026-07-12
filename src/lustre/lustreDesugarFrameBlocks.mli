@@ -15,35 +15,50 @@
    permissions and limitations under the License. 
  *)
 
-(** This file desugars frame blocks into a list of node items (equations),
-    completing two major steps: 1. Fill in any oracles within the frame block
-    (for unguarded pres or undefined variables in if blocks). 2. Generate node
-    equations for variables left completely undefined in frame blocks.
+(** 
+   This file desugars frame blocks into a list of node items
+   (equations), completing two major steps:
+   1. Fill in any oracles within the frame block (for unguarded pres or 
+      undefined variables in if blocks).
+   2. Generate node equations for variables left completely undefined in frame 
+      blocks.
 
-    @author Rob Lorch *)
+   @author Rob Lorch
+ *)
 
 module A = LustreAst
 
-type error_kind =
+type error_kind = 
   | MisplacedNodeItemError of A.node_item
   | MisplacedFrameBlockError of A.node_item
 
 val error_message : error_kind -> string
 
-type error = [ `LustreDesugarFrameBlocksError of Lib.position * error_kind ]
-type warning_kind = UninitializedVariableWarning of HString.t
+type error = [
+  | `LustreDesugarFrameBlocksError of Lib.position * error_kind
+]
 
-type warning =
-  [ `LustreDesugarFrameBlocksWarning of Lib.position * warning_kind ]
+type warning_kind =
+  | UninitializedVariableWarning of HString.t
+
+type warning = [
+  | `LustreDesugarFrameBlocksWarning of Lib.position * warning_kind
+]
 
 val warning_message : warning_kind -> string
 
-type eq_or_framecond = Eq of A.eq_lhs | FCond of A.eq_lhs
+val error_if_lus_strict : warning_kind -> bool
+
+type eq_or_framecond =
+  | Eq of A.eq_lhs
+  | FCond of A.eq_lhs
 
 (* First position is frame block header, second position is of the specific equation *)
-val pos_list_map :
-  (Lib.position * eq_or_framecond) list HString.HStringHashtbl.t
+val pos_list_map : (Lib.position * eq_or_framecond) list NodeId.Hashtbl.t
 
 val desugar_frame_blocks :
   A.declaration list ->
-  (A.declaration list * [> warning ] list, [> error ]) result
+    (A.declaration list *
+    [> warning] list,
+    [> error])
+    result

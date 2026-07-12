@@ -20,11 +20,11 @@ open Lib
 
 let division_by_zero = ref false
 
-(** Returns true iff a division by zero happened in a simplification since this
-    function was last called. *)
+(** Returns true iff a division by zero happened in a simplification since
+    this function was last called. *)
 let has_division_by_zero_happened () =
   let res = !division_by_zero in
-  division_by_zero := false;
+  division_by_zero := false ;
   res
 
 (* ********************************************************************** *)
@@ -40,18 +40,19 @@ type 'a monomial = 'a * Term.t list
    orderd list of monomials to be summed up. Each monomial term occurs
    exactly once, the ordering is by lexicographic comparison of
    terms. *)
-type 'a polynomial = 'a * 'a monomial list
+type 'a polynomial = 'a * 'a monomial list 
+
 
 (* Normal forms for terms: integer and real terms are polynomials
    where all terms which are not addition or multiplication are
    abstracted to fresh variables in monomials. Boolean terms are in
    negation normal form and contain only conjunctions,
    disjunctions and negations. *)
-type t =
+type t = 
   | Num of Numeral.t polynomial
   | Dec of Decimal.t polynomial
-  | Bool of Term.t
-  | Array of Term.t
+  | Bool of Term.t 
+  | Array of Term.t 
   | BV of Term.t
 
 (*
@@ -70,11 +71,13 @@ let pp_print_polynomial pp ppf (c, p) =
     pp c
     (pp_print_list (pp_print_monomial pp) "@ +")
     p
-*)
+*)  
 
 (* let pp_print_int_polynomial = pp_print_polynomial Numeral.pp_print_numeral *)
 
 (* let pp_print_dec_polynomial = pp_print_polynomial Decimal.pp_print_decimal *)
+
+
 
 (* ********************************************************************** *)
 (* Conversions from normal forms to terms                                 *)
@@ -84,183 +87,245 @@ let pp_print_polynomial pp ppf (c, p) =
 
    This function is polymorphic in the type of the monomial, hence we
    need constructors and predicates. *)
-let term_list_of_monomial_list is_zero is_one mk_zero mk_const l =
+let term_list_of_monomial_list is_zero is_one mk_zero mk_const l = 
+
   (* Tail-recursive function with accumulator *)
-  let rec term_list_of_monomial_list' accum = function
+  let rec term_list_of_monomial_list' accum = function 
+    
     (* Base case: reverse accumulator to preserve original order *)
     | [] -> List.rev accum
+              
     (* Take monomial at head of list *)
-    | (c, v) :: tl ->
-        (* Convert monomial to the term (c * v) *)
-        let t =
-          if is_one c then
-            (* Omit factor one *)
-            Term.mk_times v
-          else if is_zero c then
-            (* Return zero for coeffcient zero *)
-            mk_zero ()
-          else
-            (* Return product of coefficient and monomials *)
-            Term.mk_times (mk_const c :: v)
-        in
+    | (c, v) :: tl -> 
+      
+      (* Convert monomial to the term (c * v) *)
+      let t = 
+        
+        if is_one c then 
+          
+          (* Omit factor one *)
+          Term.mk_times v 
+            
+        else 
+          
+        if is_zero c then 
+          
+          (* Return zero for coeffcient zero *)
+          mk_zero ()
+            
+        else
+          
+          (* Return product of coefficient and monomials *)
+          Term.mk_times ((mk_const c) :: v)
 
-        (* Recurse for tail of list *)
-        term_list_of_monomial_list' (t :: accum) tl
+      in
+
+      (* Recurse for tail of list *)
+      term_list_of_monomial_list' (t :: accum) tl
+
   in
 
   (* Call recursive function with initial value for accumulator *)
   term_list_of_monomial_list' [] l
 
+
 (* Convert a polynomial to a term
 
    This function is polymorphic in the type of the monomial, hence we
    need constructors and predicates. *)
-let term_of_polynomial is_zero is_one mk_zero mk_const = function
+let term_of_polynomial is_zero is_one mk_zero mk_const = function 
+
   (* Polynomial has constant zero and an empty list of monomials *)
-  | c, [] when is_zero c -> mk_zero ()
+  | (c, []) when is_zero c -> mk_zero ()
+
   (* Polynomial has constant zero and a non-empty list of monomials *)
-  | c, l when is_zero c ->
-      (* Convert polynomial to the term (c1 * v1) + ... + (cn * vn) *)
-      Term.mk_plus
-        (term_list_of_monomial_list is_zero is_one mk_zero mk_const l)
+  | (c, l) when is_zero c -> 
+
+    (* Convert polynomial to the term (c1 * v1) + ... + (cn * vn) *)
+    Term.mk_plus 
+      (term_list_of_monomial_list is_zero is_one mk_zero mk_const l)
+
   (* Polynomial has a non-zero constant and an empty list of
      monomials *)
-  | c, [] -> mk_const c
+  | (c, []) -> mk_const c
+
   (* Polynomial has a non-zero constant and a non-empty list of
      monomials *)
-  | c, l ->
-      (* Convert polynomial to the term (c + (c1 * v1) + ... + (cn * vn)) *)
-      Term.mk_plus
-        (mk_const c
-        :: term_list_of_monomial_list is_zero is_one mk_zero mk_const l)
+  | (c, l) -> 
+
+    (* Convert polynomial to the term (c + (c1 * v1) + ... + (cn * vn)) *)
+    Term.mk_plus 
+      (mk_const c :: 
+         term_list_of_monomial_list is_zero is_one mk_zero mk_const l)
+
 
 (* Convert an integer polynomial to a term *)
-let term_of_num_polynomial =
-  term_of_polynomial
+let term_of_num_polynomial = 
+  term_of_polynomial 
     (Numeral.equal Numeral.zero)
     (Numeral.equal Numeral.one)
     (function () -> Term.mk_num Numeral.zero)
     Term.mk_num
 
+
 (* Convert a real polynomial to a term *)
-let term_of_dec_polynomial =
-  term_of_polynomial
+let term_of_dec_polynomial = 
+  term_of_polynomial 
     (Decimal.equal Decimal.zero)
-    (Decimal.equal Decimal.one)
+    (Decimal.equal Decimal.one) 
     (function () -> Term.mk_dec Decimal.zero)
     Term.mk_dec
 
+
 (* Convert a normal form to a term *)
-let term_of_nf = function
+let term_of_nf = function 
   | Num p -> term_of_num_polynomial p
   | Dec p -> term_of_dec_polynomial p
   | Bool b -> b
   | Array b -> b
   | BV b -> b
 
+
 (* ********************************************************************** *)
 (* Conversions from normal forms                                          *)
 (* ********************************************************************** *)
 
+
 (* Return the integer polynomial in an integer normal form *)
-let num_polynomial_of_nf = function Num p -> p | _ -> assert false
+let num_polynomial_of_nf = function 
+  | Num p -> p
+  | _ -> assert false
+
 
 (* Return the real polynomial in a real normal form *)
-let dec_polynomial_of_nf = function Dec p -> p | _ -> assert false
+let dec_polynomial_of_nf = function 
+  | Dec p -> p
+  | _ -> assert false
+
 
 (* Return the term in a Boolean normal form *)
-let bool_of_nf = function Bool b -> b | _ -> assert false
+let bool_of_nf = function
+  | Bool b -> b
+  | _ -> assert false
+
 
 (* ********************************************************************** *)
 (* Variable-free normal forms                                             *)
 (* ********************************************************************** *)
 
+
 (* Return true if normal form is variable-free *)
-let is_constant = function
-  | Num (_, []) | Dec (_, []) -> true
+let is_constant = function 
+  | Num (_, [])
+  | Dec (_, [])  -> true
   | Bool b when b == Term.t_true || b == Term.t_false -> true
-  | BV _ ->
-      false
-      (* Technically, this isn't right, but it doesn't 
+  | BV _ -> false (* Technically, this isn't right, but it doesn't 
   matter in the contexts in which this function is called *)
   | Num _ | Dec _ | Bool _ | Array _ -> false
 
+
 (* Return true if value is variable-free *)
-let is_constant_polynomial = function _, [] -> true | _ -> false
+let is_constant_polynomial = function 
+  | (_, []) -> true
+  | _ -> false
+    
 
 (* Return the constant of a polynomial *)
-let const_of_polynomial = function c, _ -> c
+let const_of_polynomial = function (c, _) -> c
+
 
 (* Return the constant of an integer polynomial *)
-let const_of_num_polynomial = function
+let const_of_num_polynomial = function 
   | Num p -> const_of_polynomial p
-  | _ -> assert false
+  | _ -> assert false 
+
 
 (* Return the constant of a real polynomial *)
-let const_of_dec_polynomial = function
+let const_of_dec_polynomial = function 
   | Dec p -> const_of_polynomial p
-  | Num p -> const_of_polynomial p |> Numeral.to_big_int |> Decimal.of_big_int
-  | _ -> assert false
+  | Num p -> const_of_polynomial p |> Numeral.to_big_int  |> Decimal.of_big_int 
+  | _ -> assert false 
 
 (* ********************************************************************** *)
 (* Arithmetic functions on polynomials (polymorphic)                      *)
 (* ********************************************************************** *)
 
+
 (* Compare monomials by comparing their terms *)
-let compare_monomials (_, t1) (_, t2) = compare_lists Term.compare t1 t2
+let compare_monomials (_, t1) (_, t2) = List.compare Term.compare t1 t2 
+
 
 (* Add two lists of sorted monomials *)
-let add_monomial_lists add is_zero l1 l2 =
+let add_monomial_lists add is_zero l1 l2 = 
+
   (* Tail-recursive function with accumulator *)
-  let rec add_monomial_lists' accum l1 l2 =
-    match (l1, l2) with
+  let rec add_monomial_lists' accum l1 l2 = match l1, l2 with 
+
     (* Base case: one of the lists is empty *)
     | _, [] -> List.rev_append accum l1
     | [], _ -> List.rev_append accum l2
-    (* Terms are equal: add coefficients *)
-    | (c1, t1) :: tl1, (c2, t2) :: tl2
-      when List.length t1 = List.length t2 && List.for_all2 Term.equal t1 t2 ->
-        (* Add coefficients *)
-        let c' = add c1 c2 in
 
-        (* Check sum of coefficients *)
-        if is_zero c' then
-          (* Remove monomial if the coefficient vanishes *)
-          add_monomial_lists' accum tl1 tl2
-        else
-          (* Add coefficients of two monomials with equal terms *)
-          add_monomial_lists' ((add c1 c2, t1) :: accum) tl1 tl2
+    (* Terms are equal: add coefficients *)
+    | (c1, t1) :: tl1, (c2, t2) :: tl2 
+      when 
+        List.length t1 = List.length t2 &&
+        List.for_all2 Term.equal t1 t2 -> 
+
+      (* Add coefficients *)
+      let c' = add c1 c2 in
+
+      (* Check sum of coefficients *)
+      if is_zero c' then 
+        
+        (* Remove monomial if the coefficient vanishes *)
+        add_monomial_lists' accum tl1 tl2 
+
+      else
+
+        (* Add coefficients of two monomials with equal terms *)
+        add_monomial_lists' ((add c1 c2, t1) :: accum) tl1 tl2 
+
     (* First term is smaller: add to accumulator first *)
-    | (c1, t1) :: tl1, (_, t2) :: _ when compare_lists Term.compare t1 t2 < 0 ->
-        add_monomial_lists' ((c1, t1) :: accum) tl1 l2
+    | (c1, t1) :: tl1, (_, t2) :: _ 
+      when 
+        List.compare Term.compare t1 t2 < 0 -> 
+
+      add_monomial_lists' ((c1, t1) :: accum) tl1 l2 
+
     (* Second term is smaller: add to accumulator first *)
-    | (_, _) :: _, (c2, t2) :: tl2 ->
-        add_monomial_lists' ((c2, t2) :: accum) l1 tl2
+    | (_, _) :: _, (c2, t2) :: tl2 -> 
+
+      add_monomial_lists' ((c2, t2) :: accum) l1 tl2 
+
   in
 
   (* Call recursive function with initial value for accumulator *)
-  add_monomial_lists' [] l1 l2
+  add_monomial_lists' [] l1 l2 
+
 
 (* Sum up a list of polynomials *)
-let add_polynomials add zero is_zero p =
+let add_polynomials add zero is_zero p = 
+
   (* Split off coefficients of polynomials *)
   let c, m = List.split p in
 
   (* Sum up coefficients *)
   let c' = List.fold_left add zero c in
-
+            
   (* Add lists of monomials *)
   let m' = List.fold_left (add_monomial_lists add is_zero) [] m in
-
+  
   (* Return merged polynomials *)
   (c', m')
 
+
 (* Multiply each monomial in the list with a constant *)
-let const_multiply_monomial_list mult d m =
-  List.map (function c, t -> (mult c d, t)) m
+let const_multiply_monomial_list mult d m = 
+  List.map (function (c, t) -> (mult c d, t)) m
+
 
 (* Multiply a polynomial with a constant *)
-let const_multiply_polynomial mult d (c, m) =
+let const_multiply_polynomial mult d (c, m) = 
   (mult d c, const_multiply_monomial_list mult d m)
 
 (*
@@ -270,11 +335,13 @@ let negate_monomial_list mult minus_one m =
 *)
 
 (* Multiply polynomial with negative one *)
-let negate_polynomial mult minus_one p =
+let negate_polynomial mult minus_one p = 
   const_multiply_polynomial mult minus_one p
 
+
 (* Multiply two lists of monomials *)
-let multiply_monomial_lists mult l1 l2 =
+let multiply_monomial_lists mult l1 l2 = 
+
   (* Tail-recursive function with accumulator
 
      multiply_monomial_lists' l2 a m1 i2 i1
@@ -285,50 +352,65 @@ let multiply_monomial_lists mult l1 l2 =
 
      If l2 is empty, an empty list is returned. In the inital call i2
      must be equal to l2. *)
-  let rec multiply_monomial_lists' l2 accum (c1, t1) = function
+  let rec multiply_monomial_lists' l2 accum (c1, t1) = function 
+
     (* One iteration over l2 finished *)
-    | [] -> (
-        function
+    | [] -> 
+
+      (function  
+
         (* No more elements left in l1: Return a sorted list of
            monomials *)
         | [] -> List.sort compare_monomials accum
+
         (* Take next element of l1 and multiply it with all elements
            of l2 *)
         | h :: tl1 -> multiply_monomial_lists' l2 accum h l2 tl1)
+
     (* Take head element of l2 *)
-    | (c2, t2) :: tl2 -> (
-        (* Pass through tail of l1 *)
-        function
-        | tl1 ->
-            (* Merge two sorted lists of terms as a new monomial *)
-            let t' = List.merge Term.compare t1 t2 in
+    | (c2, t2) :: tl2 -> 
 
-            (* Continue merging tail of l2 with current head of l1 *)
-            multiply_monomial_lists' l2
-              ((mult c1 c2, t') :: accum)
-              (c1, t1) tl2 tl1)
+      (* Pass through tail of l1 *)
+      (function tl1 -> 
+
+        (* Merge two sorted lists of terms as a new monomial *)
+        let t' = List.merge Term.compare t1 t2 in 
+             
+        (* Continue merging tail of l2 with current head of l1 *)
+        multiply_monomial_lists' 
+          l2
+          ((mult c1 c2, t') :: accum)
+          (c1, t1)
+          tl2
+          tl1)
+
   in
+  
+  match l1, l2 with 
+    
+    (* Catch special cases of l1 or l2 empty *)
+    | [], _ -> []
+    | _, [] -> [] 
 
-  match (l1, l2) with
-  (* Catch special cases of l1 or l2 empty *)
-  | [], _ -> []
-  | _, [] -> []
-  (* Multiply two lists of monomials *)
-  | h :: tl1, _ -> multiply_monomial_lists' l2 [] h l2 tl1
+    (* Multiply two lists of monomials *)
+    | h :: tl1, _ -> multiply_monomial_lists' l2 [] h l2 tl1
+  
 
 (* Multiply two polynomials *)
-let[@ocaml.warning "-27"] multiply_polynomials mult is_zero zero (c1, m1)
-    (c2, m2) =
+let [@ocaml.warning "-27"] multiply_polynomials mult is_zero zero (c1, m1) (c2, m2) = 
+
   (* Return polynomial as
      ((ax + c) * (bx + d)) = (abxy + adx + bcx + cd) *)
-  let m' =
-    List.sort compare_monomials
-      (multiply_monomial_lists mult m1 m2
-      @ const_multiply_monomial_list mult c2 m1
-      @ const_multiply_monomial_list mult c1 m2)
+  let m' = 
+    List.sort 
+      compare_monomials
+      (multiply_monomial_lists mult m1 m2 @ 
+         const_multiply_monomial_list mult c2 m1 @ 
+         const_multiply_monomial_list mult c1 m2)
   in
 
   (mult c1 c2, m')
+
 
 (* Subtract second polynomial from first and normalize so that either
    the constant or the first coefficient of the polynomial is greater
@@ -336,33 +418,40 @@ let[@ocaml.warning "-27"] multiply_polynomials mult is_zero zero (c1, m1)
 
    Return the sign of the factor, [true] for positive and [false] for
    negative together with the normalized result *)
-let[@ocaml.warning "-27"] subtract_and_normalize_polynomials add_polynomials
-    negate_polynomial zero is_zero lt_zero p q =
+let [@ocaml.warning "-27"] subtract_and_normalize_polynomials
+    add_polynomials negate_polynomial zero is_zero lt_zero p q =
+
   (* Subtract second polynomial from first *)
-  let r = add_polynomials [ p; negate_polynomial q ] in
+  let r = add_polynomials [p; negate_polynomial q] in
 
   (* Normalize so that either the constant or the first coefficient of
      the polynomial is greater than zero *)
-  match r with
-  (* Polynomial is the constanst zero *)
-  | c, [] when is_zero c -> (true, r)
-  (* Constant is zero, first coefficient is negative *)
-  | c, (h, _) :: _ when is_zero c && lt_zero h -> (false, negate_polynomial r)
-  (* Constant is zero, first coefficient is not negative *)
-  | c, (_, _) :: _ when is_zero c -> (true, r)
-  (* Constant is not zero and negative *)
-  | c, _ when lt_zero c -> (false, negate_polynomial r)
-  (* Constant is not zero and positive *)
-  | _, _ -> (true, r)
+  match r with 
+
+    (* Polynomial is the constanst zero *)
+    | (c, []) when is_zero c -> true, r
+
+    (* Constant is zero, first coefficient is negative *)
+    | (c, (h, _) :: _) when is_zero c && lt_zero h -> false, negate_polynomial r
+
+    (* Constant is zero, first coefficient is not negative *)
+    | (c, (_, _) :: _) when is_zero c -> true, r
+
+    (* Constant is not zero and negative *)
+    | (c, _) when lt_zero c -> false, negate_polynomial r
+
+    (* Constant is not zero and positive *)
+    | (_, _) -> true, r
+
 
 (* ********************************************************************** *)
 (* Integer arithmetic functions on polynomials                            *)
 (* ********************************************************************** *)
 
+
 (* let add_num_monomial_lists = add_monomial_lists Numeral.(+) (Numeral.equal Numeral.zero) *)
 
-let add_num_polynomials =
-  add_polynomials Numeral.( + ) Numeral.zero (Numeral.equal Numeral.zero)
+let add_num_polynomials = add_polynomials Numeral.(+) Numeral.zero (Numeral.equal Numeral.zero)
 
 (* let const_multiply_num_monomial_list = const_multiply_monomial_list Numeral.( * ) *)
 
@@ -370,14 +459,15 @@ let add_num_polynomials =
 
 (* let negate_num_monomial_list = negate_monomial_list Numeral.( * ) (Numeral.neg Numeral.one) *)
 
-let negate_num_polynomial =
-  negate_polynomial Numeral.( * ) (Numeral.neg Numeral.one)
+let negate_num_polynomial = negate_polynomial Numeral.( * ) (Numeral.neg Numeral.one)
 
-let multiply_num_polynomials =
+let multiply_num_polynomials = 
   multiply_polynomials Numeral.( * ) (Numeral.equal Numeral.zero) Numeral.zero
 
-let subtract_and_normalize_num_polynomials =
-  subtract_and_normalize_polynomials add_num_polynomials negate_num_polynomial
+let subtract_and_normalize_num_polynomials = 
+  subtract_and_normalize_polynomials 
+    add_num_polynomials 
+    negate_num_polynomial 
     Numeral.zero
     (Numeral.equal Numeral.zero)
     (Numeral.gt Numeral.zero)
@@ -386,10 +476,10 @@ let subtract_and_normalize_num_polynomials =
 (* Real arithmetic functions on polynomials                               *)
 (* ********************************************************************** *)
 
+
 (* let add_dec_monomial_lists = add_monomial_lists Decimal.(+) (Decimal.equal Decimal.zero) *)
 
-let add_dec_polynomials =
-  add_polynomials Decimal.( + ) Decimal.zero (Decimal.equal Decimal.zero)
+let add_dec_polynomials = add_polynomials Decimal.(+) Decimal.zero (Decimal.equal Decimal.zero)
 
 (* let const_multiply_dec_monomial_list = const_multiply_monomial_list Decimal.( * ) *)
 
@@ -397,30 +487,35 @@ let add_dec_polynomials =
 
 (* let negate_dec_monomial_list = negate_monomial_list Decimal.( * ) (Decimal.neg Decimal.one) *)
 
-let negate_dec_polynomial =
-  negate_polynomial Decimal.( * ) (Decimal.neg Decimal.one)
+let negate_dec_polynomial = negate_polynomial Decimal.( * ) (Decimal.neg Decimal.one)
 
-let multiply_dec_polynomials =
+let multiply_dec_polynomials = 
   multiply_polynomials Decimal.( * ) (Decimal.equal Decimal.zero) Decimal.zero
 
-let subtract_and_normalize_dec_polynomials =
-  subtract_and_normalize_polynomials add_dec_polynomials negate_dec_polynomial
+let subtract_and_normalize_dec_polynomials = 
+  subtract_and_normalize_polynomials 
+    add_dec_polynomials 
+    negate_dec_polynomial 
     Decimal.zero
-    (Decimal.equal Decimal.zero)
-    (Decimal.gt Decimal.zero)
+    (Decimal.equal Decimal.zero) 
+    (Decimal.gt Decimal.zero) 
 
 (* ********************************************************************** *)
 (* Functions used in {!simplify_term_node}                                *)
 (* ********************************************************************** *)
 
+
 (* Sum up a list of integer polynomials *)
-let add_num args =
+let add_num args = 
+
   let args' = List.map num_polynomial_of_nf args in
 
   add_num_polynomials args'
 
+
 (* Sum up a list of real polynomials *)
-let add_dec args =
+let add_dec args = 
+
   let args' = List.map dec_polynomial_of_nf args in
 
   add_dec_polynomials args'
@@ -445,50 +540,75 @@ let multiply_dec p1 p2 =
 
 (* Sum up a list of real or integer normal forms *)
 let add = function
+
   (* Addition is not nullary  *)
-  | [] -> assert false
+  | [] -> assert false 
+    
   (* Add as integer polynomials if head of list is integer *)
   | Num _ :: _ as args -> Num (add_num args)
+                    
   (* Add as real polynomials if head of list is real *)
   | Dec _ :: _ as args -> Dec (add_dec args)
+
   (* Cannot add other types *)
   | _ -> assert false
 
+
 (* Subtract a list of polynomials *)
-let minus = function
+let minus = function 
+
   (* Subtraction is not nullary  *)
-  | [] -> assert false
+  | [] -> assert false 
+
   (* Unary integer minus: negate polynomial to (- c - p) *)
-  | [ Num p ] -> Num (negate_num_polynomial p)
+  | [Num p] -> Num (negate_num_polynomial p)
+
   (* Unary real minus: negate polynomial to (- c - p) *)
-  | [ Dec p ] -> Dec (negate_dec_polynomial p)
+  | [Dec p] -> Dec (negate_dec_polynomial p)
+
   (* Binary integer minus or higher arity: (h - s1 - ... - sn) reduce
      to (h - (s1 + ... + sn) *)
-  | Num p :: tl ->
-      Num (add_num_polynomials [ p; negate_num_polynomial (add_num tl) ])
+  | Num p :: tl -> 
+
+    Num (add_num_polynomials [p; negate_num_polynomial (add_num tl)])
+
   (* Binary real minus or higher arity: (h - s1 - ... - sn) reduce to
      (h - (s1 + ... + sn) *)
-  | Dec p :: tl ->
-      Dec (add_dec_polynomials [ p; negate_dec_polynomial (add_dec tl) ])
+  | Dec p :: tl -> 
+
+    Dec (add_dec_polynomials [p; negate_dec_polynomial (add_dec tl)])
+
   (* Cannot subtract other types *)
   | _ -> assert false
 
+
 (* Multiply a list of polynomials *)
-let times = function
+let times = function 
+
   (* Multiplication is not nullary  *)
-  | [] -> assert false
+  | [] -> assert false 
+    
   (* Multiply as integer polynomials if head of list is integer *)
-  | Num p :: tl ->
-      Num
-        (List.fold_left multiply_num_polynomials p
-           (List.map num_polynomial_of_nf tl))
+  | Num p :: tl -> 
+    
+    Num 
+      (List.fold_left 
+         multiply_num_polynomials 
+         p 
+         (List.map num_polynomial_of_nf tl))
+                    
   (* Multiply as real polynomials if head of list is real *)
-  | Dec p :: tl ->
-      Dec
-        (List.fold_left multiply_dec_polynomials p
-           (List.map dec_polynomial_of_nf tl))
+  | Dec p :: tl -> 
+
+    Dec
+      (List.fold_left 
+         multiply_dec_polynomials 
+         p 
+         (List.map dec_polynomial_of_nf tl))
+                     
   (* Cannot multiply other types *)
   | _ -> assert false
+
 
 (* Sum up a list of bit-vectors *)
 let bv_add args =
@@ -496,24 +616,24 @@ let bv_add args =
   let args'' = List.map term_of_nf args in
   let args' = List.map Term.bitvector_of_term args'' in
   let len = Bitvector.length_of_bitvector (List.hd args') in
-  let sum = List.fold_left Bitvector.ubv_add (Bitvector.zero len) args' in
+  let sum = List.fold_left (Bitvector.ubv_add) (Bitvector.zero len) args' in
   BV (Term.mk_bv sum)
+
 
 (* Subtract a list of bit-vectors *)
 let bv_sub args =
   assert (args <> []);
-  if List.length args = 1 then
-    let bv = Term.bitvector_of_term (term_of_nf (List.hd args)) in
-    BV (Term.mk_bv (Bitvector.sbv_neg bv))
+  if ((List.length args) = 1) then
+    (let bv = (Term.bitvector_of_term (term_of_nf (List.hd args))) in
+     BV (Term.mk_bv (Bitvector.sbv_neg bv)))
   else
-    let args'' = List.map term_of_nf args in
-    let args' = List.map Term.bitvector_of_term args'' in
-    let len = Bitvector.length_of_bitvector (List.hd args') in
-    let x = List.hd args' in
-    let y =
-      List.fold_left Bitvector.ubv_add (Bitvector.zero len) (List.tl args')
-    in
-    BV (Term.mk_bv (Bitvector.sbv_sub x y))
+    (let args'' = List.map term_of_nf args in
+     let args' = List.map Term.bitvector_of_term args'' in
+     let len = Bitvector.length_of_bitvector (List.hd args') in
+     let x = List.hd args' in
+     let y = List.fold_left (Bitvector.ubv_add) (Bitvector.zero len) (List.tl args') in
+     BV (Term.mk_bv (Bitvector.sbv_sub x y)))
+
 
 (* Find the product of a list of bit-vectors *)
 let bv_mult args =
@@ -521,8 +641,9 @@ let bv_mult args =
   let args'' = List.map term_of_nf args in
   let args' = List.map Term.bitvector_of_term args'' in
   let len = Bitvector.length_of_bitvector (List.hd args') in
-  let prod = List.fold_left Bitvector.ubv_mult (Bitvector.one len) args' in
+  let prod = List.fold_left (Bitvector.ubv_mult) (Bitvector.one len) args' in
   BV (Term.mk_bv prod)
+
 
 (* Flatten nested associative Boolean operators by lifting the
    subterms of a nested operator as subterms of the top operator: 
@@ -530,75 +651,110 @@ let bv_mult args =
 
    The arguments must be Boolean, real and integer terms are
    normalized to polynomials. *)
-let flatten_bool_subterms s l =
+let flatten_bool_subterms s l = 
+
   (* Tail-recursive function with accumulator *)
-  let rec flatten_bool_subterms' symbol accum = function
+  let rec flatten_bool_subterms' symbol accum = function 
+
     (* No more subterms, return accumulator in original order *)
     | [] -> List.rev accum
+
     (* Boolean operator *)
-    | Bool t :: tl ->
-        let accum' =
-          (* Get symbol of term *)
-          match Term.destruct t with
+    | Bool t :: tl -> 
+
+      let accum' =
+        
+        (* Get symbol of term *)
+        match Term.destruct t with
+
           (* Symbol is the same as the top-level symbol? *)
-          | Term.T.App (s, l) when s == symbol ->
-              (* Add subterms of term in reverse order to subterms of
+          | Term.T.App (s, l) when s == symbol -> 
+
+            (* Add subterms of term in reverse order to subterms of
                top term *)
-              List.rev_append l accum
+            List.rev_append l accum 
+
           (* Keep term unchanged *)
           | _ -> t :: accum
-        in
 
-        (* Recurse for remaining subterms *)
-        flatten_bool_subterms' symbol accum' tl
+      in
+
+      (* Recurse for remaining subterms *)
+      flatten_bool_subterms' symbol accum' tl
+
     (* Fail on non-boolean arguments *)
-    | (Num _ | Dec _ | Array _ | BV _) :: _ -> assert false
+    | (Num _ | Dec _ | Array _ | BV _ ) :: _ -> assert false
+
   in
 
   (* Call tail-recursive function with initial accumulator *)
-  flatten_bool_subterms' s [] l
+  flatten_bool_subterms' s [] l 
+
 
 (* Return true if a complement of a term in the second list is in the
    first list *)
-let rec has_complement l = function
-  | [] -> false
-  | h :: tl -> if List.memq (Term.negate h) l then true else has_complement l tl
+let rec has_complement l = function 
+  | [] -> false 
+  | h :: tl -> 
+    if List.memq (Term.negate h) l then true else has_complement l tl
+
 
 (* Negate a term in negation normal form
 
    The term must only contain conjunctions and disjunctions as Boolean
    operators, the argument of a Boolean negation must be an atom. *)
-let rec negate_nnf term =
-  match Term.destruct term with
+let rec negate_nnf term = match Term.destruct term with 
+
   (* Negate a variable *)
   | Term.T.Var v -> Term.mk_not (Term.mk_var v)
+
   (* Negate a constant *)
-  | Term.T.Const s -> (
-      (* Unhashcons constant symbol *)
-      match Symbol.node_of_symbol s with
+  | Term.T.Const s ->
+
+    (* Unhashcons constant symbol *)
+    (match Symbol.node_of_symbol s with 
+
       | `TRUE -> Term.t_false
       | `FALSE -> Term.t_true
       | `UF u -> Term.mk_not (Term.mk_uf u [])
-      | _ -> assert false)
+      | _ -> assert false
+
+    )
+
   (* Negate a function application *)
-  | Term.T.App (s, l) -> (
-      (* Unhashcons constant symbol *)
-      match (Symbol.node_of_symbol s, l) with
+  | Term.T.App (s, l) -> 
+
+    (* Unhashcons constant symbol *)
+    (match Symbol.node_of_symbol s, l with 
+
       (* Double unary negation *)
-      | `NOT, [ a ] -> a
+      | `NOT, [a] -> a
+
       (* Negation must be unary *)
-      | `NOT, _ -> assert false
+      | `NOT, _ -> assert false 
+
       (* Conjunction *)
-      | `AND, l -> Term.mk_or (List.map (function t -> negate_nnf t) l)
+      | `AND, l -> 
+        Term.mk_or (List.map (function t -> negate_nnf t) l)
+
       (* Disjunction *)
-      | `OR, l -> Term.mk_and (List.map (function t -> negate_nnf t) l)
+      | `OR, l -> 
+        Term.mk_and (List.map (function t -> negate_nnf t) l)
+
       (* Disjunction and conjunction are the only Boolean operators *)
-      | `IMPLIES, _ | `XOR, _ -> assert false
+      | `IMPLIES, _
+      | `XOR, _ -> assert false
+
       (* Boolean equivalence must not occur *)
-      | `EQ, [] -> assert false
-      | `EQ, h :: _ when Term.type_of_term h == Type.t_bool -> assert false
+      | `EQ, [] -> assert false 
+
+      | `EQ, h :: _ 
+        when 
+          Term.type_of_term h == Type.t_bool -> 
+        assert false 
+
       (* Negate atoms *)
-      | `EQ, _
+      | `EQ, _ 
       | `DISTINCT, _
       | `LEQ, _
       | `LT, _
@@ -608,20 +764,27 @@ let rec negate_nnf term =
       | `DIVISIBLE _, _
       | `UF _, _
       | `SELECT _, _
-      | `STORE, _ ->
-          Term.mk_not term
+      | `CONST_ARRAY _, _
+      | `STORE, _ -> Term.mk_not term
+
       (* Negate both cases of ite term *)
-      | `ITE, [ p; l; r ] -> Term.mk_ite p (negate_nnf l) (negate_nnf r)
+      | `ITE, [p; l; r] -> 
+        Term.mk_ite 
+          p
+          (negate_nnf l)
+          (negate_nnf r)
+
       (* Non-ternary ite *)
       | `ITE, _ -> assert false
+
       (* Constant symbols *)
       | `FALSE, _
       | `TRUE, _
       | `NUMERAL _, _
-      | `DECIMAL _, _
+      | `DECIMAL _, _ 
       | `UBV _, _
-      | `BV _, _ ->
-          assert false
+      | `BV _, _ -> assert false
+
       (* Can only negate Boolean terms *)
       | `MINUS, _
       | `PLUS, _
@@ -632,23 +795,12 @@ let rec negate_nnf term =
       | `ABS, _
       | `TO_REAL, _
       | `TO_INT, _
-      | `UINT8_TO_INT, _
-      | `UINT16_TO_INT, _
-      | `UINT32_TO_INT, _
-      | `UINT64_TO_INT, _
-      | `INT8_TO_INT, _
-      | `INT16_TO_INT, _
-      | `INT32_TO_INT, _
-      | `INT64_TO_INT, _
-      | `TO_UINT8, _
-      | `TO_UINT16, _
-      | `TO_UINT32, _
-      | `TO_UINT64, _
-      | `TO_INT8, _
-      | `TO_INT16, _
-      | `TO_INT32, _
-      | `TO_INT64, _
+      | `SBV_TO_INT, _
+      | `TO_UBV _, _
+      | `TO_BV _, _
+      | `UBV_TO_INT, _
       | `BV2NAT, _
+
       | `BVNEG, _
       | `BVADD, _
       | `BVSUB, _
@@ -660,64 +812,69 @@ let rec negate_nnf term =
       | `BVSHL, _
       | `BVLSHR, _
       | `BVASHR, _
-      | `BVULT, _
+      | `BVULT, _ 
       | `BVULE, _
       | `BVUGT, _
       | `BVUGE, _
-      | `BVSLT, _
+      | `BVSLT, _ 
       | `BVSLE, _
       | `BVSGT, _
       | `BVSGE, _
       | `BVNOT, _
-      | `BVOR, _
+      | `BVOR, _ 
+      | `BVXOR, _ 
       | `BVAND, _
-      | `BVEXTRACT _, _
-      | `BVCONCAT, _
-      | `BVSIGNEXT _, _
-      | `BVZEROEXT _, _ ->
-          assert false)
+      | `BVEXTRACT _, _ 
+      | `BVCONCAT, _ 
+      | `BVSIGNEXT _ , _
+      | `BVZEROEXT _ , _ -> assert false
+    )    
 
-(* | Term.T.Attr (t, _) -> t *)
+  (* | Term.T.Attr (t, _) -> t *)
+
 
 (* Negate all but the last term *)
-let implies_to_or args =
+let implies_to_or args = 
+
   (* Tail-recursive function with accumulator *)
-  let rec implies_to_or' accum = function
+  let rec implies_to_or' accum = function 
     | [] -> assert false
-    | [ a ] -> List.rev (a :: accum)
+    | [a] -> List.rev (a :: accum)
     | Bool h :: tl -> implies_to_or' (Bool (negate_nnf h) :: accum) tl
-    | (Num _ | Dec _ | Array _ | BV _) :: _ -> assert false
+    | (Num _ | Dec _ | Array _ | BV _ ) :: _ -> assert false
   in
 
-  implies_to_or' [] args
+  implies_to_or' [] args 
+
 
 (* Subtract two normal forms and make constant or first coefficient
    positive *)
-let subtract_and_normalize a b =
-  match (a, b) with
+let subtract_and_normalize a b = match a, b with 
+
   (* Two integer polynomials *)
-  | Num a, Num b ->
-      let s, r = subtract_and_normalize_num_polynomials a b in
-      (s, Num r)
+  | Num a, Num b -> 
+    let s, r = subtract_and_normalize_num_polynomials a b in s, Num r
+
   (* Two real polynomials *)
-  | Dec a, Dec b ->
-      let s, r = subtract_and_normalize_dec_polynomials a b in
-      (s, Dec r)
+  | Dec a, Dec b -> 
+    let s, r = subtract_and_normalize_dec_polynomials a b in s, Dec r
+
   (* Cannot subtract *)
   | _ -> assert false
 
 let relation_to_nf_bv rel = function
   (* Relation must be binary *)
-  | [] | [ _ ] -> assert false
+  | [] 
+  | [_] -> assert false
+
   (* Binary relation *)
-  | [ a; b ] -> (
-      match
-        rel
-          (Term.bitvector_of_term (term_of_nf a))
-          (Term.bitvector_of_term (term_of_nf b))
-      with
-      | true -> Bool Term.t_true
-      | false -> Bool Term.t_false)
+  | [a; b] -> (match (rel 
+                        (Term.bitvector_of_term (term_of_nf a)) 
+                        (Term.bitvector_of_term (term_of_nf b))) 
+               with
+    | true -> Bool Term.t_true
+    | false -> Bool Term.t_false)
+  
   (* Arity greater than 2 *)
   | _ -> assert false
 
@@ -728,261 +885,455 @@ let relation_to_nf_bv rel = function
    When normalizing, we might multiply with a negative factor and then
    need to replace the relation symbol by its converse. Hence we need
    to know the converse of the relation (primed parameters). *)
-let rec relation_to_nf simplify_term_node rel rel' mk_rel mk_rel' zero t_zero =
-  function
-  (* Relation must be at least binary *)
-  | [] | [ _ ] -> assert false
-  (* Binary relation *)
-  | [ a; b ] ->
-      (* Both polynomials are constant? *)
-      if is_constant a && is_constant b then
-        (* Check if constants are in the relation *)
-        Bool (Term.mk_bool (rel a b))
-      else
-        (* Subtract polynomials and make constant or first coefficient
-         greater than zero and get the sign of the factor *)
-        let s, a' = subtract_and_normalize a b in
+let rec relation_to_nf 
+    simplify_term_node 
+    rel 
+    rel'
+    mk_rel 
+    mk_rel' 
+    zero 
+    t_zero = function
 
-        (* Polynomial has become constant, i.e. (a = a) -> (0 = 0) *)
-        if is_constant a' then
-          (* Return true if constant is in the relation with zero,
+  (* Relation must be at least binary *)
+  | [] 
+  | [_] -> assert false
+
+  (* Binary relation *)
+  | [a; b] -> 
+
+    (* Both polynomials are constant? *)
+    if is_constant a && is_constant b then 
+
+      (* Check if constants are in the relation *)
+      Bool (Term.mk_bool (rel a b))
+
+    else
+
+      (* Subtract polynomials and make constant or first coefficient
+         greater than zero and get the sign of the factor *)
+      let s, a' = subtract_and_normalize a b in
+
+      (* Polynomial has become constant, i.e. (a = a) -> (0 = 0) *)
+      if is_constant a' then
+
+        (* Return true if constant is in the relation with zero,
            otherwise false
 
            Use converse of relation if factor in normalization is
            negative *)
-          Bool (Term.mk_bool ((if s then rel else rel') a' zero))
-        else
-          (* Simplify (a = b) to (a - b = 0) 
+        Bool 
+          (Term.mk_bool ((if s then rel else rel') a' zero))
+
+      else
+
+        (* Simplify (a = b) to (a - b = 0) 
 
            Use converse of relation if factor in normalization is
            negative *)
-          Bool ((if s then mk_rel else mk_rel') [ term_of_nf a'; t_zero ])
+        Bool 
+          ((if s then mk_rel else mk_rel') [term_of_nf a'; t_zero])
+
   (* Higher arity equation *)
-  | args ->
-      (* Convert list of n elements [e_1; ...; en] to list [[e_1; e_2];
+  | args -> 
+
+    (* Convert list of n elements [e_1; ...; en] to list [[e_1; e_2];
        ...; [e_n-1; e_n]] *)
-      let args_chain = chain_list args in
+    let args_chain = chain_list args in 
 
-      (* Simplify each binary equation *)
-      let args' =
-        List.map
-          (relation_to_nf simplify_term_node rel rel' mk_rel mk_rel' zero t_zero)
-          args_chain
-      in
+    (* Simplify each binary equation *)
+    let args' = 
+      List.map 
+        (relation_to_nf simplify_term_node rel rel' mk_rel mk_rel' zero t_zero) 
+        args_chain
+    in
 
-      (* Simplify conjunction of binary equations *)
-      Bool
-        (bool_of_nf
-           (simplify_term_node
-              (Term.destruct (Term.mk_and (List.map term_of_nf args')))
-              args'))
+    (* Simplify conjunction of binary equations *)
+    Bool
+      (bool_of_nf
+         (simplify_term_node
+            (Term.destruct 
+               (Term.mk_and (List.map term_of_nf args')))
+            args'))
+
 
 (* Normalize an n-ary relation by unchaining *)
-let[@ocaml.warning "-27"] relation simplify_term_node rel_num rel'_num rel_dec
-    rel'_dec rel_ubv rel_bv mk_rel mk_rel' = function
-  (* Relation must be at least binary *)
-  | [] | [ _ ] -> assert false
-  (* Relation between integers *)
-  | Num _ :: _ as args ->
+let [@ocaml.warning "-27"] relation 
+    simplify_term_node 
+    rel_num
+    rel'_num
+    rel_dec
+    rel'_dec
+    rel_ubv
+    rel_bv
+    mk_rel 
+    mk_rel' = 
+  
+  function
+
+    (* Relation must be at least binary *)
+    | [] 
+    | [_] -> assert false
+
+    (* Relation between integers *)
+    | Num _ :: _ as args ->
+
       (* Compute relation between constant integer polynomials *)
-      let irel p q =
-        rel_num (const_of_num_polynomial p) (const_of_num_polynomial q)
+      let irel p q = 
+        rel_num (const_of_num_polynomial p) (const_of_num_polynomial q) 
       in
 
       (* Compute converse of relation between constant integer
          polynomials *)
-      let irel' p q =
-        rel'_num (const_of_num_polynomial p) (const_of_num_polynomial q)
+      let irel' p q = 
+        rel'_num (const_of_num_polynomial p) (const_of_num_polynomial q) 
       in
 
       (* Normalize relation *)
-      relation_to_nf simplify_term_node irel irel' mk_rel mk_rel'
-        (Num (Numeral.zero, []))
-        (Term.mk_num Numeral.zero) args
-  (* Relation between reals *)
-  | Dec _ :: _ as args ->
+      relation_to_nf 
+        simplify_term_node 
+        irel 
+        irel'
+        mk_rel 
+        mk_rel' 
+        (Num (Numeral.zero, [])) 
+        (Term.mk_num Numeral.zero)
+        args
+
+    (* Relation between reals *)
+    | Dec _ :: _ as args -> 
+
       (* Compute relation between constant real polynomials *)
-      let rrel p q =
-        rel_dec (const_of_dec_polynomial p) (const_of_dec_polynomial q)
+      let rrel p q = 
+        rel_dec (const_of_dec_polynomial p) (const_of_dec_polynomial q) 
       in
 
       (* Compute converse of relation between constant real
          polynomials *)
-      let rrel' p q =
-        rel'_dec (const_of_dec_polynomial p) (const_of_dec_polynomial q)
+      let rrel' p q = 
+        rel'_dec (const_of_dec_polynomial p) (const_of_dec_polynomial q) 
       in
 
       (* Normalize relation *)
-      relation_to_nf simplify_term_node rrel rrel' mk_rel mk_rel'
-        (Dec (Decimal.zero, []))
-        (Term.mk_dec Decimal.zero) args
-  (* Relation must be between integers or reals *)
-  | BV _ :: _ as args -> relation_to_nf_bv rel_bv args
-  | (Bool _ | Array _) :: _ -> assert false
+      relation_to_nf 
+        simplify_term_node 
+        rrel 
+        rrel' 
+        mk_rel 
+        mk_rel' 
+        (Dec (Decimal.zero, [])) 
+        (Term.mk_dec Decimal.zero)
+        args
+
+    (* Relation must be between integers or reals *)
+
+    | BV _ :: _ as args -> relation_to_nf_bv rel_bv args
+
+    | (Bool _ | Array _ ) :: _ -> assert false
+
 
 (* Normalize equality relation between normal forms *)
-let relation_eq simplify_term_node args =
-  relation simplify_term_node Numeral.( = ) Numeral.( = ) Decimal.( = )
-    Decimal.( = ) Bitvector.( = ) Bitvector.( = ) Term.mk_eq Term.mk_eq args
+let relation_eq simplify_term_node args = 
+
+  relation 
+    simplify_term_node 
+    Numeral.(=)
+    Numeral.(=) 
+    Decimal.(=)
+    Decimal.(=)
+    Bitvector.(=)
+    Bitvector.(=)
+    Term.mk_eq 
+    Term.mk_eq args
+
 
 (* Normalize less than or equal relation between normal forms *)
-let relation_leq simplify_term_node =
-  relation simplify_term_node Numeral.( <= ) Numeral.( >= ) Decimal.( <= )
-    Decimal.( >= ) Bitvector.ulte Bitvector.( <= ) Term.mk_leq Term.mk_geq
+let relation_leq simplify_term_node = 
+
+  relation 
+    simplify_term_node
+    Numeral.(<=)
+    Numeral.(>=)
+    Decimal.(<=)
+    Decimal.(>=)
+    Bitvector.ulte
+    Bitvector.(<=)
+    Term.mk_leq 
+    Term.mk_geq 
+    
+
 
 (* Normalize less than relation between normal forms *)
-let relation_lt simplify_term_node =
-  relation simplify_term_node Numeral.( < ) Numeral.( > ) Decimal.( < )
-    Decimal.( > ) Bitvector.lt Bitvector.( < ) Term.mk_lt Term.mk_gt
+let relation_lt simplify_term_node = 
+
+  relation 
+    simplify_term_node
+    Numeral.(<)
+    Numeral.(>)
+    Decimal.(<)
+    Decimal.(>)
+    Bitvector.lt
+    Bitvector.(<)
+    Term.mk_lt 
+    Term.mk_gt
+    
+
 
 (* Normalize greater than or equal relation between normal forms *)
-let relation_geq simplify_term_node =
-  relation simplify_term_node Numeral.( >= ) Numeral.( <= ) Decimal.( >= )
-    Decimal.( <= ) Bitvector.ugte Bitvector.( >= ) Term.mk_geq Term.mk_leq
+let relation_geq simplify_term_node = 
+
+  relation 
+    simplify_term_node 
+    Numeral.(>=)
+    Numeral.(<=) 
+    Decimal.(>=)
+    Decimal.(<=)
+    Bitvector.ugte 
+    Bitvector.(>=)
+    Term.mk_geq 
+    Term.mk_leq
+
 
 (* Normalize greater than relation between normal forms *)
-let relation_gt simplify_term_node =
-  relation simplify_term_node Numeral.( > ) Numeral.( < ) Decimal.( > )
-    Decimal.( < ) Bitvector.ugt Bitvector.( > ) Term.mk_gt Term.mk_lt
+let relation_gt simplify_term_node = 
+  
+  relation 
+    simplify_term_node
+    Numeral.(>)
+    Numeral.(<)
+    Decimal.(>)
+    Decimal.(<)
+    Bitvector.ugt
+    Bitvector.(>)
+    Term.mk_gt 
+    Term.mk_lt
+    
+
 
 (* Create an atom of the given term (a variable or an uninterpreted
    function) *)
-let atom_of_term t =
+let atom_of_term t = 
+
   (* Get type of term *)
-  let tt = Term.type_of_term t in
+  let tt = Term.type_of_term t in 
 
   (* Term is of type integer *)
   if Type.is_int tt || Type.is_int_range tt || Type.is_enum tt then
+
     (* Integer polynomial for a variable is (0 + 1 * x) *)
-    Num (Numeral.zero, [ (Numeral.one, [ t ]) ]) (* Term is of type real *)
+    Num (Numeral.zero, [Numeral.one, [t]])
+
+  (* Term is of type real *)
   else if Type.is_real tt then
+
     (* Real polynomial for a variable is (0 + 1 * x) *)
-    Dec (Decimal.zero, [ (Decimal.one, [ t ]) ]) (* Term is of type Boolean *)
+    Dec (Decimal.zero, [Decimal.one, [t]])
+
+  (* Term is of type Boolean *)
   else if Type.is_bool tt then
+
     (* Variable is an atom *)
     Bool t
-  else if Type.is_array tt then Array t
-    (* Term is of type signed or unsigned bitvector *)
-  else if Type.is_bitvector tt || Type.is_ubitvector tt then BV t
+
+  else if Type.is_array tt then
+
+    Array t
+
+  (* Term is of type signed or unsigned bitvector *)
+  else if (Type.is_bitvector tt || Type.is_ubitvector tt) then
+
+    BV t
+
   (* Term is of some other type  *)
-    else
-    assert
-      (* Not implemented *)
-      false
+  else (
+
+    (* Not implemented *)
+    assert false )
+
 
 let store = function
-  (* Arguments are array, index and value *)
-  | [ a; i; v ] ->
-      atom_of_term (Term.mk_store (term_of_nf a) (term_of_nf i) (term_of_nf v))
-  (* Store is ternary *)
-  | _ -> assert false
+ (* Arguments are array, index and value *)
+ | [a; i; v] ->
+
+  atom_of_term (
+    Term.mk_store (term_of_nf a) (term_of_nf i) (term_of_nf v))
+
+ (* Store is ternary *)
+ | _ -> assert false
+
+let const_array ty_array = function
+ | [v] ->
+
+  atom_of_term (Term.mk_const_array ty_array (term_of_nf v))
+
+ | _ -> assert false
 
 let select simplify_term_node model fterm = function
-  (* Arguments are array and index *)
-  | [ a; i ] -> (
-      (* Rebuild select operation with simplified index *)
-      let term' = Term.mk_select (term_of_nf a) (term_of_nf i) in
 
-      if
-        (* Result of select operation is of array type? *)
-        Type.is_array (Term.type_of_term (Term.construct fterm))
-      then
+  (* Arguments are array and index *)
+  | [a; i] ->
+
+    (* Rebuild select operation with simplified index *)
+    let term' = Term.mk_select (term_of_nf a) (term_of_nf i) in
+
+    if
+
+      (* Result of select operation is of array type? *)
+      Type.is_array
+        (Term.type_of_term (Term.construct fterm))
+
+    then
+
+      (
+
         (* Rebuild term with simplified index to evaluate
            later *)
         atom_of_term term'
-      (* Select operation evaluates to a non-array type *)
-        else
-        (* Get variable and indexes *)
-        let v, i' = Term.indexes_and_var_of_select term' in
 
-        (* Get assignment to variable *)
-        try
-          match Var.VarHashtbl.find model v with
-          (* Variable must evaluate to a lambda abstraction *)
-          | Model.Lambda l ->
-              (* Evaluate lambda abstraction with simplified
+      )
+
+    (* Select operation evaluates to a non-array type *)
+    else
+
+      (* Get variable and indexes *)
+      let v, i' =
+        Term.indexes_and_var_of_select term'
+      in
+
+      (* Get assignment to variable *)
+      (try match Var.VarHashtbl.find model v with
+
+        (* Variable must evaluate to a lambda abstraction *)
+        | Model.Lambda l ->
+
+          (* Evaluate lambda abstraction with simplified
              indexes *)
-              Term.eval_t simplify_term_node (Term.eval_lambda l i')
-          (* or map *)
-          | Model.Map m ->
-              if Model.MIL.is_empty m then
-                List.fold_left Term.mk_select (Term.mk_var v) (* List.rev *) i'
-                |> atom_of_term
+          Term.eval_t
+            simplify_term_node
+            (Term.eval_lambda l i')
+
+        (* or map *)
+        | Model.Map m ->
+
+          if Model.MIL.is_empty m then
+            List.fold_left
+              Term.mk_select (Term.mk_var v) ((* List.rev *) i')
+            |> atom_of_term
+
+          else
+
+            let term_to_index =
+              let idx_ty = Type.index_type_of_array (Var.type_of_var v) in
+              if Type.is_ubitvector idx_ty || Type.is_bitvector idx_ty then
+                (fun t -> Numeral.to_int (Bitvector.bv_to_num (Term.bitvector_of_term t)))
               else
-                let args =
-                  List.map
-                    (fun x -> Term.numeral_of_term x |> Numeral.to_int)
-                    i'
-                in
+                (fun t -> Numeral.to_int (Term.numeral_of_term t))
+            in
 
-                let value =
-                  try Model.MIL.find args m
-                  with Not_found ->
-                    TermLib.default_of_type
-                      (Type.last_elem_type_of_array (Var.type_of_var v))
-                in
+            let args = List.map term_to_index i' in
 
-                (* Evaluate map with simplified indexes *)
-                Term.eval_t simplify_term_node value
-          (* Variable must not evaluate to a term *)
-          | Model.Term _ -> assert false
-          (* Free variable without assignment in model *)
-        with Not_found ->
+            let value =
+              try Model.MIL.find args m
+              with Not_found ->
+                TermLib.default_of_type
+                  (Type.last_elem_type_of_array
+                     (Var.type_of_var v))
+            in
+
+            (* Evaluate map with simplified indexes *)
+            Term.eval_t
+              simplify_term_node
+              value
+
+        (* Variable must not evaluate to a term *)
+        | Model.Term _ -> assert false
+
+       (* Free variable without assignment in model *)
+       with Not_found ->
+
           let t' =
-            List.fold_left Term.mk_select (Term.mk_var v) (* List.rev *) i'
+            List.fold_left
+              Term.mk_select
+              (Term.mk_var v)
+              ((* List.rev *) i')
           in
 
-          Debug.simplify "Simplified %a to %a" Term.pp_print_term
-            (Term.construct fterm) Term.pp_print_term t';
+          Debug.simplify
+            "Simplified %a to %a"
+            Term.pp_print_term (Term.construct fterm)
+            Term.pp_print_term t';
 
           (* Return term *)
-          atom_of_term t')
+          atom_of_term t'
+
+      )
+
   (* Select operation is binary *)
   | _ -> assert false
+
+
 
 (* ********************************************************************** *)
 (* Simplify and evaluate functions                                        *)
 (* ********************************************************************** *)
 
+
 let negation = function
+
   (* Evalute if argument is true *)
-  | [ Bool b ] when b == Term.t_true -> Bool Term.t_false
+  | [Bool b] when b == Term.t_true -> Bool Term.t_false
+
   (* Evalute if argument is false *)
-  | [ Bool b ] when b == Term.t_false -> Bool Term.t_true
+  | [Bool b] when b == Term.t_false -> Bool Term.t_true
+
   (* Construct negation of non-constant argument *)
-  | [ Bool b ] -> Bool (negate_nnf b)
+  | [Bool b] -> Bool (negate_nnf b)
+
   (* Negation is Boolean and unary *)
   | _ -> assert false
 
+
 let conjunction = function
+
   (* Conjunction is not nullary *)
   | [] -> assert false
+
   (* Return argument of unary conjunction *)
-  | [ a ] -> a
+  | [a] -> a
+
   (* Binary conjunction or higher arity *)
-  | args -> (
-      Debug.simplify "@[<hv>`AND with arguments@ %a@]"
-        (pp_print_list Term.pp_print_term "@ ")
-        (List.map term_of_nf args);
+  | args ->
 
-      (* Lift arguments of subterms *)
-      let args' = flatten_bool_subterms Symbol.s_and args in
+    Debug.simplify
+      "@[<hv>`AND with arguments@ %a@]"
+      (pp_print_list Term.pp_print_term "@ ")
+      (List.map term_of_nf args);
 
-      (* Sort into positive and negative literals *)
-      let args_neg, args_pos = List.partition Term.is_negated args' in
+    (* Lift arguments of subterms *)
+    let args' = flatten_bool_subterms Symbol.s_and args in
 
-      (* Simplify to (false) if (false) is a positive literal
+    (* Sort into positive and negative literals *)
+    let args_neg, args_pos =
+      List.partition Term.is_negated args'
+    in
+
+    (* Simplify to (false) if (false) is a positive literal
 
        (not true) and (not false) have been simplified *)
-      if List.memq Term.t_false args_pos then
-        (* Conjunction that contains (false) simplifies to
+    if List.memq Term.t_false args_pos then
+
+      (* Conjunction that contains (false) simplifies to
          (false) *)
-        Bool Term.t_false
-      else
+      Bool Term.t_false
+
+    else
+
+      (
+
         (* Sort positive literals, remove duplicates and
            (true) *)
         let _, args_pos' =
-          List.partition (( == ) Term.t_true)
+          List.partition
+            ((==) Term.t_true)
             (list_uniq (List.sort Term.compare args_pos))
         in
 
@@ -991,53 +1342,76 @@ let conjunction = function
            We don't need to remove (false), since (not
            false) has been evaluated to the positive
            literal (true) *)
-        let args_neg' = list_uniq (List.sort Term.compare args_neg) in
+        let args_neg' =
+          list_uniq (List.sort Term.compare args_neg)
+        in
 
         (* Check if positive literal has its complement in
            the negative literals *)
         if has_complement args_neg' args_pos' then
+
           (* Simplifiy to [false] if a literal and its
              complement occur *)
           Bool Term.t_false
+
         else
+
           (* Combine simplified positive and negative
              literals *)
           let args' = args_pos' @ args_neg' in
 
           match args' with
-          (* Return (true) if all literals eliminated *)
-          | [] -> Bool Term.t_true
-          (* Return single literal if eliminated to
+
+            (* Return (true) if all literals eliminated *)
+            | [] -> Bool Term.t_true
+
+            (* Return single literal if eliminated to
                singleton list *)
-          | [ a ] -> Bool a
-          (* Return simplified conjunction *)
-          | _ -> Bool (Term.mk_and args'))
+            | [a] -> Bool a
+
+            (* Return simplified conjunction *)
+            | _ -> Bool (Term.mk_and args')
+
+      )
+
 
 let disjunction = function
+
   (* Disjunction is not nullary *)
   | [] -> assert false
+
   (* Return argument of unary disjunction *)
-  | [ a ] -> a
+  | [a] -> a
+
   (* Binary disjunction or higher arity *)
-  | args -> (
-      (* Lift arguments of subterms *)
-      let args' = flatten_bool_subterms Symbol.s_or args in
+  | args ->
 
-      (* Sort into positive and negative literals *)
-      let args_neg, args_pos = List.partition Term.is_negated args' in
+    (* Lift arguments of subterms *)
+    let args' = flatten_bool_subterms Symbol.s_or args in
 
-      (* Simplify to (true) if (true) is a positive literal
+    (* Sort into positive and negative literals *)
+    let args_neg, args_pos =
+      List.partition Term.is_negated args'
+    in
+
+    (* Simplify to (true) if (true) is a positive literal
 
        (not true) and (not false) have been simplified *)
-      if List.memq Term.t_true args_pos then
-        (* Disjunction that contains (true) is simplified to
+    if List.memq Term.t_true args_pos then
+
+      (* Disjunction that contains (true) is simplified to
          (true) *)
-        Bool Term.t_true
-      else
+      Bool Term.t_true
+
+    else
+
+      (
+
         (* Sort positive literals, remove duplicates and
            (false) *)
         let _, args_pos' =
-          List.partition (( == ) Term.t_false)
+          List.partition
+            ((==) Term.t_false)
             (list_uniq (List.sort Term.compare args_pos))
         in
 
@@ -1046,29 +1420,41 @@ let disjunction = function
            We don't need to remove (true), since (not
            true) has been evaluated to the positive
            literal (false) *)
-        let args_neg' = list_uniq (List.sort Term.compare args_neg) in
+        let args_neg' =
+          list_uniq (List.sort Term.compare args_neg)
+        in
 
         (* Check if positive literal has its complement in
            the negative literals *)
         if has_complement args_neg' args_pos' then
+
           (* Simplifiy to (true) if a literal and its
              complement occur *)
           Bool Term.t_true
+
         else
+
           (* Combine simplified positive and negative
              literals *)
           let args' = args_pos' @ args_neg' in
 
           match args' with
-          (* Return (false) if all literals eliminated *)
-          | [] -> Bool Term.t_false
-          (* Return single literal if eliminated to
+
+            (* Return (false) if all literals eliminated *)
+            | [] -> Bool Term.t_false
+
+            (* Return single literal if eliminated to
                singleton list *)
-          | [ a ] -> Bool a
-          (* Return simplified disjunction *)
-          | _ -> Bool (Term.mk_or args'))
+            | [a] -> Bool a
+
+            (* Return simplified disjunction *)
+            | _ -> Bool (Term.mk_or args')
+
+      )
+
 
 let implication simplify_term_node' args =
+
   (* Negate all but the last argument *)
   let args' = implies_to_or args in
 
@@ -1078,414 +1464,403 @@ let implication simplify_term_node' args =
   (* Simplify disjunction *)
   simplify_term_node' (Term.destruct term') args'
 
+
 let exclusive_disjunction simplify_term_node' = function
+
   (* Nullary or unary exclusive disjunction *)
-  | [] | [ _ ] -> assert false
+  | []
+  | [_] -> assert false
+
   (* Binary exclusive disjunction *)
-  | [ Bool a; Bool b ] ->
-      (* Negated normalised arguments *)
-      let na, nb = (negate_nnf a, negate_nnf b) in
+  | [Bool a; Bool b] ->
 
-      (* Simplify (a & ~b) *)
-      let term_a' =
-        bool_of_nf
-          (simplify_term_node'
-             (Term.destruct (Term.mk_and [ a; nb ]))
-             [ Bool a; Bool nb ])
-      in
+    (* Negated normalised arguments *)
+    let na, nb = negate_nnf a, negate_nnf b in
 
-      (* Simplify (~a & b) *)
-      let term_b' =
-        bool_of_nf
-          (simplify_term_node'
-             (Term.destruct (Term.mk_and [ na; b ]))
-             [ Bool na; Bool b ])
-      in
+    (* Simplify (a & ~b) *)
+    let term_a' =
+      bool_of_nf
+        (simplify_term_node'
+          (Term.destruct (Term.mk_and [a; nb]))
+          [Bool a; Bool nb])
+    in
 
-      (* Simplify ((a & ~b) | (~a & b)) and return *)
-      simplify_term_node'
-        (Term.destruct (Term.mk_or [ term_a'; term_b' ]))
-        [ Bool term_a'; Bool term_b' ]
+    (* Simplify (~a & b) *)
+    let term_b' =
+      bool_of_nf
+        (simplify_term_node'
+           (Term.destruct (Term.mk_and [na; b]))
+           [Bool na; Bool b])
+    in
+
+    (* Simplify ((a & ~b) | (~a & b)) and return *)
+    simplify_term_node'
+      (Term.destruct (Term.mk_or [term_a'; term_b']))
+      [Bool term_a'; Bool term_b']
+
   (* Higher arity exclusive disjunction *)
   | Bool a :: Bool b :: tl ->
-      (* Simplify (a xor b) *)
-      let term' =
-        bool_of_nf
-          (simplify_term_node'
-             (Term.destruct (Term.mk_xor [ a; b ]))
-             [ Bool a; Bool b ])
-      in
 
-      (* Exclusive disjunction is left-associative: simplify
+    (* Simplify (a xor b) *)
+    let term' =
+      bool_of_nf
+        (simplify_term_node'
+           (Term.destruct (Term.mk_xor [a; b]))
+           [Bool a; Bool b])
+    in
+
+    (* Exclusive disjunction is left-associative: simplify
        first two arguments and recursively simplify
        exclusive disjunction with remaining arguments *)
-      simplify_term_node'
-        (Term.destruct (Term.mk_xor (term' :: List.map bool_of_nf tl)))
-        (Bool term' :: tl)
+    simplify_term_node'
+      (Term.destruct
+         (Term.mk_xor (term' :: (List.map bool_of_nf tl))))
+      (Bool term' :: tl)
+
   (* Not well-typed arguments *)
   | Bool _ :: (Num _ | Dec _ | Array _ | BV _) :: _
-  | (Num _ | Dec _ | Array _ | BV _) :: _ ->
-      assert false
+  | (Num _  | Dec _ | Array _ | BV _) :: _  -> assert false
+
 
 let binary_equivalence simplify_term_node' a b =
+
   (* Negated normalised arguments *)
-  let na, nb = (negate_nnf a, negate_nnf b) in
+  let na, nb = negate_nnf a, negate_nnf b in
 
   (* Simplify (a & b) *)
   let term_a' =
     bool_of_nf
       (simplify_term_node'
-         (Term.destruct (Term.mk_and [ a; b ]))
-         [ Bool a; Bool b ])
+         (Term.destruct (Term.mk_and [a; b]))
+         [Bool a; Bool b])
   in
 
   (* Simplify (~a & ~b) *)
   let term_b' =
     bool_of_nf
       (simplify_term_node'
-         (Term.destruct (Term.mk_and [ na; nb ]))
-         [ Bool na; Bool nb ])
+         (Term.destruct (Term.mk_and [na; nb]))
+         [Bool na; Bool nb])
   in
 
   (* Simplify ((a & b) | (~a & ~b)) and return *)
   simplify_term_node'
-    (Term.destruct (Term.mk_or [ term_a'; term_b' ]))
-    [ Bool term_a'; Bool term_b' ]
+    (Term.destruct (Term.mk_or [term_a'; term_b']))
+    [Bool term_a'; Bool term_b']
+
 
 let if_then_else = function
+
   (* Choose left branch if predicate is true *)
-  | [ Bool p; l; _ ] when p == Term.t_true -> l
+  | [Bool p; l; _] when p == Term.t_true -> l
+
   (* Choose right branch if predicate is false *)
-  | [ Bool p; _; r ] when p == Term.t_false -> r
+  | [Bool p; _; r] when p == Term.t_false -> r
+
   (* Evaluate to a Boolean *)
-  | [ Bool p; Bool l; Bool r ] -> Bool (Term.mk_ite p l r)
+  | [Bool p; Bool l; Bool r] -> Bool (Term.mk_ite p l r)
+
   (* Evaluate to an integer atom *)
-  | [ Bool p; Num l; Num r ] ->
-      atom_of_term
-        (Term.mk_ite p (term_of_num_polynomial l) (term_of_num_polynomial r))
+  | [Bool p; Num l; Num r] ->
+
+    (atom_of_term
+       (Term.mk_ite
+          p
+          (term_of_num_polynomial l)
+          (term_of_num_polynomial r)))
+
   (* Evaluate to a real atom *)
-  | [ Bool p; Dec l; Dec r ] ->
-      atom_of_term
-        (Term.mk_ite p (term_of_dec_polynomial l) (term_of_dec_polynomial r))
+  | [Bool p; Dec l; Dec r] ->
+
+      (atom_of_term
+         (Term.mk_ite
+            p
+            (term_of_dec_polynomial l)
+            (term_of_dec_polynomial r)))
+
   (* Not well-typed or wrong arity *)
   | _ -> assert false
+
 
 let divisible n = function
+
   (* Divisibility is a unary predicate of an integer *)
-  | [ Num d ] ->
-      (* Argument is constant? *)
-      if is_constant_polynomial d then
-        if
-          (* Evaluate (t divisible n) as (= 0 (mod t n)) *)
-          Numeral.equal (Numeral.( mod ) (const_of_polynomial d) n) Numeral.zero
-        then
-          (* Simplify to (true) *)
-          Bool Term.t_true
-        else
-          (* Simplify to (false) *)
-          Bool Term.t_false
-      else
-        (* Divisibility predicate becomes new atom *)
-        atom_of_term (Term.mk_divisible n (term_of_num_polynomial d))
+  | [Num d] ->
+
+    (* Argument is constant? *)
+    if is_constant_polynomial d then
+
+      (if
+
+        (* Evaluate (t divisible n) as (= 0 (mod t n)) *)
+        Numeral.equal
+          (Numeral.(mod) (const_of_polynomial d) n)
+          Numeral.zero
+
+       then
+
+         (* Simplify to (true) *)
+         Bool Term.t_true
+
+       else
+
+         (* Simplify to (false) *)
+         Bool Term.t_false)
+
+    else
+
+      (* Divisibility predicate becomes new atom *)
+      atom_of_term
+        (Term.mk_divisible n (term_of_num_polynomial d))
+
   (* Not well-typed or wrong arity *)
   | _ -> assert false
 
+
 let real_division args =
+
   (* Evaluate to a polynomial if all arguments are constant *)
   if List.for_all is_constant args then
+
     (* Get all constants of polynomials *)
     match List.map const_of_dec_polynomial args with
-    (* Integer division must be at least binary *)
-    | [] | [ _ ] -> assert false
-    (* Divide first argument by remaining arguments *)
-    | h :: tl ->
+
+      (* Integer division must be at least binary *)
+      | []
+      | [_] -> assert false
+
+      (* Divide first argument by remaining arguments *)
+      | h :: tl ->
+
         Dec
-          ( List.fold_left
+          ((List.fold_left
               (fun a e ->
-                if Decimal.(e = zero) then
-                  (* raise (Failure "simplify_term: division by zero") *)
-                  division_by_zero := true;
-                Decimal.(a / e))
-              h tl,
-            [] )
+                 if Decimal.(e = zero) then
+                   (* raise (Failure "simplify_term: division by zero") *)
+                   division_by_zero := true ;
+                 Decimal.(a / e))
+              h
+              tl),
+           [])
+
   else
+
     (* Return a new monomial for non-constant division
 
        TODO: `DIV is variadic and left-associative, we
        could simplify terms like (div 2 2 a) = (div 1 a) and
        also (div a 2 2) = (div a 1) = a *)
     Num
-      ( Numeral.zero,
-        [ (Numeral.one, [ Term.mk_div (List.map term_of_nf args) ]) ] )
+      (Numeral.zero,
+       [Numeral.one,
+        [Term.mk_div (List.map term_of_nf args)]])
+
 
 let integer_division args =
+
   (* Evaluate to a polynomial if all arguemnts constant *)
   if List.for_all is_constant args then
+
     match List.map const_of_num_polynomial args with
-    (* Integer division must be at least binary *)
-    | [] | [ _ ] -> assert false
-    (* Divide first argument by remaining arguments *)
-    | h :: tl -> Num (List.fold_left Numeral.( / ) h tl, [])
+
+      (* Integer division must be at least binary *)
+      | []
+      | [_] -> assert false
+
+      (* Divide first argument by remaining arguments *)
+      | h :: tl ->
+
+        Num
+          ((List.fold_left
+              (fun a e ->
+                 if Numeral.(e = zero) then (
+                   division_by_zero := true ;
+                   Numeral.zero (* TODO: Compute a value consistent with the model *)
+                 )
+                 else Numeral.(a / e))
+           h
+           tl),
+           [])
+
   else
-    (* Return a new monomial for non-constant division
+
+     (* Return a new monomial for non-constant division
 
         TODO: `INTDIV is variadic and left-associative, we
         could simplify terms like (div 2 2 a) = (div 1 a)
         and also (div a 2 2) = (div a 1) = a *)
-    Num
-      ( Numeral.zero,
-        [ (Numeral.one, [ Term.mk_intdiv (List.map term_of_nf args) ]) ] )
+    Num (Numeral.zero, [Numeral.one, [Term.mk_intdiv (List.map term_of_nf args)]])
+
 
 let modulus = function
+
   (* Evaluate to a polynomial if both arguments are constant *)
-  | [ Num (n, []); Num (m, []) ] -> Num (Numeral.(n mod m), [])
+  | [Num (n, []); Num (m, [])] -> Num (Numeral.(n mod m), [])
+
   (* Non-constant polynomial arguments *)
-  | [ a; b ] ->
-      (* New polynomial with modulus as atom *)
-      Num
-        ( Numeral.zero,
-          [ (Numeral.one, [ Term.mk_mod (term_of_nf a) (term_of_nf b) ]) ] )
+  | [a; b] ->
+
+    (* New polynomial with modulus as atom *)
+    Num (Numeral.zero, [Numeral.one, [Term.mk_mod (term_of_nf a) (term_of_nf b)]])
+
   (* Modulus is only binary *)
   | _ -> assert false
 
+
 let absolute_value = function
+
   (* Evaluate to a polynomial if integer argument is
      constant *)
-  | [ Num (n, []) ] -> Num (Numeral.abs n, [])
+  | [Num (n, [])] -> Num ((Numeral.abs n), [])
+
   (* Evaluate to a polynomial if real argument is
      constant *)
-  | [ Dec (d, []) ] -> Dec (Decimal.abs d, [])
+  | [Dec (d, [])] -> Dec ((Decimal.abs d), [])
+
   (* Non-constant real or integer polynomial argument *)
-  | [ a ] ->
-      (* New polynomial with absolute value as atom *)
-      Num (Numeral.zero, [ (Numeral.one, [ Term.mk_abs (term_of_nf a) ]) ])
+  | [a] ->
+
+    (* New polynomial with absolute value as atom *)
+    Num (Numeral.zero, [Numeral.one, [Term.mk_abs (term_of_nf a)]])
+
   (* Absolute value is only unary *)
   | _ -> assert false
 
+
 let to_int = function
+
   (* Evaluate to a polynomial if real argument is
      constant *)
-  | [ Dec (d, []) ] -> Num (Numeral.of_big_int (Decimal.to_big_int d), [])
-  (* Non-constant polynomial argument *)
-  | [ (Dec _ as a) ] ->
-      (* New polynomial with integer value as atom *)
-      Num (Numeral.zero, [ (Numeral.one, [ Term.mk_to_int (term_of_nf a) ]) ])
-  | [ (Num _ as a) ] -> a
-  (* Conversion is only unary *)
-  | _ -> assert false
+  | [Dec (d, [])] -> Num (Numeral.of_big_int (Decimal.to_big_int d), [])
 
-let ubv_to_int = function
-  | [ BV b ] -> Num (Bitvector.ubv_to_num (Term.bitvector_of_term b), [])
-  | [ (Num _ as a) ] -> a
+  (* Non-constant polynomial argument *)
+  | [Dec _ as a] ->
+
+    (* New polynomial with integer value as atom *)
+    Num (Numeral.zero, [Numeral.one, [Term.mk_to_int (term_of_nf a)]])
+
+  | [Num _ as a] -> a
+
+  (* Conversion is only unary *)
   | _ -> assert false
 
 let bv_to_int = function
-  | [ BV b ] -> Num (Bitvector.bv_to_num (Term.bitvector_of_term b), [])
-  | [ (Num _ as a) ] -> a
+
+  | [BV b] -> Num (Bitvector.bv_to_num (Term.bitvector_of_term b), [])
+
+  | [Num _ as a] -> a
+
   | _ -> assert false
 
-let to_uint8 = function
-  | [ BV b ] -> (
-      let s = Bitvector.length_of_bitvector (Term.bitvector_of_term b) in
-      match s with
-      | 8 -> BV b
-      | _ ->
-          BV (Term.mk_ubv (Bitvector.bvextract 7 0 (Term.bitvector_of_term b))))
-  | [ Num n ] ->
-      BV
-        (Term.mk_ubv
-           (Bitvector.num_to_ubv8 (Term.numeral_of_term (term_of_nf (Num n)))))
+let to_ubv n = function
+  | [BV b] -> let s = (Bitvector.length_of_bitvector (Term.bitvector_of_term b)) in
+    (match s with
+    | k when k < n -> BV (Term.mk_ubv (Bitvector.bvsignext (n-k) (Term.bitvector_of_term b)))
+    | k when k = n -> BV b
+    | _ -> BV (Term.mk_ubv (Bitvector.bvextract (n-1) 0 (Term.bitvector_of_term b))))
+  | [Num k] ->  BV (Term.mk_ubv
+                  (Bitvector.num_to_ubv (Numeral.of_int n)
+                    (Term.numeral_of_term
+                      (term_of_nf (Num k)))))
   | _ -> assert false
 
-let to_uint16 = function
-  | [ BV b ] -> (
-      let s = Bitvector.length_of_bitvector (Term.bitvector_of_term b) in
-      match s with
-      | 8 -> BV (Term.mk_ubv (Bitvector.bvsignext 8 (Term.bitvector_of_term b)))
-      | 16 -> BV b
-      | _ ->
-          BV (Term.mk_ubv (Bitvector.bvextract 15 0 (Term.bitvector_of_term b)))
-      )
-  | [ Num n ] ->
-      BV
-        (Term.mk_ubv
-           (Bitvector.num_to_ubv16 (Term.numeral_of_term (term_of_nf (Num n)))))
+let to_bv n = function
+  | [BV b] -> let s = (Bitvector.length_of_bitvector (Term.sbitvector_of_term b)) in
+    (match s with
+    | k when k < n -> BV (Term.mk_ubv (Bitvector.bvsignext (k-n) (Term.sbitvector_of_term b)))
+    | k when k = n -> BV b
+    | _ -> BV (Term.mk_ubv (Bitvector.bvextract (n-1) 0 (Term.bitvector_of_term b))))
+  | [Num k] -> BV (Term.mk_ubv
+                (Bitvector.num_to_bv (Numeral.of_int n)
+                  (Term.numeral_of_term
+                    (term_of_nf (Num k)))))
   | _ -> assert false
 
-let to_uint32 = function
-  | [ BV b ] -> (
-      let s = Bitvector.length_of_bitvector (Term.bitvector_of_term b) in
-      match s with
-      | 8 ->
-          BV (Term.mk_ubv (Bitvector.bvsignext 24 (Term.bitvector_of_term b)))
-      | 16 ->
-          BV (Term.mk_ubv (Bitvector.bvsignext 16 (Term.bitvector_of_term b)))
-      | 32 -> BV b
-      | _ ->
-          BV (Term.mk_ubv (Bitvector.bvextract 31 0 (Term.bitvector_of_term b)))
-      )
-  | [ Num n ] ->
-      BV
-        (Term.mk_ubv
-           (Bitvector.num_to_ubv32 (Term.numeral_of_term (term_of_nf (Num n)))))
-  | _ -> assert false
+let ubv_to_int = function
+| [BV b] -> let t = term_of_nf (BV b) in
+  let tp = Term.type_of_term t in
+  let bv = Term.bitvector_of_term t in
+  if (Type.is_bitvector tp || Type.is_ubitvector tp) then
+    Num (Bitvector.ubv_to_num bv, [])
+  else
+    assert false
+| _ -> assert false
 
-let to_uint64 = function
-  | [ BV b ] -> (
-      let s = Bitvector.length_of_bitvector (Term.bitvector_of_term b) in
-      match s with
-      | 8 ->
-          BV (Term.mk_ubv (Bitvector.bvsignext 56 (Term.bitvector_of_term b)))
-      | 16 ->
-          BV (Term.mk_ubv (Bitvector.bvsignext 48 (Term.bitvector_of_term b)))
-      | 32 ->
-          BV (Term.mk_ubv (Bitvector.bvsignext 32 (Term.bitvector_of_term b)))
-      | _ -> BV b)
-  | [ Num n ] ->
-      BV
-        (Term.mk_ubv
-           (Bitvector.num_to_ubv64 (Term.numeral_of_term (term_of_nf (Num n)))))
-  | _ -> assert false
-
-let to_int8 = function
-  | [ BV b ] -> (
-      let s = Bitvector.length_of_bitvector (Term.bitvector_of_term b) in
-      match s with
-      | 8 -> BV b
-      | _ ->
-          BV (Term.mk_ubv (Bitvector.bvextract 7 0 (Term.bitvector_of_term b))))
-  | [ Num n ] ->
-      BV
-        (Term.mk_ubv
-           (Bitvector.num_to_bv8 (Term.numeral_of_term (term_of_nf (Num n)))))
-  | _ -> assert false
-
-let to_int16 = function
-  | [ BV b ] -> (
-      let s = Bitvector.length_of_bitvector (Term.sbitvector_of_term b) in
-      match s with
-      | 8 ->
-          BV (Term.mk_ubv (Bitvector.bvsignext 8 (Term.sbitvector_of_term b)))
-      | 16 -> BV b
-      | _ ->
-          BV (Term.mk_ubv (Bitvector.bvextract 15 0 (Term.bitvector_of_term b)))
-      )
-  | [ Num n ] ->
-      BV
-        (Term.mk_ubv
-           (Bitvector.num_to_bv16 (Term.numeral_of_term (term_of_nf (Num n)))))
-  | _ -> assert false
-
-let to_int32 = function
-  | [ BV b ] -> (
-      let s = Bitvector.length_of_bitvector (Term.sbitvector_of_term b) in
-      match s with
-      | 8 ->
-          BV (Term.mk_ubv (Bitvector.bvsignext 24 (Term.sbitvector_of_term b)))
-      | 16 ->
-          BV (Term.mk_ubv (Bitvector.bvsignext 16 (Term.sbitvector_of_term b)))
-      | 32 -> BV b
-      | _ ->
-          BV (Term.mk_ubv (Bitvector.bvextract 31 0 (Term.bitvector_of_term b)))
-      )
-  | [ Num n ] ->
-      BV
-        (Term.mk_ubv
-           (Bitvector.num_to_bv32 (Term.numeral_of_term (term_of_nf (Num n)))))
-  | _ -> assert false
-
-let to_int64 = function
-  | [ BV b ] -> (
-      let s = Bitvector.length_of_bitvector (Term.sbitvector_of_term b) in
-      match s with
-      | 8 ->
-          BV (Term.mk_ubv (Bitvector.bvsignext 56 (Term.sbitvector_of_term b)))
-      | 16 ->
-          BV (Term.mk_ubv (Bitvector.bvsignext 48 (Term.sbitvector_of_term b)))
-      | 32 ->
-          BV (Term.mk_ubv (Bitvector.bvsignext 32 (Term.sbitvector_of_term b)))
-      | _ -> BV b)
-  | [ Num n ] ->
-      BV
-        (Term.mk_ubv
-           (Bitvector.num_to_bv64 (Term.numeral_of_term (term_of_nf (Num n)))))
-  | _ -> assert false
-
-let bv2nat = function
-  | [ BV b ] ->
-      let t = term_of_nf (BV b) in
-      let tp = Term.type_of_term t in
-      let bv = Term.bitvector_of_term t in
-      if Type.is_int8 tp || Type.is_uint8 tp then
-        Num (Bitvector.ubv8_to_num bv, [])
-      else if Type.is_int16 tp || Type.is_uint16 tp then
-        Num (Bitvector.ubv16_to_num bv, [])
-      else if Type.is_int32 tp || Type.is_uint32 tp then
-        Num (Bitvector.ubv32_to_num bv, [])
-      else if Type.is_int64 tp || Type.is_uint64 tp then
-        Num (Bitvector.ubv64_to_num bv, [])
-      else assert false
-  | _ -> assert false
 
 let binary_bv_op op = function
-  | [ BV a; BV b ] ->
-      BV
-        (Term.mk_ubv (op (Term.bitvector_of_term a) (Term.bitvector_of_term b)))
+  | [BV a; BV b] ->
+    BV (Term.mk_ubv (op
+      (Term.bitvector_of_term a)
+      (Term.bitvector_of_term b))
+    )
   | _ -> assert false
+
 
 let unary_bv_op op = function
-  | [ BV a ] -> BV (Term.mk_ubv (op (Term.bitvector_of_term a)))
+  | [BV a] -> BV (Term.mk_ubv (op (Term.bitvector_of_term a)))
   | _ -> assert false
+
 
 let bv_relation bv_rel rel = function
-  | [ BV a; BV b ] ->
-      Bool
-        (Term.mk_bool
-           (bv_rel (Term.bitvector_of_term a) (Term.bitvector_of_term b)))
+  | [BV a; BV b] ->
+    Bool (Term.mk_bool (bv_rel
+      (Term.bitvector_of_term a)
+      (Term.bitvector_of_term b)))
   | args -> rel args
 
+
 let bv_extract i j = function
-  | [ BV b ] ->
-      BV
-        (Term.mk_ubv
-           (Bitvector.bvextract (Numeral.to_int i) (Numeral.to_int j)
-              (Term.bitvector_of_term b)))
+  | [BV b] ->
+    BV (Term.mk_ubv (Bitvector.bvextract
+      (Numeral.to_int i)
+      (Numeral.to_int j)
+      (Term.bitvector_of_term b)))
   | _ -> assert false
 
+
 let bv_signext i = function
-  | [ BV b ] ->
-      BV
-        (Term.mk_ubv
-           (Bitvector.bvsignext (Numeral.to_int i) (Term.bitvector_of_term b)))
+  | [BV b] ->
+    BV (Term.mk_ubv (Bitvector.bvsignext
+      (Numeral.to_int i)
+      (Term.bitvector_of_term b)))
   | _ -> assert false
 
 let bv_zeroext i = function
-  | [ BV b ] ->
-      BV
-        (Term.mk_ubv
-           (Bitvector.bvzeroext (Numeral.to_int i) (Term.bitvector_of_term b)))
+  | [BV b] ->
+    BV (Term.mk_ubv (Bitvector.bvzeroext
+      (Numeral.to_int i)
+      (Term.bitvector_of_term b)))
   | _ -> assert false
 
 let bv_concat = function
-  | [ a ] -> a
-  | [ BV a; BV b ] ->
-      BV
-        (Term.mk_ubv
-           (Bitvector.bvconcat (Term.bitvector_of_term a)
-              (Term.bitvector_of_term b)))
+  | b :: rest ->
+    let to_bv = function
+      | BV t -> Term.bitvector_of_term t
+      | _ -> assert false
+    in
+    let bvs = List.map to_bv rest in
+    let concatenation = List.fold_left Bitvector.bvconcat (to_bv b) bvs in
+    BV (Term.mk_ubv concatenation)
   | _ -> assert false
 
+
 let to_real = function
+
   (* Evaluate to a polynomial if integer argument is
      constant *)
-  | [ Num (n, []) ] -> Dec (Decimal.of_big_int (Numeral.to_big_int n), [])
+  | [Num (n, [])] -> Dec (Decimal.of_big_int (Numeral.to_big_int n), [])
+
   (* Non-constant polynomial argument *)
-  | [ (Num _ as a) ] ->
-      (* New polynomial with integer value as atom *)
-      Dec (Decimal.zero, [ (Decimal.one, [ Term.mk_to_int (term_of_nf a) ]) ])
-  | [ (Dec _ as a) ] -> a
+  | [Num _ as a] ->
+
+    (* New polynomial with integer value as atom *)
+    Dec (Decimal.zero, [Decimal.one, [Term.mk_to_int (term_of_nf a)]])
+
+  | [Dec _ as a] -> a
+
   (* Conversion is only unary *)
   | _ -> assert false
+
 
 (* Simplify a term node to a normal form with arithmetic operations
    evaluated as far as possible 
@@ -1493,358 +1868,530 @@ let to_real = function
    This function is recursive, it calls itself with modified
    arguments. It is not tail-recursive, but that is OK, because the
    the recursion depth is shallow. *)
-let rec simplify_term_node ?(split_eq = false) default_of_var uf_defs model
-    fterm args =
-  match fterm with
-  | Term.T.Var v -> (
-      match Var.VarHashtbl.find model v with
-      (* Free variable with assignment in model *)
-      | Model.Term v' ->
+let rec simplify_term_node ?(split_eq=false) default_of_var uf_defs model fterm args = 
+
+  match fterm with 
+
+    | Term.T.Var v -> 
+
+      (match Var.VarHashtbl.find model v with
+        
+        (* Free variable with assignment in model *)
+        | Model.Term v' ->
           (* This check is necessary because the SMT solver doesn't 
              differentiate between signed and unsigned BV types. We 
              do it here before simplifying the model *)
-          let v'' =
-            if Type.is_bitvector (Var.type_of_var v) then
+          let v'' = 
+            (if (Type.is_bitvector (Var.type_of_var v)) then
               Term.mk_bv (Term.bitvector_of_term v')
-            else if Type.is_ubitvector (Var.type_of_var v) then
+             else if (Type.is_ubitvector (Var.type_of_var v)) then
               Term.mk_ubv (Term.bitvector_of_term v')
-            else v'
+             else
+              v')
           in
-          Term.eval_t (simplify_term_node default_of_var uf_defs model) v''
-      (* Defer evaluation of lambda abstraction or arrays *)
-      | Model.Lambda _ | Model.Map _ -> atom_of_term (Term.mk_var v)
-      (* Free variable without assignment in model *)
-      | exception Not_found ->
+            Term.eval_t
+              (simplify_term_node default_of_var uf_defs model)
+              v''
+
+        (* Defer evaluation of lambda abstraction or arrays *)
+        | Model.Lambda _ | Model.Map _ -> atom_of_term (Term.mk_var v)
+
+        (* Free variable without assignment in model *)
+        | exception Not_found -> 
+       
           (* Term obtained by evaluating variable to itself *)
           let t = Term.mk_var v in
 
           (* Term obtained by evaluating variable to its default *)
           let t' =
-            if Var.type_of_var v |> Type.is_array then t else default_of_var v
-          in
+            if Var.type_of_var v |> Type.is_array then t
+            else default_of_var v in
 
           (* Break cycle if the the variable is its own default *)
-          if Term.equal t t' then atom_of_term t
-          else
+          if Term.equal t t' then atom_of_term t else
+
             (* Evaluate default value of variable *)
-            Term.eval_t (simplify_term_node default_of_var uf_defs model) t')
-  (* Polynomial of a constant depends on symbol *)
-  | Term.T.Const s -> (
-      (* Unhashcons constant symbol *)
-      match Symbol.node_of_symbol s with
-      (* Polynomial for a numeral is n *)
-      | `NUMERAL n -> Num (n, [])
-      (* Polynomial for a decimal is d *)
-      | `DECIMAL d -> Dec (d, [])
-      (* Propositional constant *)
-      | `TRUE -> Bool Term.t_true
-      | `FALSE -> Bool Term.t_false
-      (* Bitvector - taking an unsigned interpretation *)
-      | `BV b ->
-          let tbv = Term.mk_ubv b in
-          BV tbv
-      | `UBV b ->
-          let tbv = Term.mk_ubv b in
-          BV tbv
-      (* Constant with a definition *)
-      | `UF uf_symbol when List.mem_assq uf_symbol uf_defs ->
-          (* Get definition of function *)
-          let vars, uf_def = List.assq uf_symbol uf_defs in
+            Term.eval_t
+              (simplify_term_node default_of_var uf_defs model)
+              t'
 
-          Debug.simplify "@[<v>Definition of %a:@,variables@ %a@,term@ %a@]"
-            UfSymbol.pp_print_uf_symbol uf_symbol
-            (pp_print_list Var.pp_print_var "@ ")
-            vars Term.pp_print_term uf_def;
+      )
+                   
+    (* Polynomial of a constant depends on symbol *)
+    | Term.T.Const s -> 
+      
+      (
+        
+        (* Unhashcons constant symbol *)
+        match Symbol.node_of_symbol s with 
 
-          (* Replace function by its definition *)
-          let term' =
-            Term.mk_let
-              (List.fold_right2
-                 (fun var def accum -> (var, def) :: accum)
-                 vars [] [])
-              uf_def
-          in
+          (* Polynomial for a numeral is n *)
+          | `NUMERAL n -> Num (n, [])
 
-          Term.eval_t (simplify_term_node default_of_var uf_defs model) term'
-      (* Uninterpreted constant *)
-      | `UF u -> atom_of_term (Term.mk_uf u [])
-      (* Fail in remaining cases, which are not constants *)
-      | _ -> assert false)
-  (* Normal form of a function application depends on its symbol *)
-  | Term.T.App (s, _) -> (
-      (* Unhashcons function symbol *)
-      match Symbol.node_of_symbol s with
-      (* Select from an array *)
-      | `SELECT _ ->
-          select
-            (simplify_term_node default_of_var uf_defs model)
-            model fterm args
-      (* array store *)
-      | `STORE -> store args
-      | `UF _ when Symbol.is_select s ->
-          select
-            (simplify_term_node default_of_var uf_defs model)
-            model fterm args
-      (* Function with a definition *)
-      | `UF uf_symbol when List.mem_assq uf_symbol uf_defs ->
-          (* Get definition of function *)
-          let vars, uf_def = List.assq uf_symbol uf_defs in
+          (* Polynomial for a decimal is d *)
+          | `DECIMAL d -> Dec (d, [])
 
-          Debug.simplify "@[<v>Definition of %a:@,variables@ %a@,term@ %a@]"
-            UfSymbol.pp_print_uf_symbol uf_symbol
-            (pp_print_list Var.pp_print_var "@ ")
-            vars Term.pp_print_term uf_def;
+          (* Propositional constant *)
+          | `TRUE -> Bool (Term.t_true)
+          | `FALSE -> Bool (Term.t_false)
 
-          (* Replace function by its definition *)
-          let term' =
-            Term.mk_let
-              (List.fold_right2
-                 (fun var def accum -> (var, def) :: accum)
-                 vars (List.map term_of_nf args) [])
-              uf_def
-          in
+          (* Bitvector - taking an unsigned interpretation *)
+          | `BV b -> 
+            
+            let tbv = Term.mk_ubv b in
+              BV tbv
 
-          Debug.simplify "@[<v>Simplify@ %a@]" Term.pp_print_term term';
+          | `UBV b -> 
 
-          Term.eval_t (simplify_term_node default_of_var uf_defs model) term'
-      (* Normal form for an uninterpreted function *)
-      | `UF u -> atom_of_term (Term.mk_uf u (List.map term_of_nf args))
-      (* Boolean negation *)
-      | `NOT -> negation args
-      (* Boolean conjunction *)
-      | `AND -> conjunction args
-      (* Boolean disjunction *)
-      | `OR -> disjunction args
-      (* Reduce implication to a disjunction *)
-      | `IMPLIES ->
-          implication (simplify_term_node default_of_var uf_defs model) args
-      (* Reduce exclusive disjunction (a xor b) to disjunction of
+            let tbv = Term.mk_ubv b in
+              BV tbv
+
+          (* Constant with a definition *)
+          | `UF uf_symbol when List.mem_assq uf_symbol uf_defs -> 
+            
+            (* Get definition of function *)
+            let (vars, uf_def) = 
+              List.assq uf_symbol uf_defs 
+            in
+            
+             Debug.simplify
+               "@[<v>Definition of %a:@,variables@ %a@,term@ %a@]"
+               UfSymbol.pp_print_uf_symbol uf_symbol
+               (pp_print_list Var.pp_print_var "@ ") vars
+               Term.pp_print_term uf_def;
+
+            (* Replace function by its definition *)
+            let term' = 
+              Term.mk_let 
+                (List.fold_right2
+                   (fun var def accum -> (var, def) :: accum)
+                   vars
+                   []
+                   [])
+                uf_def
+            in
+
+            (Term.eval_t 
+               (simplify_term_node default_of_var uf_defs model) 
+               term')
+
+          (* Uninterpreted constant *)
+          | `UF u -> atom_of_term (Term.mk_uf u [])
+
+          (* Fail in remaining cases, which are not constants *)
+          | _ -> assert false 
+
+      )
+
+    (* Normal form of a function application depends on its symbol *)
+    | Term.T.App (s, _) -> 
+
+      (
+        
+        (* Unhashcons function symbol *)
+        match Symbol.node_of_symbol s with 
+
+          (* Select from an array *)
+          | `SELECT _ ->
+
+            select (simplify_term_node default_of_var uf_defs model) model fterm args
+
+          (* array store *)
+          | `STORE -> store args
+
+          | `CONST_ARRAY ty_array -> const_array ty_array args
+
+          | `UF _ when Symbol.is_select s ->
+
+            select (simplify_term_node default_of_var uf_defs model) model fterm args
+
+          (* Function with a definition *)
+          | `UF uf_symbol when List.mem_assq uf_symbol uf_defs ->
+
+            (* Get definition of function *)
+            let (vars, uf_def) =
+              List.assq uf_symbol uf_defs
+            in
+
+            Debug.simplify
+              "@[<v>Definition of %a:@,variables@ %a@,term@ %a@]"
+              UfSymbol.pp_print_uf_symbol uf_symbol
+              (pp_print_list Var.pp_print_var "@ ") vars
+              Term.pp_print_term uf_def;
+
+            (* Replace function by its definition *)
+            let term' =
+              Term.mk_let
+                (List.fold_right2
+                   (fun var def accum -> (var, def) :: accum)
+                   vars
+                   (List.map term_of_nf args)
+                   [])
+                uf_def
+            in
+
+            Debug.simplify
+              "@[<v>Simplify@ %a@]" Term.pp_print_term term';
+
+            (Term.eval_t
+               (simplify_term_node default_of_var uf_defs model)
+               term')
+
+          (* Normal form for an uninterpreted function *)
+          | `UF u ->
+
+            atom_of_term (Term.mk_uf u (List.map term_of_nf args))
+
+
+          (* Boolean negation *)
+          | `NOT -> negation args
+
+          (* Boolean conjunction *)
+          | `AND -> conjunction args
+
+          (* Boolean disjunction *)
+          | `OR -> disjunction args
+
+          (* Reduce implication to a disjunction *)
+          | `IMPLIES ->
+            implication
+              (simplify_term_node default_of_var uf_defs model)
+              args
+
+          (* Reduce exclusive disjunction (a xor b) to disjunction of
              conjunctions ((a & ~b) | (~a & b)) *)
-      | `XOR ->
-          exclusive_disjunction
-            (simplify_term_node default_of_var uf_defs model)
-            args
-      (* Equation *)
-      | `EQ -> (
-          match args with
-          (* Nullary or unary equation *)
-          | [] -> assert false
-          | [ _ ] -> assert false
-          (* Binary equivalence, reduce to (a & b) | (~a & ~b) *)
-          | [ Bool a; Bool b ] ->
-              binary_equivalence
-                (simplify_term_node default_of_var uf_defs model)
-                a b
-          (* Equation between integers or reals *)
-          | ([ (Num _ as a); (Num _ as b) ] | [ (Dec _ as a); (Dec _ as b) ])
-            when split_eq ->
-              let a' =
-                relation_leq
+          | `XOR ->
+            exclusive_disjunction
+              (simplify_term_node default_of_var uf_defs model)
+              args
+
+          (* Equation *)
+          | `EQ ->
+
+            (match args with 
+
+              (* Nullary or unary equation *)
+              | []  -> assert false
+              | [_] -> assert false
+
+              (* Binary equivalence, reduce to (a & b) | (~a & ~b) *)
+              | [Bool a; Bool b] ->
+
+                binary_equivalence
                   (simplify_term_node default_of_var uf_defs model)
-                  [ a; b ]
-              in
+                  a b
 
-              let b' =
-                relation_leq
+              (* Equation between integers or reals *)
+              | [Num _ as a; Num _ as b] 
+              | [Dec _ as a; Dec _ as b] when split_eq ->
+
+                let a' =
+                  relation_leq
+                    (simplify_term_node default_of_var uf_defs model)
+                    [a; b]
+                in
+
+                let b' =
+                  relation_leq
+                    (simplify_term_node default_of_var uf_defs model)
+                    [b; a]
+                in
+
+                conjunction [a'; b']
+
+              | _ ->
+
+                relation_eq
                   (simplify_term_node default_of_var uf_defs model)
-                  [ b; a ]
-              in
+                  args
 
-              conjunction [ a'; b' ]
-          | _ ->
-              relation_eq (simplify_term_node default_of_var uf_defs model) args
-          )
-      (* Relations *)
-      | `LEQ ->
-          relation_leq (simplify_term_node default_of_var uf_defs model) args
-      | `LT ->
-          relation_lt (simplify_term_node default_of_var uf_defs model) args
-      | `GEQ ->
-          relation_geq (simplify_term_node default_of_var uf_defs model) args
-      | `GT ->
-          relation_gt (simplify_term_node default_of_var uf_defs model) args
-      (* If-then-else *)
-      | `ITE -> if_then_else args
-      (* Divisibility predicate *)
-      | `DIVISIBLE n -> divisible n args
-      (* N-ary addition *)
-      | `PLUS -> add args
-      (* Unary minus or n-ary difference *)
-      | `MINUS -> minus args
-      (* N-ary multiplication *)
-      | `TIMES -> times args
-      (* Real division is a monomial with polynomial subterms *)
-      | `DIV -> real_division args
-      (* Integer division is a monomial with polynomial subterms *)
-      | `INTDIV -> integer_division args
-      (* Modulus is a monomial with polynomial subterms *)
-      | `MOD -> modulus args
-      (* Absolute value is a monomial with polynomial subterms *)
-      | `ABS -> absolute_value args
-      (* Conversion to integer is a monomial with polynomial
-             subterms *)
-      | `TO_INT -> to_int args
-      | `UINT8_TO_INT -> ubv_to_int args
-      | `UINT16_TO_INT -> ubv_to_int args
-      | `UINT32_TO_INT -> ubv_to_int args
-      | `UINT64_TO_INT -> ubv_to_int args
-      | `INT8_TO_INT -> bv_to_int args
-      | `INT16_TO_INT -> bv_to_int args
-      | `INT32_TO_INT -> bv_to_int args
-      | `INT64_TO_INT -> bv_to_int args
-      (* Conversion to unsigned integer8 is a monomial with polynomial
-             subterms *)
-      | `TO_UINT8 -> to_uint8 args
-      (* Conversion to unsigned integer16 is a monomial with polynomial
-             subterms *)
-      | `TO_UINT16 -> to_uint16 args
-      (* Conversion to unsigned integer32 is a monomial with polynomial
-             subterms *)
-      | `TO_UINT32 -> to_uint32 args
-      (* Conversion to unsigned integer64 is a monomial with polynomial
-             subterms *)
-      | `TO_UINT64 -> to_uint64 args
-      (* Conversion to integer8 is a monomial with polynomial
-             subterms *)
-      | `TO_INT8 -> to_int8 args
-      (* Conversion to integer16 is a monomial with polynomial
-             subterms *)
-      | `TO_INT16 -> to_int16 args
-      (* Conversion to integer32 is a monomial with polynomial
-             subterms *)
-      | `TO_INT32 -> to_int32 args
-      (* Conversion to integer64 is a monomial with polynomial
-             subterms *)
-      | `TO_INT64 -> to_int64 args
-      | `BV2NAT -> bv2nat args
-      (* Conversion to real is a monomial with polynomial
-             subterms *)
-      | `TO_REAL -> to_real args
-      (* Coincidence of real with integer not implemented *)
-      | `IS_INT -> assert false
-      (* Distinct not implemented *)
-      | `DISTINCT -> assert false
-      | `BVAND -> binary_bv_op Bitvector.bv_and args
-      | `BVOR -> binary_bv_op Bitvector.bv_or args
-      | `BVNOT -> unary_bv_op Bitvector.bv_not args
-      | `BVSHL -> binary_bv_op Bitvector.bv_lsh args
-      | `BVLSHR -> binary_bv_op Bitvector.bv_rsh args
-      | `BVASHR -> binary_bv_op Bitvector.bv_arsh args
-      | `BVADD -> bv_add args
-      | `BVSUB -> bv_sub args
-      | `BVMUL -> bv_mult args
-      | `BVUDIV -> binary_bv_op Bitvector.ubv_div args
-      | `BVSDIV -> binary_bv_op Bitvector.sbv_div args
-      | `BVUREM -> binary_bv_op Bitvector.ubv_rem args
-      | `BVSREM -> binary_bv_op Bitvector.sbv_rem args
-      | `BVULT ->
-          bv_relation Bitvector.ult
-            (relation_lt (simplify_term_node default_of_var uf_defs model))
-            args
-      | `BVULE ->
-          bv_relation Bitvector.ulte
-            (relation_leq (simplify_term_node default_of_var uf_defs model))
-            args
-      | `BVUGT ->
-          bv_relation Bitvector.ugt
-            (relation_gt (simplify_term_node default_of_var uf_defs model))
-            args
-      | `BVUGE ->
-          bv_relation Bitvector.ugte
-            (relation_geq (simplify_term_node default_of_var uf_defs model))
-            args
-      | `BVSLT ->
-          bv_relation Bitvector.lt
-            (relation_lt (simplify_term_node default_of_var uf_defs model))
-            args
-      | `BVSLE ->
-          bv_relation Bitvector.lte
-            (relation_leq (simplify_term_node default_of_var uf_defs model))
-            args
-      | `BVSGT ->
-          bv_relation Bitvector.gt
-            (relation_gt (simplify_term_node default_of_var uf_defs model))
-            args
-      | `BVSGE ->
-          bv_relation Bitvector.gte
-            (relation_geq (simplify_term_node default_of_var uf_defs model))
-            args
-      | `BVNEG -> unary_bv_op Bitvector.sbv_neg args
-      | `BVEXTRACT (i, j) -> bv_extract i j args
-      | `BVSIGNEXT i -> bv_signext i args
-      | `BVZEROEXT i -> bv_zeroext i args
-      | `BVCONCAT -> bv_concat args
-      (* Constant symbols *)
-      | `TRUE | `FALSE | `NUMERAL _ | `DECIMAL _ | `UBV _ | `BV _ ->
-          assert false)
+            )
 
-(* Skip over attributed term *)
-(* | Term.T.Attr _ -> match args with [a] -> a | _ -> assert false *)
+          (* Relations *)
+          | `LEQ ->
+
+            relation_leq
+              (simplify_term_node default_of_var uf_defs model)
+              args
+
+          | `LT ->
+
+            relation_lt
+              (simplify_term_node default_of_var uf_defs model)
+              args
+
+          | `GEQ ->
+
+            relation_geq
+              (simplify_term_node default_of_var uf_defs model)
+              args
+
+          | `GT ->
+
+            relation_gt
+              (simplify_term_node default_of_var uf_defs model)
+              args
+
+          (* If-then-else *)
+          | `ITE -> if_then_else args
+
+          (* Divisibility predicate *)
+          | `DIVISIBLE n -> divisible n args
+
+          (* N-ary addition *)
+          | `PLUS -> add args
+
+          (* Unary minus or n-ary difference *)
+          | `MINUS -> minus args
+
+          (* N-ary multiplication *)
+          | `TIMES -> times args
+
+          (* Real division is a monomial with polynomial subterms *)
+          | `DIV -> real_division args
+
+          (* Integer division is a monomial with polynomial subterms *)
+          | `INTDIV -> integer_division args
+
+          (* Modulus is a monomial with polynomial subterms *)
+          | `MOD -> modulus args
+
+          (* Absolute value is a monomial with polynomial subterms *)
+          | `ABS -> absolute_value args
+
+          (* Conversion to integer is a monomial with polynomial
+             subterms *)
+          | `TO_INT -> to_int args
+
+          | `SBV_TO_INT -> bv_to_int args
+
+          (* Conversion to unsigned bitvector is a monomial with polynomial
+             subterms *)
+          | `TO_UBV n -> to_ubv n args
+
+          (* Conversion to signed bitvector is a monomial with polynomial
+             subterms *)
+          | `TO_BV n -> to_bv n args
+          
+          | `BV2NAT
+          | `UBV_TO_INT -> ubv_to_int args
+
+          (* Conversion to real is a monomial with polynomial
+             subterms *)
+          | `TO_REAL -> to_real args
+
+          (* Coincidence of real with integer not implemented *)
+          | `IS_INT -> assert false
+
+          (* Distinct not implemented *)
+          | `DISTINCT -> assert false
+
+          | `BVAND -> binary_bv_op Bitvector.bv_and args
+
+          | `BVOR -> binary_bv_op Bitvector.bv_or args
+
+          | `BVXOR -> binary_bv_op Bitvector.bv_xor args
+
+          | `BVNOT -> unary_bv_op Bitvector.bv_not args
+
+          | `BVSHL -> binary_bv_op Bitvector.bv_lsh args
+
+          | `BVLSHR -> binary_bv_op Bitvector.bv_rsh args
+
+          | `BVASHR -> binary_bv_op Bitvector.bv_arsh args
+
+          | `BVADD -> bv_add args
+
+          | `BVSUB -> bv_sub args
+
+          | `BVMUL -> bv_mult args
+
+          | `BVUDIV -> binary_bv_op Bitvector.ubv_div args
+
+          | `BVSDIV -> binary_bv_op Bitvector.sbv_div args
+
+          | `BVUREM -> binary_bv_op Bitvector.ubv_rem args
+
+          | `BVSREM -> binary_bv_op Bitvector.sbv_rem args
+
+          | `BVULT ->
+
+            bv_relation
+              Bitvector.ult
+              (relation_lt
+                 (simplify_term_node default_of_var uf_defs model))
+              args
+
+          | `BVULE ->
+
+            bv_relation
+              Bitvector.ulte
+              (relation_leq
+                 (simplify_term_node default_of_var uf_defs model))
+              args
+
+          | `BVUGT ->
+
+            bv_relation
+              Bitvector.ugt
+              (relation_gt
+                 (simplify_term_node default_of_var uf_defs model))
+              args
+
+          | `BVUGE ->
+
+            bv_relation
+              Bitvector.ugte
+              (relation_geq
+                 (simplify_term_node default_of_var uf_defs model))
+              args
+
+          | `BVSLT ->
+
+            bv_relation
+              Bitvector.lt
+              (relation_lt
+                 (simplify_term_node default_of_var uf_defs model))
+              args
+
+          | `BVSLE ->
+
+            bv_relation
+              Bitvector.lte
+              (relation_leq
+                 (simplify_term_node default_of_var uf_defs model))
+              args
+
+          | `BVSGT ->
+
+            bv_relation
+              Bitvector.gt
+              (relation_gt
+                 (simplify_term_node default_of_var uf_defs model))
+              args
+
+          | `BVSGE ->
+
+            bv_relation
+              Bitvector.gte
+              (relation_geq
+                 (simplify_term_node default_of_var uf_defs model))
+              args
+
+          | `BVNEG -> unary_bv_op Bitvector.sbv_neg args
+
+          | `BVEXTRACT (i, j) -> bv_extract i j args
+
+          | `BVSIGNEXT i -> bv_signext i args
+
+          | `BVZEROEXT i -> bv_zeroext i args
+
+          | `BVCONCAT -> bv_concat args
+
+          (* Constant symbols *)
+          | `TRUE
+          | `FALSE
+          | `NUMERAL _
+          | `DECIMAL _
+          | `UBV _ 
+          | `BV _ -> assert false
+          
+      )
+
+    (* Skip over attributed term *)
+    (* | Term.T.Attr _ -> match args with [a] -> a | _ -> assert false *)
 
 (* ********************************************************************** *)
 (* Functions used in {!remove_ite}                                        *)
 (* ********************************************************************** *)
 
 let boolean_ite p l r =
-  conjunction
-    [
-      disjunction [ negation [ Bool p ]; Bool l ];
-      disjunction [ Bool p; Bool r ];
-    ]
+  conjunction [ disjunction [negation [Bool p]; Bool l];
+                disjunction [Bool p; Bool r] ]
 
 let remove_boolean_ite = function
+
   (* Choose left branch if predicate is true *)
-  | [ Bool p; l; _ ] when p == Term.t_true -> l
+  | [Bool p; l; _] when p == Term.t_true -> l
+
   (* Choose right branch if predicate is false *)
-  | [ Bool p; _; r ] when p == Term.t_false -> r
+  | [Bool p; _; r] when p == Term.t_false -> r
+
   (* Evaluate to a Boolean *)
-  | [ Bool p; Bool l; Bool r ] -> boolean_ite p l r
+  | [Bool p; Bool l; Bool r] -> boolean_ite p l r
+
   (* Evaluate to an integer atom *)
-  | [ Bool p; Num l; Num r ] ->
-      atom_of_term
-        (Term.mk_ite p (term_of_num_polynomial l) (term_of_num_polynomial r))
+  | [Bool p; Num l; Num r] ->
+
+    (atom_of_term
+       (Term.mk_ite
+          p
+          (term_of_num_polynomial l)
+          (term_of_num_polynomial r)))
+
   (* Evaluate to a real atom *)
-  | [ Bool p; Dec l; Dec r ] ->
-      atom_of_term
-        (Term.mk_ite p (term_of_dec_polynomial l) (term_of_dec_polynomial r))
+  | [Bool p; Dec l; Dec r] ->
+
+      (atom_of_term
+         (Term.mk_ite
+            p
+            (term_of_dec_polynomial l)
+            (term_of_dec_polynomial r)))
+
   (* Not well-typed or wrong arity *)
   | _ -> assert false
+
 
 (* Convert a term to a polynomial
 
    This auxiliary function is polymorphic in the type of the monomial,
    hence we need constructors and predicates. *)
-let polynomial_of_term' is_constant_term constant_of_term is_zero zero one t =
+let polynomial_of_term'
+    is_constant_term
+    constant_of_term
+    is_zero
+    zero
+    one
+    t =
+
   let rec monomials_of_args = function
     | [] -> []
-    | h :: tl -> (
-        if is_constant_term h then (
-          assert (is_zero (constant_of_term h));
-          monomials_of_args tl)
-        else
-          match Term.destruct h with
-          | Term.T.App (s, c :: vl) ->
-              assert (Symbol.node_of_symbol s = `TIMES);
-              if is_constant_term c then
-                (constant_of_term c, vl) :: monomials_of_args tl
-              else (one, c :: vl) :: monomials_of_args tl
-          | Term.T.Var v -> (one, [ Term.mk_var v ]) :: monomials_of_args tl
-          | _ -> assert false)
+    | h :: tl ->
+      if is_constant_term h then (
+        assert (is_zero (constant_of_term h));
+        monomials_of_args tl
+      )
+      else
+        match Term.destruct h with
+        | Term.T.App (s, c :: vl) -> (
+          assert (Symbol.node_of_symbol s = `TIMES);
+          if is_constant_term c then
+            (constant_of_term c, vl) :: monomials_of_args tl
+          else
+            (one, c :: vl) :: monomials_of_args tl
+        )
+        | Term.T.Var v -> (one, [Term.mk_var v]) :: monomials_of_args tl
+        | _ -> assert false
   in
 
-  if is_constant_term t then (constant_of_term t, [])
+  if is_constant_term t then
+    (constant_of_term t, [])
   else
     match Term.destruct t with
     | Term.T.App (s, h :: args) -> (
-        match Symbol.node_of_symbol s with
-        | `PLUS ->
-            if is_constant_term h then
-              (constant_of_term h, monomials_of_args args)
-            else (zero, monomials_of_args (h :: args))
-        | `TIMES -> (zero, monomials_of_args [ t ])
-        | _ -> assert false)
-    | Term.T.Var v -> (zero, [ (one, [ Term.mk_var v ]) ])
+      match Symbol.node_of_symbol s with
+      | `PLUS -> (
+        if is_constant_term h then
+          (constant_of_term h, monomials_of_args args)
+        else
+          (zero, monomials_of_args (h::args))
+      )
+      | `TIMES -> (zero, monomials_of_args [t])
+      | _ -> assert false
+    )
+    | Term.T.Var v -> (zero, [(one, [Term.mk_var v])])
     | _ -> assert false
+
 
 (* Convert a term to a polynomial *)
 let polynomial_of_term t =
@@ -1853,16 +2400,31 @@ let polynomial_of_term t =
 
   (* Term is of type integer *)
   if Type.is_int tt || Type.is_int_range tt || Type.is_enum tt then
-    Num
-      (polynomial_of_term' Term.is_numeral Term.numeral_of_term
-         (Numeral.equal Numeral.zero)
-         Numeral.zero Numeral.one t) (* Term is of type real *)
+
+    Num (polynomial_of_term'
+      Term.is_numeral
+      Term.numeral_of_term
+      (Numeral.equal Numeral.zero)
+      Numeral.zero
+      Numeral.one
+      t
+    )
+
+  (* Term is of type real *)
   else if Type.is_real tt then
-    Dec
-      (polynomial_of_term' Term.is_decimal Term.decimal_of_term
-         (Decimal.equal Decimal.zero)
-         Decimal.zero Decimal.one t)
-  else assert false
+
+    Dec (polynomial_of_term'
+      Term.is_decimal
+      Term.decimal_of_term
+      (Decimal.equal Decimal.zero)
+      Decimal.zero
+      Decimal.one
+      t
+    )
+
+  else
+
+    assert false
 
 (* Perform a tree traversal of `curr_ite` until reaching a polynomial.
    If `ite_terms` is not empty, add polynomial to `polys` and call
@@ -1870,176 +2432,232 @@ let polynomial_of_term t =
    Otherwise, apply operator `oper` to the found polynomial and
    the polynomials contained in `polys`. Then, continue the search. *)
 let rec combine_term_ite oper curr_ite polys ite_terms =
+
   let cmb_ite t =
-    if Term.is_ite t then combine_term_ite oper t polys ite_terms
+    if Term.is_ite t then
+      combine_term_ite oper t polys ite_terms
     else
-      let polys' = polynomial_of_term t :: polys in
+      let polys' = (polynomial_of_term t) :: polys in
       match ite_terms with
       | [] -> term_of_nf (oper polys')
       | h :: tl -> combine_term_ite oper h polys' tl
   in
 
   match Term.destruct curr_ite with
-  | Term.T.App (_, [ p; l; r ]) ->
-      let l', r' = (cmb_ite l, cmb_ite r) in
-      (* Simplify if the two terms are the same. *)
-      if l' == r' then l' else Term.mk_ite p l' r'
+  | Term.T.App (_, [p; l; r]) -> (
+    let l', r' = cmb_ite l, cmb_ite r in
+    (* Simplify if the two terms are the same. *)
+    if l' == r' then
+      l'
+    else
+      Term.mk_ite p l' r'
+  )
   | _ -> assert false
 
 (* Combine all ite operators in `args` by multiplying branches and
    applying operator `oper` to obtained polynomials *)
 let ite_arith oper args =
-  let ite_polys, other_polys =
-    args
-    |> List.partition (fun lit ->
-           match lit with
-           | Num (ct, [ (cf, [ t ]) ]) when Term.is_ite t ->
-               assert (ct == Numeral.zero);
-               assert (cf == Numeral.one);
-               true
-           | Dec (ct, [ (cf, [ t ]) ]) when Term.is_ite t ->
-               assert (ct == Decimal.zero);
-               assert (cf == Decimal.one);
-               true
-           | _ -> false)
+
+  let ite_polys, other_polys = args |> List.partition (fun lit ->
+    match lit with
+    | Num (ct, [cf, [t]]) when Term.is_ite t ->
+      assert (ct == Numeral.zero); assert (cf == Numeral.one); true
+    | Dec (ct, [cf, [t]]) when Term.is_ite t ->
+      assert (ct == Decimal.zero); assert (cf == Decimal.one); true
+    | _ -> false
+  )
   in
 
   match ite_polys with
   | [] -> oper other_polys
-  | Num (_, [ (_, [ h ]) ]) :: tl ->
-      let ite_terms =
-        tl
-        |> List.map (fun ite_poly ->
-               match ite_poly with
-               | Num (_, [ (_, [ t ]) ]) -> t
-               | _ -> assert false)
-      in
-      let ite = combine_term_ite oper h other_polys ite_terms in
-      Num (Numeral.zero, [ (Numeral.one, [ ite ]) ])
-  | Dec (_, [ (_, [ h ]) ]) :: tl ->
-      let ite_terms =
-        tl
-        |> List.map (fun ite_poly ->
-               match ite_poly with
-               | Dec (_, [ (_, [ t ]) ]) -> t
-               | _ -> assert false)
-      in
-      let ite = combine_term_ite oper h other_polys ite_terms in
-      Dec (Decimal.zero, [ (Decimal.one, [ ite ]) ])
+
+  | Num (_, [_, [h]]) :: tl ->
+    let ite_terms = tl |> List.map (fun ite_poly ->
+      match ite_poly with
+      Num (_, [_, [t]]) -> t | _ -> assert false)
+    in
+    let ite = combine_term_ite oper h other_polys ite_terms in
+    Num (Numeral.zero, [Numeral.one, [ite]])
+
+  | Dec (_, [_, [h]]) :: tl ->
+    let ite_terms = tl |> List.map (fun ite_poly ->
+      match ite_poly with
+      Dec (_, [_, [t]]) -> t | _ -> assert false)
+    in
+    let ite = combine_term_ite oper h other_polys ite_terms in
+    Dec (Decimal.zero, [Decimal.one, [ite]])
+
   | _ -> assert false
 
+
 let ite_divisible n = function
-  | [ Num (ct, [ (cf, [ t ]) ]) ] when Term.is_ite t ->
-      assert (ct == Numeral.zero);
-      assert (cf == Numeral.one);
 
-      let rec apply_to_leaves curr_ite =
-        let aux_apply t =
-          if Term.is_ite t then apply_to_leaves t
-          else term_of_nf (divisible n [ polynomial_of_term t ])
-        in
+  | [Num (ct, [cf, [t]])] when Term.is_ite t -> (
 
-        match Term.destruct curr_ite with
-        | Term.T.App (_, [ p; l; r ]) ->
-            let l', r' = (aux_apply l, aux_apply r) in
-            (* Simplify if the two terms are the same. *)
-            if l' == r' then l' else term_of_nf (boolean_ite p l' r')
-        | _ -> assert false
+    assert (ct == Numeral.zero); assert (cf == Numeral.one);
+
+    let rec apply_to_leaves curr_ite =
+
+      let aux_apply t =
+        if Term.is_ite t then apply_to_leaves t
+        else term_of_nf (divisible n [polynomial_of_term t])
       in
 
-      Bool (apply_to_leaves t)
+      match Term.destruct curr_ite with
+      | Term.T.App (_, [p; l; r]) -> (
+        let l', r' = aux_apply l, aux_apply r in
+        (* Simplify if the two terms are the same. *)
+        if l' == r' then
+          l'
+        else
+          term_of_nf (boolean_ite p l' r')
+      )
+      | _ -> assert false
+    in
+
+    Bool (apply_to_leaves t)
+  )
+
   | args -> divisible n args
+
 
 (* Apply minus operator after combining all ite operators *)
 let ite_minus = function
+
   (* Subtraction is not nullary  *)
   | [] -> assert false
+
   (* Unary integer/real minus: negate polynomial to (- c - p) *)
-  | [ nf ] -> ite_arith minus [ nf ]
+  | [nf] -> ite_arith minus [nf]
+
   (* Binary integer/real minus or higher arity: (h - s1 - ... - sn) reduce
      to (h - (s1 + ... + sn) *)
-  | nf :: tl -> ite_arith add [ nf; ite_arith minus [ ite_arith add tl ] ]
+  | nf :: tl ->
+    ite_arith add [nf; ite_arith minus [ite_arith add tl]]
 
 (* Apply relation after combining all ite operators *)
 let rec combine_bool_ite ite_rel_to_nf' ite =
+
   let cmb_ite t =
-    if Term.is_ite t then combine_bool_ite ite_rel_to_nf' t
-    else term_of_nf (ite_rel_to_nf' (polynomial_of_term t))
+    if Term.is_ite t then
+      combine_bool_ite ite_rel_to_nf' t
+    else
+      term_of_nf (ite_rel_to_nf' (polynomial_of_term t))
   in
 
   match Term.destruct ite with
-  | Term.T.App (_, [ p; l; r ]) ->
-      let l', r' = (cmb_ite l, cmb_ite r) in
-      (* Simplify if the two terms are equal... *)
-      if l' == r' then l' (* ... or are constant *)
-      else if Term.is_bool l' && Term.is_bool r' then
-        if Term.bool_of_term l' then p else Term.mk_not p
-      else term_of_nf (boolean_ite p l' r')
+  | Term.T.App (_, [p; l; r]) -> (
+    let l', r' = cmb_ite l, cmb_ite r in
+    (* Simplify if the two terms are equal... *)
+    if l' == r' then
+      l'
+    (* ... or are constant *)
+    else if Term.is_bool l' && Term.is_bool r' then
+      if Term.bool_of_term l' then p
+      else Term.mk_not p
+    else
+      term_of_nf (boolean_ite p l' r')
+  )
   | _ -> assert false
+
 
 (* Polymorphic function to construct relation between
    polynomial `p` and zero (e.g. p <= 0, p = 0) *)
-let ite_rel_to_nf' rel mk_rel zero t_zero p =
+let ite_rel_to_nf'
+    rel
+    mk_rel
+    zero
+    t_zero
+    p =
+
   (* Polynomial has become constant, i.e. (a = a) -> (0 = 0) *)
   if is_constant p then
+
     (* Return true if constant is in the relation with zero,
        otherwise false
     *)
     Bool (Term.mk_bool (rel p zero))
+
   else
+
     (* Simplify (a = b) to (a - b = 0) *)
-    Bool (mk_rel [ term_of_nf p; t_zero ])
+    Bool (mk_rel [term_of_nf p; t_zero])
+
 
 (* Normalize an binary relation by subtracting the right-hand side from the
    left-hand side and evaluating to true or false if possible *)
-let ite_rel_to_nf ite_rel_to_nf' a b =
-  let p = ite_minus [ a; b ] in
+let ite_rel_to_nf
+    ite_rel_to_nf'
+    a b =
+
+  let p = ite_minus [a; b] in
 
   match p with
-  | Num (ct, [ (cf, [ t ]) ]) when Term.is_ite t ->
-      assert (ct == Numeral.zero);
-      assert (cf == Numeral.one);
-      Bool (combine_bool_ite ite_rel_to_nf' t)
-  | Dec (ct, [ (cf, [ t ]) ]) when Term.is_ite t ->
-      assert (ct == Decimal.zero);
-      assert (cf == Decimal.one);
-      Bool (combine_bool_ite ite_rel_to_nf' t)
-  | _ -> ite_rel_to_nf' p
+  | Num (ct, [cf, [t]]) when Term.is_ite t ->
+     assert (ct == Numeral.zero); assert (cf == Numeral.one);
+     Bool (combine_bool_ite ite_rel_to_nf' t)
+
+  | Dec (ct, [cf, [t]]) when Term.is_ite t ->
+     assert (ct == Decimal.zero); assert (cf == Decimal.one);
+     Bool (combine_bool_ite ite_rel_to_nf' t)
+
+  | _ ->
+    ite_rel_to_nf' p
+
 
 (* Return the corresponding relation, zero polynomial, and zero term
    based on the type of the given integer (real) polynomial *)
 let numerical_rel_and_zero rel_num rel_dec = function
   | Num _ ->
-      (* Compute relation between constant integer polynomials *)
-      let irel p q =
-        rel_num (const_of_num_polynomial p) (const_of_num_polynomial q)
-      in
 
-      (irel, Num (Numeral.zero, []), Term.mk_num Numeral.zero)
+    (* Compute relation between constant integer polynomials *)
+    let irel p q =
+      rel_num (const_of_num_polynomial p) (const_of_num_polynomial q)
+    in
+
+    (irel, Num (Numeral.zero, []), Term.mk_num Numeral.zero)
+
   | Dec _ ->
-      (* Compute relation between constant real polynomials *)
-      let rrel p q =
-        rel_dec (const_of_dec_polynomial p) (const_of_dec_polynomial q)
-      in
 
-      (rrel, Dec (Decimal.zero, []), Term.mk_dec Decimal.zero)
+    (* Compute relation between constant real polynomials *)
+    let rrel p q =
+      rel_dec (const_of_dec_polynomial p) (const_of_dec_polynomial q)
+    in
+
+    (rrel, Dec (Decimal.zero, []), Term.mk_dec Decimal.zero)
+
   (* Relation must be between integers or reals *)
   | Bool _ | Array _ | BV _ -> assert false
+
 
 (* Normalize an n-ary relation by unchaining it into a conjunction of
    binary relations, subtracting the right-hand side from the
    left-hand side and evaluating to true or false if possible *)
-let ite_relation remove_ite' rel_num rel_dec mk_rel = function
-  (* Relation must be at least binary *)
-  | [] | [ _ ] -> assert false
-  (* Binary relation *)
-  | [ a; b ] ->
-      let rel, zero, t_zero = numerical_rel_and_zero rel_num rel_dec a in
+let ite_relation
+    remove_ite'
+    rel_num
+    rel_dec
+    mk_rel =
+
+  function
+
+    (* Relation must be at least binary *)
+    | []
+    | [_] -> assert false
+
+    (* Binary relation *)
+    | [a; b] ->
+
+      let rel, zero, t_zero =
+        numerical_rel_and_zero rel_num rel_dec a in
 
       ite_rel_to_nf (ite_rel_to_nf' rel mk_rel zero t_zero) a b
-  (* Higher arity relation *)
-  | e :: _ as args ->
-      let rel, zero, t_zero = numerical_rel_and_zero rel_num rel_dec e in
+
+    (* Higher arity relation *)
+    | e :: _  as args ->
+
+      let rel, zero, t_zero =
+        numerical_rel_and_zero rel_num rel_dec e in
 
       (* Convert list of n elements [e_1; ...; en] to list [(e_1, e_2);
          ...; (e_n-1, e_n)] *)
@@ -2047,38 +2665,65 @@ let ite_relation remove_ite' rel_num rel_dec mk_rel = function
 
       (* Simplify each binary relation *)
       let args' =
-        List.map
-          (fun (a, b) ->
-            ite_rel_to_nf (ite_rel_to_nf' rel mk_rel zero t_zero) a b)
-          args_chain
+        List.map (fun (a, b) ->
+          ite_rel_to_nf (ite_rel_to_nf' rel mk_rel zero t_zero) a b
+        )
+        args_chain
       in
 
       (* Simplify conjunction of binary relations *)
       Bool
         (bool_of_nf
            (remove_ite'
-              (Term.destruct (Term.mk_and (List.map term_of_nf args')))
+              (Term.destruct
+                 (Term.mk_and (List.map term_of_nf args')))
               args'))
+
 
 (* Normalize equality relation between normal forms *)
 let ite_rel_eq remove_ite' =
-  ite_relation remove_ite' Numeral.( = ) Decimal.( = ) Term.mk_eq
+
+  ite_relation
+    remove_ite'
+    Numeral.(=)
+    Decimal.(=)
+    Term.mk_eq
 
 (* Normalize less than or equal relation between normal forms *)
 let ite_rel_leq remove_ite' =
-  ite_relation remove_ite' Numeral.( <= ) Decimal.( <= ) Term.mk_leq
+
+  ite_relation
+    remove_ite'
+    Numeral.(<=)
+    Decimal.(<=)
+    Term.mk_leq
 
 (* Normalize less than relation between normal forms *)
 let ite_rel_lt remove_ite' =
-  ite_relation remove_ite' Numeral.( < ) Decimal.( < ) Term.mk_lt
+
+  ite_relation
+    remove_ite'
+    Numeral.(<)
+    Decimal.(<)
+    Term.mk_lt
 
 (* Normalize greater than or equal relation between normal forms *)
 let ite_rel_geq remove_ite' =
-  ite_relation remove_ite' Numeral.( >= ) Decimal.( >= ) Term.mk_geq
+
+  ite_relation
+    remove_ite'
+    Numeral.(>=)
+    Decimal.(>=)
+    Term.mk_geq
 
 (* Normalize greater than relation between normal forms *)
 let ite_rel_gt remove_ite' =
-  ite_relation remove_ite' Numeral.( > ) Decimal.( > ) Term.mk_gt
+
+  ite_relation
+    remove_ite'
+    Numeral.(>)
+    Decimal.(>)
+    Term.mk_gt
 
 (*
 (* Fail if normal form is not constant *)
@@ -2089,150 +2734,245 @@ let const_nf name nf =
 
 let rec remove_ite' fterm args =
   match fterm with
+
   | Term.T.Var v -> atom_of_term (Term.mk_var v)
+
   (* Polynomial of a constant depends on symbol *)
-  | Term.T.Const s -> (
+  | Term.T.Const s ->
+    (
       (* Unhashcons constant symbol *)
       match Symbol.node_of_symbol s with
-      (* Polynomial for a numeral is n *)
-      | `NUMERAL n -> Num (n, [])
-      (* Polynomial for a decimal is d *)
-      | `DECIMAL d -> Dec (d, [])
-      (* Propositional constant *)
-      | `TRUE -> Bool Term.t_true
-      | `FALSE -> Bool Term.t_false
-      (* Uninterpreted constant *)
-      | `UF _ -> assert false
-      (* Fail in remaining cases, which are not constants *)
-      | _ -> assert false)
+
+        (* Polynomial for a numeral is n *)
+        | `NUMERAL n -> Num (n, [])
+
+        (* Polynomial for a decimal is d *)
+        | `DECIMAL d -> Dec (d, [])
+
+        (* Propositional constant *)
+        | `TRUE -> Bool (Term.t_true)
+        | `FALSE -> Bool (Term.t_false)
+
+        (* Uninterpreted constant *)
+        | `UF _ -> assert false
+
+        (* Fail in remaining cases, which are not constants *)
+        | _ -> assert false
+    )
+
   (* Normal form of a function application depends on its symbol *)
-  | Term.T.App (s, _) -> (
+  | Term.T.App (s, _) ->
+    (
       (* Unhashcons function symbol *)
       match Symbol.node_of_symbol s with
-      (* Boolean negation *)
-      | `NOT -> negation args
-      (* Boolean conjunction *)
-      | `AND -> conjunction args
-      (* Boolean disjunction *)
-      | `OR -> disjunction args
-      (* Reduce implication to a disjunction *)
-      | `IMPLIES -> implication remove_ite' args
-      (* Reduce exclusive disjunction (a xor b) to disjunction of
-           conjunctions ((a & ~b) | (~a & b)) *)
-      | `XOR -> exclusive_disjunction remove_ite' args
-      (* Equation *)
-      | `EQ -> (
-          match args with
-          (* Nullary or unary equation *)
-          | [] -> assert false
-          | [ _ ] -> assert false
-          (* Binary equivalence, reduce to (a & b) | (~a & ~b) *)
-          | [ Bool a; Bool b ] -> binary_equivalence remove_ite' a b
-          (* Equation between integers or reals *)
-          | _ -> ite_rel_eq remove_ite' args)
-      (* Relations *)
-      | `LEQ -> ite_rel_leq remove_ite' args
-      | `LT -> ite_rel_lt remove_ite' args
-      | `GEQ -> ite_rel_geq remove_ite' args
-      | `GT -> ite_rel_gt remove_ite' args
-      (* If-then-else *)
-      | `ITE -> remove_boolean_ite args
-      (* Divisibility predicate *)
-      | `DIVISIBLE n -> ite_divisible n args
-      (* N-ary addition *)
-      | `PLUS -> ite_arith add args
-      (* Unary minus or n-ary difference *)
-      | `MINUS -> ite_minus args
-      (* N-ary multiplication *)
-      | `TIMES -> ite_arith times args
-      (* Real division is a monomial with polynomial subterms *)
-      | `DIV -> real_division args (* |> const_nf "DIV" *)
-      (* Integer division is a monomial with polynomial subterms *)
-      | `INTDIV -> integer_division args (* |> const_nf "INTDIV" *)
-      (* Modulus is a monomial with polynomial subterms *)
-      | `MOD -> modulus args (* |> const_nf "MOD" *)
-      (* Absolute value is a monomial with polynomial subterms *)
-      | `ABS -> absolute_value args (* |> const_nf "ABS" *)
-      (* Conversion to integer is a monomial with polynomial
-           subterms *)
-      | `TO_INT -> to_int args (* |> const_nf "TO_INT" *)
-      | `UINT8_TO_INT -> ubv_to_int args
-      | `UINT16_TO_INT -> ubv_to_int args
-      | `UINT32_TO_INT -> ubv_to_int args
-      | `UINT64_TO_INT -> ubv_to_int args
-      | `INT8_TO_INT -> bv_to_int args
-      | `INT16_TO_INT -> bv_to_int args
-      | `INT32_TO_INT -> bv_to_int args
-      | `INT64_TO_INT -> bv_to_int args
-      (* Conversion to unsigned integer8 is a monomial with polynomial
-           subterms *)
-      | `TO_UINT8 -> to_uint8 args
-      (* Conversion to unsigned integer16 is a monomial with polynomial
-           subterms *)
-      | `TO_UINT16 -> to_uint16 args
-      (* Conversion to unsigned integer32 is a monomial with polynomial
-           subterms *)
-      | `TO_UINT32 -> to_uint32 args
-      (* Conversion to unsigned integer64 is a monomial with polynomial
-           subterms *)
-      | `TO_UINT64 -> to_uint64 args
-      (* Conversion to integer8 is a monomial with polynomial
-           subterms *)
-      | `TO_INT8 -> to_int8 args
-      (* Conversion to integer16 is a monomial with polynomial
-           subterms *)
-      | `TO_INT16 -> to_int16 args
-      (* Conversion to integer32 is a monomial with polynomial
-           subterms *)
-      | `TO_INT32 -> to_int32 args
-      (* Conversion to integer64 is a monomial with polynomial
-           subterms *)
-      | `TO_INT64 -> to_int64 args
-      | `BV2NAT -> bv2nat args
-      (* Conversion to real is a monomial with polynomial
-           subterms *)
-      | `TO_REAL -> to_real args (* |> const_nf "TO_REAL" *)
-      | `BVAND -> binary_bv_op Bitvector.bv_and args
-      | `BVOR -> binary_bv_op Bitvector.bv_or args
-      | `BVNOT -> unary_bv_op Bitvector.bv_not args
-      | `BVSHL -> binary_bv_op Bitvector.bv_lsh args
-      | `BVLSHR -> binary_bv_op Bitvector.bv_rsh args
-      | `BVASHR -> binary_bv_op Bitvector.bv_arsh args
-      | `BVADD -> bv_add args
-      | `BVSUB -> bv_sub args
-      | `BVMUL -> bv_mult args
-      | `BVUDIV -> binary_bv_op Bitvector.ubv_div args
-      | `BVSDIV -> binary_bv_op Bitvector.sbv_div args
-      | `BVUREM -> binary_bv_op Bitvector.ubv_rem args
-      | `BVSREM -> binary_bv_op Bitvector.sbv_rem args
-      | `BVULT -> bv_relation Bitvector.ult (relation_lt remove_ite') args
-      | `BVULE -> bv_relation Bitvector.ulte (relation_leq remove_ite') args
-      | `BVUGT -> bv_relation Bitvector.ugt (relation_gt remove_ite') args
-      | `BVUGE -> bv_relation Bitvector.ugte (relation_geq remove_ite') args
-      | `BVSLT -> bv_relation Bitvector.lt (relation_lt remove_ite') args
-      | `BVSLE -> bv_relation Bitvector.lte (relation_leq remove_ite') args
-      | `BVSGT -> bv_relation Bitvector.gt (relation_gt remove_ite') args
-      | `BVSGE -> bv_relation Bitvector.gte (relation_geq remove_ite') args
-      | `BVNEG -> unary_bv_op Bitvector.sbv_neg args
-      | `BVEXTRACT (i, j) -> bv_extract i j args
-      | `BVSIGNEXT i -> bv_signext i args
-      | `BVZEROEXT i -> bv_zeroext i args
-      | `BVCONCAT -> bv_concat args
-      (* Coincidence of real with integer (not implemented) *)
-      | `IS_INT -> assert false
-      (* Distinct (not implemented) *)
-      | `DISTINCT -> assert false
-      (* Normal form for an uninterpreted function *)
-      | `UF u -> atom_of_term (Term.mk_uf u (List.map term_of_nf args))
-      (* Selec from an array *)
-      | `SELECT _ -> select remove_ite' (Var.VarHashtbl.create 0) fterm args
-      (* Array store *)
-      | `STORE -> store args
-      (* Constant symbols *)
-      | `TRUE | `FALSE | `NUMERAL _ | `DECIMAL _ | `BV _ | `UBV _ ->
-          assert false)
 
-(* | Term.T.Attr _ -> match args with [a] -> a | _ -> assert false *)
+        (* Boolean negation *)
+        | `NOT -> negation args
+
+        (* Boolean conjunction *)
+        | `AND -> conjunction args
+
+        (* Boolean disjunction *)
+        | `OR -> disjunction args
+
+        (* Reduce implication to a disjunction *)
+        | `IMPLIES -> implication remove_ite' args
+
+        (* Reduce exclusive disjunction (a xor b) to disjunction of
+           conjunctions ((a & ~b) | (~a & b)) *)
+        | `XOR -> exclusive_disjunction remove_ite' args
+
+        (* Equation *)
+        | `EQ ->
+
+           (match args with
+
+              (* Nullary or unary equation *)
+              | []  -> assert false
+              | [_] -> assert false
+
+              (* Binary equivalence, reduce to (a & b) | (~a & ~b) *)
+              | [Bool a; Bool b] ->
+
+                binary_equivalence remove_ite' a b
+
+              (* Equation between integers or reals *)
+              | _ -> ite_rel_eq remove_ite' args
+           )
+
+        (* Relations *)
+        | `LEQ -> ite_rel_leq remove_ite' args
+        | `LT -> ite_rel_lt remove_ite' args
+
+        | `GEQ -> ite_rel_geq remove_ite' args
+
+        | `GT -> ite_rel_gt remove_ite' args
+
+        (* If-then-else *)
+        | `ITE -> remove_boolean_ite args
+
+        (* Divisibility predicate *)
+        | `DIVISIBLE n -> ite_divisible n args
+
+        (* N-ary addition *)
+        | `PLUS -> ite_arith add args
+
+        (* Unary minus or n-ary difference *)
+        | `MINUS -> ite_minus args
+
+        (* N-ary multiplication *)
+        | `TIMES -> ite_arith times args
+
+        (* Real division is a monomial with polynomial subterms *)
+        | `DIV -> real_division args (* |> const_nf "DIV" *)
+
+        (* Integer division is a monomial with polynomial subterms *)
+        | `INTDIV -> integer_division args (* |> const_nf "INTDIV" *)
+
+        (* Modulus is a monomial with polynomial subterms *)
+        | `MOD -> modulus args (* |> const_nf "MOD" *)
+
+        (* Absolute value is a monomial with polynomial subterms *)
+        | `ABS -> absolute_value args (* |> const_nf "ABS" *)
+
+        (* Conversion to integer is a monomial with polynomial
+           subterms *)
+        | `TO_INT -> to_int args (* |> const_nf "TO_INT" *)
+
+        | `SBV_TO_INT -> bv_to_int args
+
+        (* Conversion to unsigned bv is a monomial with polynomial
+           subterms *)
+        | `TO_UBV n -> to_ubv n args
+
+        (* Conversion to signed bv is a monomial with polynomial
+           subterms *)
+        | `TO_BV n -> to_bv n args
+
+        | `BV2NAT
+        | `UBV_TO_INT -> ubv_to_int args
+
+        (* Conversion to real is a monomial with polynomial
+           subterms *)
+        | `TO_REAL -> to_real args (* |> const_nf "TO_REAL" *)
+
+        | `BVAND -> binary_bv_op Bitvector.bv_and args
+
+        | `BVOR -> binary_bv_op Bitvector.bv_or args
+
+        | `BVXOR -> binary_bv_op Bitvector.bv_xor args
+
+        | `BVNOT -> unary_bv_op Bitvector.bv_not args
+
+        | `BVSHL -> binary_bv_op Bitvector.bv_lsh args
+
+        | `BVLSHR -> binary_bv_op Bitvector.bv_rsh args
+
+        | `BVASHR -> binary_bv_op Bitvector.bv_arsh args
+
+        | `BVADD -> bv_add args
+
+        | `BVSUB -> bv_sub args
+
+        | `BVMUL -> bv_mult args
+
+        | `BVUDIV -> binary_bv_op Bitvector.ubv_div args
+
+        | `BVSDIV -> binary_bv_op Bitvector.sbv_div args
+
+        | `BVUREM -> binary_bv_op Bitvector.ubv_rem args
+
+        | `BVSREM -> binary_bv_op Bitvector.sbv_rem args
+
+        | `BVULT ->
+
+          bv_relation
+            Bitvector.ult
+            (relation_lt remove_ite')
+            args
+
+        | `BVULE ->
+
+          bv_relation
+            Bitvector.ulte
+            (relation_leq remove_ite')
+            args
+
+        | `BVUGT ->
+
+          bv_relation
+            Bitvector.ugt
+            (relation_gt remove_ite')
+            args
+
+        | `BVUGE ->
+
+          bv_relation
+            Bitvector.ugte
+            (relation_geq remove_ite')
+            args
+
+        | `BVSLT ->
+
+          bv_relation
+            Bitvector.lt
+            (relation_lt remove_ite')
+            args
+
+        | `BVSLE ->
+
+          bv_relation
+            Bitvector.lte
+            (relation_leq remove_ite')
+            args
+
+        | `BVSGT ->
+
+          bv_relation
+            Bitvector.gt
+            (relation_gt remove_ite')
+            args
+
+        | `BVSGE ->
+
+          bv_relation
+            Bitvector.gte
+            (relation_geq remove_ite')
+            args
+
+        | `BVNEG -> unary_bv_op Bitvector.sbv_neg args
+
+        | `BVEXTRACT (i, j) -> bv_extract i j args
+
+        | `BVSIGNEXT i -> bv_signext i args
+
+        | `BVZEROEXT i -> bv_zeroext i args
+
+        | `BVCONCAT -> bv_concat args
+
+        (* Coincidence of real with integer (not implemented) *)
+        | `IS_INT -> assert false
+
+        (* Distinct (not implemented) *)
+        | `DISTINCT -> assert false
+
+        (* Normal form for an uninterpreted function *)
+        | `UF u -> atom_of_term (Term.mk_uf u (List.map term_of_nf args))
+
+        (* Selec from an array *)
+        | `SELECT _ -> select remove_ite' (Var.VarHashtbl.create 0) fterm args
+
+        | `CONST_ARRAY ty_array -> const_array ty_array args
+
+        (* Array store *)
+        | `STORE -> store args
+
+        (* Constant symbols *)
+        | `TRUE | `FALSE | `NUMERAL _ | `DECIMAL _ | `BV _ | `UBV _ -> assert false
+    )
+
+  (* | Term.T.Attr _ -> match args with [a] -> a | _ -> assert false *)
+
 
 (* ********************************************************************** *)
 (* Top-level functions                                                    *)
@@ -2241,49 +2981,67 @@ let rec remove_ite' fterm args =
 (* Return the default value of the type *)
 let type_default_of_var v = Var.type_of_var v |> TermLib.default_of_type
 
-(* Simplify a term with a model *)
-let simplify_term_model ?(split_eq = false) ?default_of_var uf_defs model term =
-  Debug.simplify "Simplifying@ @[<hv>%a@]@ with model@ @[<hv>%a@]"
-    Term.pp_print_term term Model.pp_print_model model;
 
-  Var.VarHashtbl.iter
-    (fun v -> function
-      | Model.Term t when Term.is_free_var t ->
-          let v' = Term.free_var_of_term t in
-          if Var.equal_vars v v' then Var.VarHashtbl.remove model v
-      | _ -> ())
+(* Simplify a term with a model *)
+let simplify_term_model ?(split_eq=false) ?default_of_var uf_defs model term = 
+
+  Debug.simplify
+    "Simplifying@ @[<hv>%a@]@ with model@ @[<hv>%a@]"
+    Term.pp_print_term term
+    Model.pp_print_model
     model;
 
+  Var.VarHashtbl.iter (fun v -> function
+      | Model.Term t when Term.is_free_var t ->
+        let v' = Term.free_var_of_term t in
+        if Var.equal_vars v v' then
+          Var.VarHashtbl.remove model v
+      | _ -> ()
+    ) model;
+  
   (* Convert returned default value to a polynomial *)
-  let default_of_var' =
-    match default_of_var with
+  let default_of_var' = match default_of_var with
+
     (* Take the given function *)
     | Some f -> fun v -> f v
+
     (* Take default value for type if no function given *)
-    | None -> fun v -> type_default_of_var v
+    | None -> fun v ->
+        type_default_of_var v
+
   in
 
   (* Simplify term to a normal form and convert back to a term *)
   let res =
     term_of_nf
       (Term.eval_t
-         (simplify_term_node ~split_eq default_of_var' uf_defs model)
+         (simplify_term_node ~split_eq default_of_var' uf_defs model) 
          term)
   in
 
-  Debug.simplify "Simplified@ > @[<hv>%a@]@ to@ > @[<hv>%a@]" Term.pp_print_term
-    term Term.pp_print_term res;
+  Debug.simplify
+    "Simplified@ > @[<hv>%a@]@ to@ > @[<hv>%a@]"
+    Term.pp_print_term term
+    Term.pp_print_term res;
 
   res
 
 (* Simplify a term *)
-let simplify_term ?(split_eq = false) uf_defs term =
-  simplify_term_model ~split_eq ~default_of_var:Term.mk_var uf_defs
-    (Model.create 7) term
+let simplify_term ?(split_eq=false) uf_defs term = 
+
+  simplify_term_model
+    ~split_eq
+    ~default_of_var:Term.mk_var
+    uf_defs 
+    (Model.create 7) 
+    term
 
 (* Simplify a term removing occurrences of ITE applications *)
 let remove_ite term =
-  let res = term_of_nf (Term.eval_t remove_ite' term) in
+  let res =
+    term_of_nf
+      (Term.eval_t remove_ite' term)
+  in
   res
 
 (*
@@ -2372,6 +3130,7 @@ Term.print_term (Eval.term_of_value  (Eval.eval_term [] m t));;
 
 *)
 
+
 (* 
    Local Variables:
    compile-command: "make -C .. -k"
@@ -2379,3 +3138,4 @@ Term.print_term (Eval.term_of_value  (Eval.eval_term [] m t));;
    indent-tabs-mode: nil
    End: 
 *)
+

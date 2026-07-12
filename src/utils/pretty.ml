@@ -20,22 +20,27 @@
 *)
 
 open Format
-open Lib
 
 (* Set width of pretty printing boxes to number of columns *)
 let vt_width =
   try
-    let stty_size = syscall "stty size < /dev/tty" in
-    let w = Scanf.sscanf stty_size "%d %d" (fun _ cols -> cols) in
-    set_margin w;
-    w
+    if Unix.isatty Unix.stdout then (
+      let cols =
+        match Sys.getenv_opt "COLUMNS" with
+        | Some s -> (try int_of_string s with _ -> 80)
+        | None -> 80
+      in
+      set_margin cols;
+      cols
+    ) else
+      80
   with _ -> 80
 
-let print_line =
+let print_line = 
   let s = String.make vt_width '-' in
   fun fmt () -> fprintf fmt "%s@\n" s
 
-let print_double_line =
+let print_double_line = 
   let s = String.make vt_width '=' in
   fun fmt () -> fprintf fmt "%s@\n" s
 
@@ -53,6 +58,7 @@ let rec print_list print sep fmt = function
     fprintf fmt sep;
     print_list print sep fmt l
 *)
+
 
 type style =
   | User of int
@@ -102,12 +108,13 @@ type style =
   | BG_Gray_B
   | BG_Default_B
 
-let assoc_style = function
-  | User i -> "38;5;" ^ string_of_int i (* 256 colors *)
+
+let assoc_style =  function
+  | User i  -> "38;5;" ^ string_of_int i (* 256 colors *)
   | Normal -> "0"
   | Bold -> "1"
   | Bold_off -> "22"
-  | Dim -> "2"
+  | Dim ->  "2"
   | Underline -> "4"
   | Underline_off -> "24"
   | Inverse -> "7"
@@ -149,6 +156,7 @@ let assoc_style = function
   | BG_Cyan_B -> "106"
   | BG_Gray_B -> "107"
   | BG_Default_B -> "109"
+
 
 let style_of_tag = function
   | "n" -> Normal
@@ -196,51 +204,57 @@ let style_of_tag = function
   | "bg_cyan_b" -> BG_Cyan_B
   | "bg_gray_b" -> BG_Gray_B
   | "bg_default_b" -> BG_Default_B
-  | t -> (
-      try Scanf.sscanf t "c:%d" (fun x -> User x)
-      with Scanf.Scan_failure _ | End_of_file ->
-        eprintf "tag : %s@." t;
-        raise Not_found)
+  | t ->
+    try Scanf.sscanf t "c:%d" (fun x -> User x)
+    with Scanf.Scan_failure _ | End_of_file ->
+      eprintf "tag : %s@." t;
+      raise Not_found
+
 
 let start_tag t =
   match t with
   | String_tag t -> (
-      try Printf.sprintf "[%sm" (assoc_style (style_of_tag t))
-      with Not_found -> "")
+    try Printf.sprintf "[%sm" (assoc_style (style_of_tag t))
+    with Not_found -> ""
+  )
   | _ -> failwith "Unexpected start_tag"
 
 let stop_tag t =
   (* try *)
   match t with
-  | String_tag t ->
-      let st =
-        match style_of_tag t with
-        | Bold -> Bold_off
-        | Underline -> Underline_off
-        | Inverse -> Inverse_off
-        | FG_Black | FG_Red | FG_Green | FG_Yellow | FG_Blue | FG_Magenta
-        | FG_Cyan | FG_Gray | FG_Default ->
-            FG_Default
-        | BG_Black | BG_Red | BG_Green | BG_Yellow | BG_Blue | BG_Magenta
-        | BG_Cyan | BG_Gray | BG_Default ->
-            BG_Default
-        | FG_Black_B | FG_Red_B | FG_Green_B | FG_Yellow_B | FG_Blue_B
-        | FG_Magenta_B | FG_Cyan_B | FG_Gray_B | FG_Default_B ->
-            FG_Default
-        | BG_Black_B | BG_Red_B | BG_Green_B | BG_Yellow_B | BG_Blue_B
-        | BG_Magenta_B | BG_Cyan_B | BG_Gray_B | BG_Default_B ->
-            BG_Default
-        | _ -> Normal
-      in
-      Printf.sprintf "[%sm" (assoc_style st)
+  | String_tag t -> (
+    let st = match style_of_tag t with
+      | Bold -> Bold_off
+      | Underline -> Underline_off
+      | Inverse -> Inverse_off
+
+      | FG_Black | FG_Red | FG_Green | FG_Yellow | FG_Blue
+      | FG_Magenta | FG_Cyan | FG_Gray | FG_Default -> FG_Default
+
+      | BG_Black | BG_Red | BG_Green | BG_Yellow | BG_Blue 
+      | BG_Magenta | BG_Cyan | BG_Gray | BG_Default -> BG_Default
+
+      | FG_Black_B | FG_Red_B | FG_Green_B | FG_Yellow_B | FG_Blue_B 
+      | FG_Magenta_B | FG_Cyan_B | FG_Gray_B | FG_Default_B -> FG_Default
+
+      | BG_Black_B | BG_Red_B | BG_Green_B | BG_Yellow_B | BG_Blue_B
+      | BG_Magenta_B | BG_Cyan_B | BG_Gray_B | BG_Default_B -> BG_Default
+
+      | _ -> Normal
+    in
+    Printf.sprintf "[%sm" (assoc_style st)
+  )
   | _ -> failwith "Unexpected close_tag"
-(* with Not_found -> eprintf "didnr find %s@." t; raise Not_found  *)
+  (* with Not_found -> eprintf "didnr find %s@." t; raise Not_found  *)
+
 
 let add_colors formatter =
   (* pp_set_tags formatter true; *)
   let old_fs = pp_get_formatter_stag_functions formatter () in
   pp_set_formatter_stag_functions formatter
-    { old_fs with mark_open_stag = start_tag; mark_close_stag = stop_tag }
+    { old_fs with
+      mark_open_stag = start_tag;
+      mark_close_stag = stop_tag }
 
 let _ =
   add_colors std_formatter;
@@ -248,6 +262,8 @@ let _ =
   add_colors !Lib.log_ppf;
   pp_set_margin std_formatter vt_width;
   pp_set_margin err_formatter vt_width
+
+
 
 (* ********************************************************************** *)
 (* Event tags used when outputting info.                                  *)
@@ -272,9 +288,10 @@ let print_event_tag fmt = function
   | Failure -> tagify fmt "@{<red_b>Failure@}"
   | Warning -> tagify fmt "@{<yellow>Warning@}"
   | Note -> tagify fmt "@{<cyan>Note@}"
-  | Error -> tagify fmt "@{<magenta_b>Error@}"
+  | Error ->  tagify fmt "@{<magenta_b>Error@}"
   | Interruption -> tagify fmt "@{<magenta>Interruption@}"
   | Done -> tagify fmt "@{<green>Done@}"
+
 
 let timeout_tag fmt = print_event_tag fmt Timeout
 let success_tag fmt = print_event_tag fmt Success
@@ -285,10 +302,11 @@ let note_tag fmt = print_event_tag fmt Note
 let interruption_tag fmt = print_event_tag fmt Interruption
 let done_tag fmt = print_event_tag fmt Done
 
-let tag_of_level fmt =
-  let open Lib in
-  function
-  | L_fatal | L_error -> print_event_tag fmt Error
-  | L_warn -> print_event_tag fmt Warning
-  | L_note -> print_event_tag fmt Note
-  | _ -> ()
+
+let tag_of_level fmt = let open Lib in function
+| L_fatal | L_error -> print_event_tag fmt Error
+| L_warn -> print_event_tag fmt Warning
+| L_note -> print_event_tag fmt Note
+| _ -> ()
+
+

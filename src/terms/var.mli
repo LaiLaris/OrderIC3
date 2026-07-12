@@ -18,148 +18,154 @@
 
 (** Variables in terms
 
-    A variable is an instance of a state variable (see {!StateVar}) in a state
-    relative to an initial state. A variable can also be a free variable that is
-    to be bound in a let expression.
+    A variable is an instance of a state variable (see {!StateVar}) in
+    a state relative to an initial state. A variable can also be a
+    free variable that is to be bound in a let expression.
 
     @author Christoph Sticksel *)
 
 (** {1 Types and hash-consing} *)
 
-type t
 (** Hashconsed variable *)
+type t
+
 
 (** {1 Hashtables, maps and sets} *)
 
-val compare_vars : t -> t -> int
 (** Comparison function on variables *)
+val compare_vars : t -> t -> int
 
-val equal_vars : t -> t -> bool
 (** Equality function on variables *)
+val equal_vars : t -> t -> bool
 
-val hash_var : t -> int
 (** Hashing function on variables *)
+val hash_var : t -> int
 
-module VarHashtbl : Hashtbl.S with type key = t
 (** Hash table over variables *)
+module VarHashtbl : Hashtbl.S with type key = t
 
-module VarSet : Set.S with type elt = t
 (** Set over variables *)
+module VarSet : Set.S with type elt = t
 
-module VarMap : Map.S with type key = t
 (** Map over variables *)
+module VarMap : Map.S with type key = t
+
 
 (** {1 Constructors} *)
 
-val mk_const_state_var : StateVar.t -> t
 (** Return a constant state variable.
 
     The state variable must be constant. *)
+val mk_const_state_var : StateVar.t -> t
 
-val mk_state_var_instance : StateVar.t -> Numeral.t -> t
 (** Return an instance of a state variable.
 
-    The state variable may also be constant, in which case a variable created by
-    [mk_const_state_var] is returned. *)
+    The state variable may also be constant, in which case a variable created
+    by [mk_const_state_var] is returned. *)
+val mk_state_var_instance : StateVar.t -> Numeral.t -> t
 
-val mk_free_var : HString.t -> Type.t -> t
 (** Return a free variable *)
+val mk_free_var : HString.t -> Type.t -> t
 
-val mk_fresh_var : Type.t -> t
 (** Return a fresh free variable *)
+val mk_fresh_var : Type.t -> t
 
-val import : t -> t
 (** Import a variable from a different instance into this hashcons table *)
+val import : t -> t
 
 (** {1 Accessor functions} *)
 
-val type_of_var : t -> Type.t
 (** Return the type of the variable *)
+val type_of_var : t -> Type.t
 
-val state_var_of_state_var_instance : t -> StateVar.t
 (** Return the state variable of a state variable instance *)
+val state_var_of_state_var_instance : t -> StateVar.t
 
-val offset_of_state_var_instance : t -> Numeral.t
 (** Return the offset of a state variable instance *)
+val offset_of_state_var_instance : t -> Numeral.t
 
-val hstring_of_free_var : t -> HString.t
 (** Return a string for a free variable *)
+val hstring_of_free_var : t -> HString.t
 
-val is_state_var_instance : t -> bool
 (** Return true if the variable is an instance of a state variable *)
+val is_state_var_instance : t -> bool
 
-val is_const_state_var : t -> bool
 (** Return true if the variable is a constant state variable *)
+val is_const_state_var : t -> bool
 
-val is_free_var : t -> bool
 (** Return true if the variable is a free variable *)
+val is_free_var : t -> bool
 
 (** {2 Construct Variables of Variables} *)
 
-val bump_offset_of_state_var_instance : t -> Numeral.t -> t
-(** Return a new variable with the offset of the state variable instance
-    incremented by the given value
+(** Return a new variable with the offset of the state variable
+    instance incremented by the given value
 
-    [bump_offset_of_state_var_instance v i] returns a new variable, where the
-    value [i] is added to the offset of the [v] if it is a state variable
-    instance. The value [i] may be negative.
+    [bump_offset_of_state_var_instance v i] returns a new variable,
+    where the value [i] is added to the offset of the [v] if it is a
+    state variable instance. The value [i] may be negative.
 
-    If [v] is a constant state variable or a free variable, it is returned
-    unchanged. *)
+    If [v] is a constant state variable or a free variable, it is
+    returned unchanged.
+*)
+val bump_offset_of_state_var_instance : t -> Numeral.t -> t   
 
-val set_offset_of_state_var_instance : t -> Numeral.t -> t
-(** Return a new variable with the offset of the state variable instance set to
-    the given value
+(** Return a new variable with the offset of the state variable
+    instance set to the given value
 
-    [set_offset_of_state_var_instance v i] returns a new variable, where the
-    offset of the state variable [v] is set to [i], if [v] is a state variable
-    instance.
+    [set_offset_of_state_var_instance v i] returns a new variable,
+    where the offset of the state variable [v] is set to [i], if [v]
+    is a state variable instance.
 
-    If [v] is a constant state variable or a free variable, it is returned
-    unchanged. *)
+    If [v] is a constant state variable or a free variable, it is
+    returned unchanged.
+*)
+val set_offset_of_state_var_instance : t -> Numeral.t -> t   
 
-val map_state_var : (StateVar.t -> StateVar.t) -> t -> t
 (** Return a new variable with the state variable replaced
 
-    [map_state_var v f] returns a new variable where the state variable [s] is
-    replaced by the result of the evaluation [f s] if [v] is a state variable
-    instance or a constant state variable.
+    [map_state_var v f] returns a new variable where the state
+    variable [s] is replaced by the result of the evaluation [f s] if
+    [v] is a state variable instance or a constant state variable.
 
-    If [v] is a free variable, it is returned unchanged. *)
+    If [v] is a free variable, it is returned unchanged.
+*)
+val map_state_var : (StateVar.t -> StateVar.t) -> t -> t
 
 (** {1 Pretty-printing} *)
 
-val pp_print_var : Format.formatter -> t -> unit
 (** Pretty-print a hashconsed variable *)
+val pp_print_var : Format.formatter -> t -> unit
 
-val print_var : t -> unit
 (** Pretty-print a hashconsed variable to the standard formatter *)
+val print_var : t -> unit
 
-val string_of_var : t -> string
 (** Return a string representation of a hashconsed variable *)
+val string_of_var : t -> string 
 
 val stats : unit -> int * int * int * int * int * int
 
+(** Gets the state var instance associated with a constant unrolled
+    uf. Throws [Not_found] if the uf is unknown. *)
 val state_var_instance_of_symbol : Symbol.t -> t
-(** Gets the state var instance associated with a constant unrolled uf. Throws
-    [Not_found] if the uf is unknown. *)
 
+(** Gets the state var instance associated with a constant unrolled
+    uf. Throws [Not_found] if the uf is unknown. *)
 val state_var_instance_of_uf_symbol : UfSymbol.t -> t
-(** Gets the state var instance associated with a constant unrolled uf. Throws
-    [Not_found] if the uf is unknown. *)
 
 val unrolled_uf_of_state_var_instance : t -> UfSymbol.t
 
+(** Declares constant variables as constant ufsymbols using the
+    provided function. *)
 val declare_constant_vars : (UfSymbol.t -> unit) -> t list -> unit
-(** Declares constant variables as constant ufsymbols using the provided
-    function. *)
 
+(** Declares non constant variables as constant ufsymbols using the
+    provided function. *)
 val declare_vars : (UfSymbol.t -> unit) -> t list -> unit
-(** Declares non constant variables as constant ufsymbols using the provided
-    function. *)
 
-val encode_select : t -> UfSymbol.t
 (** encode array select operation *)
+val encode_select : t -> UfSymbol.t
+
 
 (* 
    Local Variables:

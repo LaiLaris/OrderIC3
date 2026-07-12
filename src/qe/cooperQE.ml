@@ -16,32 +16,39 @@
 
 *)
 
-(** @author Ruoyu Zhang *)
+(** 
+@author Ruoyu Zhang
+*)
 
 open Poly
 
 (* Utilities *)
 (* Print out a model. *)
 let pp_print_model ppf model =
-  List.iter
-    (fun (v, t) ->
+  List.iter (
+    fun (v, t) ->
       Var.pp_print_var ppf v;
       Format.pp_print_string ppf ": ";
       Term.pp_print_term ppf t;
-      Format.pp_print_string ppf "\n")
-    model
+      Format.pp_print_string ppf "\n"
+  ) model
+
 
 (* Compute the greatest common divisor of integer i1 and i2. *)
-let rec greatest_common_divisor (i1 : Numeral.t) (i2 : Numeral.t) : Numeral.t =
-  if Numeral.(i2 <> zero) then greatest_common_divisor i2 Numeral.(i1 mod i2)
-  else Numeral.abs i1
+let rec greatest_common_divisor (i1: Numeral.t) (i2: Numeral.t) : Numeral.t =
+  
+  if Numeral.(i2 <> zero) then 
+    (greatest_common_divisor i2 Numeral.(i1 mod i2)) 
+  else 
+    (Numeral.abs i1)
+
 
 (* Compute the least common multiple of integer i1 and i2. *)
-let least_common_multiple (i1 : Numeral.t) (i2 : Numeral.t) : Numeral.t =
-  match (i1, i2) with
-  | c, x when Numeral.(c = zero) -> x
-  | x, c when Numeral.(c = zero) -> x
-  | i1, i2 -> Numeral.(abs (i1 * i2) / greatest_common_divisor i1 i2)
+let least_common_multiple (i1: Numeral.t) (i2: Numeral.t) : Numeral.t =
+  match i1, i2 with
+    | c, x when Numeral.(c = zero) -> x
+    | x, c when Numeral.(c = zero) -> x
+    | i1, i2 -> Numeral.(abs (i1 * i2) / (greatest_common_divisor i1 i2))
 
 (*
 (* Compute the modulo of i1 divided by i2.
@@ -56,30 +63,47 @@ let modulo (i1: Numeral.t) (i2: Numeral.t) : Numeral.t =
 (* Find the least common multiply of all the coefficients of the
    variable in the formula. Return zero if the formula does not occur
    in the formula *)
-let find_lcm_in_cformula (v : Var.t) (cf : cformula) : Numeral.t =
+let find_lcm_in_cformula (v: Var.t) (cf: cformula) : Numeral.t =
+
   (* Compute lcm from in all conjuncts of the formula *)
   List.fold_left
+    
     (fun i pret ->
+      
       (* Get polynomial in atom *)
-      match pret with
-      | GT pl | EQ pl | INEQ pl | DIVISIBLE (_, pl) | INDIVISIBLE (_, pl) ->
+      (match pret with
+        | GT pl
+        | EQ pl
+        | INEQ pl
+        | DIVISIBLE (_, pl)
+        | INDIVISIBLE (_, pl) ->
+          
           (* Get coefficient for variable in atom *)
           let coe = get_coe_in_poly v pl in
-
+          
           (* Variable does not occur in atom? *)
-          if Numeral.(coe = zero) then
+          if Numeral.(coe = zero) then 
+
             (* Return previous least common multiple *)
             i
-          else if
+
+          else 
+
             (* First occurrence of the variable *)
-            Numeral.(i = zero)
-          then
-            (* Return the absolute value of the coefficient *)
-            Numeral.abs coe
-          else
-            (* Compute lcm with previous occurrences of the variable *)
-            least_common_multiple i coe)
-    Numeral.zero cf
+            if Numeral.(i = zero) then
+
+              (* Return the absolute value of the coefficient *)
+              (Numeral.abs coe)
+
+            else
+
+              (* Compute lcm with previous occurrences of the variable *)
+              least_common_multiple i coe
+      )
+    ) 
+    Numeral.zero 
+    cf
+
 
 (*
 (* Find the least common multiply of all the divider*)
@@ -113,156 +137,221 @@ let find_div_lcm_in_cformula (v: Term.term) (cf: cformula) : int =
 (* Multiply the Presburger polynomial so that the absolute value of
    the coefficient of v is equal to lcm, preserving the sign of the
    coefficient. *)
-let scale_coefficient_in_poly (v : Var.t) (lcm : Numeral.t) (pt : poly) : poly =
-  let coe = get_coe_in_poly v pt in
+let scale_coefficient_in_poly (v: Var.t) (lcm: Numeral.t) (pt: poly) : poly = 
 
+  let coe = get_coe_in_poly v pt in
+  
   match coe with
-  | i when Numeral.(i = zero) -> pt
-  | i when Numeral.(i > zero) ->
+      
+    | i when Numeral.(i = zero) -> pt
+      
+    | i when Numeral.(i > zero) ->
+
       (* Scale polynomial with lcm/coe, this is a positive number *)
-      multiply_two_polys pt [ (Numeral.(lcm / coe), None) ]
-  | i when Numeral.(i < zero) ->
+      multiply_two_polys pt [(Numeral.(lcm / coe), None)]
+        
+    | i when Numeral.(i < zero) ->
+
       (* Scale polynomial with -lcm/coe, this is a positive number,
          since coe is negative *)
-      multiply_two_polys pt [ (Numeral.(neg one * lcm / coe), None) ]
-  | _ -> failwith "Impossible case for scale_coefficient_in_poly."
+      multiply_two_polys pt [(Numeral.((neg one) * lcm / coe), None)]
+        
+    | _ -> 
+      failwith "Impossible case for scale_coefficient_in_poly."
+
 
 (* Multiply the Presburger term so that the coefficient of the
    variable to be eliminated is equal to least common multiple of the
    coefficents of all occurrences of the variable. *)
-let scale_coefficient_in_preAtom (v : Var.t) (lcm : Numeral.t) (pret : preAtom)
-    : preAtom =
+let scale_coefficient_in_preAtom (v: Var.t) (lcm: Numeral.t) (pret: preAtom) : preAtom = 
+
   match pret with
-  (* Scale greater-than atom *)
-  | GT pl -> GT (scale_coefficient_in_poly v lcm pl)
-  (* Scale equation *)
-  | EQ pl -> EQ (scale_coefficient_in_poly v lcm pl)
-  (* Scale inequation atom *)
-  | INEQ pl -> INEQ (scale_coefficient_in_poly v lcm pl)
-  (* Scale divisibility atom *)
-  | DIVISIBLE (i, pl) -> (
+      
+    (* Scale greater-than atom *)
+    | GT pl -> GT (scale_coefficient_in_poly v lcm pl)
+      
+    (* Scale equation *)
+    | EQ pl -> EQ (scale_coefficient_in_poly v lcm pl)
+       
+    (* Scale inequation atom *)
+    | INEQ pl -> INEQ (scale_coefficient_in_poly v lcm pl)
+      
+    (* Scale divisibility atom *)
+    | DIVISIBLE (i, pl) ->
+      
       (* Get coefficient of variable to scale the constant in the
          divisibility predicate *)
       let coe = get_coe_in_poly v pl in
+      
+      (match coe with
 
-      match coe with
-      (* Prevent division by zero, return unchanged *)
-      | i when Numeral.(i = zero) -> pret
-      | _ ->
+        (* Prevent division by zero, return unchanged *)
+        | i when Numeral.(i = zero) -> pret
+          
+        | _ -> 
+          
           (* Also scale the constant in divisibility predicate *)
-          DIVISIBLE
-            (Numeral.(i * abs (lcm / coe)), scale_coefficient_in_poly v lcm pl))
-  (* Scale indivisibility atom *)
-  | INDIVISIBLE (i, pl) -> (
+          DIVISIBLE (Numeral.(i * abs (lcm / coe)), scale_coefficient_in_poly v lcm pl)
+      )
+        
+    (* Scale indivisibility atom *)
+    | INDIVISIBLE (i, pl) ->
+      
       (* Get coefficient of variable to scale the constant in the
          divisibility predicate *)
       let coe = get_coe_in_poly v pl in
+      
+      (match coe with
+          
+        (* Prevent division by zero, return unchanged *)
+        | i when Numeral.(i = zero) -> pret
+          
+        | _ -> INDIVISIBLE 
+          
+          (* Also scale the constant in divisibility predicate *)
+          (Numeral.(i * abs (lcm / coe)), scale_coefficient_in_poly v lcm pl)
+          
+      )
 
-      match coe with
-      (* Prevent division by zero, return unchanged *)
-      | i when Numeral.(i = zero) -> pret
-      | _ ->
-          INDIVISIBLE
-            (* Also scale the constant in divisibility predicate *)
-            (Numeral.(i * abs (lcm / coe)), scale_coefficient_in_poly v lcm pl))
 
 (* Multiply the Presburger formula so that the coefficient of v is
    equal to the lcm in each Presburger atom. *)
-let scale_coefficient_in_cformula (v : Var.t) (lcm : Numeral.t) (cf : cformula)
-    : cformula =
-  (* Least common multiple must be positive *)
-  if Numeral.(lcm <= zero) then assert false
-  else if Numeral.(lcm = one) then
-    (* Do not add trivial divisibility predicates (1 | x), do not
-         scale the formula *)
-    cf
-  else
-    (* Add new divisibility predicate and scale formulas *)
-    DIVISIBLE (lcm, [ (lcm, Some v) ])
-    :: List.map (scale_coefficient_in_preAtom v lcm) cf
+let scale_coefficient_in_cformula (v: Var.t) (lcm: Numeral.t) (cf: cformula) : cformula =
 
+  (* Least common multiple must be positive *)
+  if Numeral.(lcm <= zero) then assert false else 
+
+    if Numeral.(lcm = one) then 
+      
+      (* Do not add trivial divisibility predicates (1 | x), do not
+         scale the formula *)
+      cf
+        
+    else
+      
+      (* Add new divisibility predicate and scale formulas *)
+      ((DIVISIBLE (lcm, [lcm, Some v])) :: 
+          List.map (scale_coefficient_in_preAtom v lcm) cf)
+
+    
 (* Substitute a variable with a Presburger term pt1 in a Presburger
    term pt2. *)
-let substitute_variable_in_poly (c : Var.t -> Var.t -> int) (v : Var.t)
-    (pt1 : poly) (pt2 : poly) : poly =
-  if Numeral.(get_coe_in_poly v pt2 = zero) then
+let substitute_variable_in_poly (c: Var.t -> Var.t -> int) (v: Var.t) (pt1: poly) (pt2: poly) : poly =
+
+  if Numeral.(get_coe_in_poly v pt2 = zero) then 
+
     (* Skip if monomial has coefficient zero *)
-    pt2
-  else
+    (pt2)
+
+  else 
+
     (* Remove monomial to be substituted from polynomial and add
        scaled substitution to it *)
-    add_two_polys c []
-      (multiply_two_polys pt1 [ (get_coe_in_poly v pt2, None) ])
-      (List.filter (fun x -> not (psummand_contains_variable v x)) pt2)
+    (add_two_polys 
+       c 
+       []
+       (multiply_two_polys pt1 [(get_coe_in_poly v pt2, None)]) 
+       (List.filter (fun x -> not (psummand_contains_variable v x)) pt2))
+
 
 (* Substitute a variable with a Presburger term pt in a Presburger
    formula pf. *)
-let substitute_variable_in_preAtom (c : Var.t -> Var.t -> int) (v : Var.t)
-    (pl : poly) (pret : preAtom) : preAtom =
+let substitute_variable_in_preAtom (c: Var.t -> Var.t -> int) (v: Var.t) (pl: poly) (pret: preAtom) : preAtom =
+
   (* Propagate substitution to polynomial in formula *)
   match pret with
-  | GT pl' -> GT (substitute_variable_in_poly c v pl pl')
-  | EQ pl' -> EQ (substitute_variable_in_poly c v pl pl')
-  | INEQ pl' -> INEQ (substitute_variable_in_poly c v pl pl')
-  | DIVISIBLE (i, pl') -> DIVISIBLE (i, substitute_variable_in_poly c v pl pl')
-  | INDIVISIBLE (i, pl') ->
+    
+    | GT pl' -> GT (substitute_variable_in_poly c v pl pl')
+
+    | EQ pl' -> EQ (substitute_variable_in_poly c v pl pl')
+
+    | INEQ pl' -> INEQ (substitute_variable_in_poly c v pl pl')
+        
+    | DIVISIBLE (i, pl') ->
+      
+      DIVISIBLE (i, substitute_variable_in_poly c v pl pl')
+
+    | INDIVISIBLE (i, pl') ->
+      
       INDIVISIBLE (i, substitute_variable_in_poly c v pl pl')
+
 
 (* Substitute a variable with a Presburger term pl in a Presburger
    formula cf. *)
-let substitute_variable_in_cformula (c : Var.t -> Var.t -> int) (v : Var.t)
-    (pl : poly) (cf : cformula) : cformula =
+let substitute_variable_in_cformula (c: Var.t -> Var.t -> int) (v: Var.t) (pl: poly) (cf: cformula) : cformula =
+  
   (* Substitute in all atoms *)
   List.map (substitute_variable_in_preAtom c v pl) cf
 
+
 (* Substitute a polynomial for a monomial containing the variable to
    be eliminated *)
-let substitute_summand_in_poly (c : Var.t -> Var.t -> int) (v : Var.t)
-    (pt1 : poly) (pt2 : poly) : poly =
+let substitute_summand_in_poly (c: Var.t -> Var.t -> int) (v: Var.t) (pt1: poly) (pt2: poly) : poly =
+
   match get_coe_in_poly v pt2 with
-  (* Skip if variable has coefficient zero *)
-  | i when Numeral.(i = zero) -> pt2
-  | i when Numeral.(i > zero) ->
-      add_two_polys c [] pt1
+
+    (* Skip if variable has coefficient zero *)
+    | i when Numeral.(i = zero) -> pt2
+      
+    | i when Numeral.(i > zero) ->
+      
+      add_two_polys c []
+        pt1
         (List.filter (fun x -> not (psummand_contains_variable v x)) pt2)
-  | i when Numeral.(i < zero) ->
-      add_two_polys c [] (negate_poly pt1)
+        
+    | i when Numeral.(i < zero) ->
+      
+      add_two_polys c []
+        (negate_poly pt1)
         (List.filter (fun x -> not (psummand_contains_variable v x)) pt2)
-  | _ -> failwith "Unexpected value found in substitute_summand_in_poly"
+
+    | _ ->
+      failwith "Unexpected value found in substitute_summand_in_poly"
+
 
 (* Substitute a variable with a polynomial pl in a Presburger term pret
    regardless of the coefficient of v in pret. *)
-let substitute_summand_in_preAtom (c : Var.t -> Var.t -> int) (v : Var.t)
-    (pl : poly) (pret : preAtom) : preAtom =
+let substitute_summand_in_preAtom (c: Var.t -> Var.t -> int) (v: Var.t) (pl: poly) (pret: preAtom) : preAtom = 
   match pret with
-  | GT pl' -> GT (substitute_summand_in_poly c v pl pl')
-  | EQ pl' -> EQ (substitute_summand_in_poly c v pl pl')
-  | INEQ pl' -> INEQ (substitute_summand_in_poly c v pl pl')
-  | DIVISIBLE (i, pl') -> DIVISIBLE (i, substitute_summand_in_poly c v pl pl')
+  | GT pl' ->
+    GT (substitute_summand_in_poly c v pl pl')
+
+  | EQ pl' ->
+    EQ (substitute_summand_in_poly c v pl pl')
+
+  | INEQ pl' ->
+    INEQ (substitute_summand_in_poly c v pl pl')
+
+  | DIVISIBLE (i, pl') ->
+    DIVISIBLE (i, substitute_summand_in_poly c v pl pl')
+
   | INDIVISIBLE (i, pl') ->
-      INDIVISIBLE (i, substitute_summand_in_poly c v pl pl')
+    INDIVISIBLE (i, substitute_summand_in_poly c v pl pl') 
+
 
 (* Substitute a variable with a Presburger term pt in a Presburger formula cf
    regardless of the coefficient of v in pf. *)
-let substitute_summand_in_cformula (c : Var.t -> Var.t -> int) (v : Var.t)
-    (pl : poly) (cf : cformula) : cformula =
+let substitute_summand_in_cformula (c: Var.t -> Var.t -> int) (v: Var.t) (pl: poly) (cf: cformula) : cformula =
   List.map (substitute_summand_in_preAtom c v pl) cf
 
+
 (* Evaluate a poly pt with the model. *)
-let eval_poly model (pt : poly) : Numeral.t =
-  List.fold_left
-    (fun accum (coe, v) ->
+let eval_poly model (pt: poly) : Numeral.t = 
+  List.fold_left (
+    fun accum (coe, v) ->
       match v with
-      | None -> Numeral.(accum + coe)
-      | Some v ->
-          (* (debug qe_detailed
+      | None ->
+        Numeral.(accum + coe)
+
+      | Some v -> 
+        (* (debug qe_detailed
            "eval_poly: Model is @[<v>%a@]"
            pp_print_model model
          end); *)
-          Numeral.(
-            accum
-            + (coe * Eval.num_of_value (Eval.eval_term [] model (Term.mk_var v)))))
-    Numeral.zero pt
+        Numeral.(accum + coe * (Eval.num_of_value (Eval.eval_term [] model (Term.mk_var v))))
+  ) 
+    Numeral.zero
+    pt
 
 (*
 (* Find the maximum poly in the poly list. *)
@@ -421,47 +510,70 @@ let find_all_lower_bounds_in_cformula (c: Term.term -> Term.term -> int) (v: Ter
     cf
 *)
 
+
 (* Find a list of lower bounds for variable v in the Presburger formula cf.  
    The formula should be already been scaled with scale_coefficient_in_cformula 
    before using this function. *)
-let rec find_rough_lower_bounds_in_cformula (c : Var.t -> Var.t -> int)
-    (v : Var.t) (cf : cformula) (l : poly list) : poly list =
+let rec find_rough_lower_bounds_in_cformula (c: Var.t -> Var.t -> int) (v: Var.t) (cf: cformula) (l: poly list) : poly list=
   match cf with
-  | [] -> l
-  | GT pl :: cf' ->
-      if Numeral.(get_coe_in_poly v pl > zero) then
+  | [] ->
+    
+    l
+
+  | (GT pl) :: cf' ->
+    
+    if Numeral.(get_coe_in_poly v pl > zero) then
+
+      (
         (* For the inequation lcm_coe*v + t > 0 the lower bound
            is lcm_coe*v >= -t + 1, add this as a possible lower
            bound *)
-        let lb =
-          add_two_polys c []
-            [ (Numeral.one, None) ]
-            (negate_poly
-               (List.filter (fun x -> not (psummand_contains_variable v x)) pl))
-        in
-
+        let lb = 
+          (add_two_polys 
+            c 
+            [] 
+            ([Numeral.one, None]) 
+            (negate_poly 
+              (List.filter (fun x -> not (psummand_contains_variable v x)) pl))
+          ) in
+        
         find_rough_lower_bounds_in_cformula c v cf' (lb :: l)
-      else find_rough_lower_bounds_in_cformula c v cf' l
-  | EQ pl :: cf' ->
-      if Numeral.(get_coe_in_poly v pl > zero) then
-        (* For the inequation lcm_coe*v + t = 0 the lower bound
+      )
+
+    else
+
+      find_rough_lower_bounds_in_cformula c v cf' l
+
+
+  | (EQ pl) :: cf' ->
+
+    if Numeral.(get_coe_in_poly v pl > zero) then
+
+      (* For the inequation lcm_coe*v + t = 0 the lower bound
          is lcm_coe*v >= -t, immediately return this lower bound *)
-        let lb =
-          negate_poly
-            (List.filter (fun x -> not (psummand_contains_variable v x)) pl)
-        in
+      let lb = 
+        (negate_poly 
+          (List.filter 
+            (fun x -> not (psummand_contains_variable v x)) pl)) in
 
-        [ lb ]
-      else if Numeral.(get_coe_in_poly v pl < zero) then
-        (* For the inequation -lcm_coe*v + t = 0 the lower bound
+      [lb]
+
+    else if Numeral.(get_coe_in_poly v pl < zero) then
+
+      (* For the inequation -lcm_coe*v + t = 0 the lower bound
          is lcm_coe*v >= t, immediately return this lower bound *)
-        let lb =
-          List.filter (fun x -> not (psummand_contains_variable v x)) pl
-        in
 
-        [ lb ]
-      else find_rough_lower_bounds_in_cformula c v cf' l
-  (*
+      let lb = 
+          (List.filter 
+            (fun x -> not (psummand_contains_variable v x)) pl) in
+
+      [lb]
+
+    else 
+
+      find_rough_lower_bounds_in_cformula c v cf' l
+
+(*
   | (INEQ pl) :: cf' ->
 
       if get_coe_in_poly v pl > 0 then
@@ -504,9 +616,14 @@ let rec find_rough_lower_bounds_in_cformula (c : Var.t -> Var.t -> int)
       find_rough_lower_bounds_in_cformula c v cf' l
 
 *)
-  | INEQ _ :: cf' | DIVISIBLE _ :: cf' | INDIVISIBLE _ :: cf' ->
-      find_rough_lower_bounds_in_cformula c v cf' l
+  | INEQ _ :: cf' 
+  | (DIVISIBLE _) :: cf'
+  | (INDIVISIBLE _) :: cf' ->
 
+     find_rough_lower_bounds_in_cformula c v cf' l
+    
+
+    
 (*
 (* Find the first poly dividable by lcm according to the model. *)
 let rec find_dividable_lower_bound (c: Term.term -> Term.term -> int) (model: (Term.term * Term.term) list) (lcm: int) (pt: poly) : poly = 
@@ -519,10 +636,12 @@ let rec find_dividable_lower_bound (c: Term.term -> Term.term -> int) (model: (T
   )
 *)
 
+
 (* Use the model to compute a polynomal that satisfies the formula
    including all divisibility constraints *)
-let find_divisible_lower_bound (c : Var.t -> Var.t -> int) model (v : Var.t)
-    (coe_lcm : Numeral.t) (pl : poly) : poly =
+let find_divisible_lower_bound (c: Var.t -> Var.t -> int) 
+  model (v: Var.t) (coe_lcm: Numeral.t) (pl: poly) : poly = 
+
   (* (debug qe_detailed
      "find_divisible_lower_bound for %a...@."
      Term.pp_print_term (Term.mk_var v)
@@ -534,20 +653,21 @@ let find_divisible_lower_bound (c : Var.t -> Var.t -> int) model (v : Var.t)
      
      that satisfies the formula, based on the model we have.
   *)
-  let j =
+  let j = 
+    
     (* Evaluate variable in the model *)
-    Numeral.(
-      Eval.num_of_value (Eval.eval_term [] model (Term.mk_var v))
-      *
-      (* Multiply with the lcm coefficient *)
-      coe_lcm
-      -
-      (* Subtract value of the lower bound in the model *)
-      eval_poly model pl)
-  in
+    Numeral.((Eval.num_of_value (Eval.eval_term [] model (Term.mk_var v))) * 
 
+             (* Multiply with the lcm coefficient *)
+             coe_lcm - 
+             
+             (* Subtract value of the lower bound in the model *)
+             (eval_poly model pl))
+
+  in
+  
   (* Add the offset to the polynomial *)
-  add_two_polys c [] pl [ (j, None) ]
+  add_two_polys c [] pl [j, None]
 
 (*
 (* Return the first non-constant polynomial *)
@@ -566,123 +686,167 @@ let rec find_general_poly (l: poly list) : poly =
 (* Find a lower bound for the variable [v] to be eliminated in the
    Presburger formula [cf]. All occurrences of the variable [v] must
    have the coefficient [coe_lcm]. *)
-let find_lower_bound_in_cformula (c : Var.t -> Var.t -> int) model (v : Var.t)
-    (coe_lcm : Numeral.t) (cf : cformula) : poly =
+let find_lower_bound_in_cformula (c: Var.t -> Var.t -> int) 
+  model (v: Var.t) (coe_lcm: Numeral.t) (cf: cformula) : poly =
+
   (* Find all lower bounds for the variable to be eliminated *)
   let lower_bounds = find_rough_lower_bounds_in_cformula c v cf [] in
 
   (* No lower bound for variable? *)
   if lower_bounds = [] then
-    (* Signal the infinitely small case *)
-    raise Not_found
-  else find_divisible_lower_bound c model v coe_lcm (List.hd lower_bounds)
 
+    (* Signal the infinitely small case *)
+    (raise Not_found)
+      
+  else 
+
+    (find_divisible_lower_bound c model v coe_lcm (List.hd lower_bounds))
+
+      
 (* Variable to be eliminated can be infinitely small: remove all
    inequations with the variable to be eliminated, since they can be
    satisfied and that substitute the variable with its actual value in the
    model in all remaining constraints. *)
-let handle_infinitely_small_case (c : Var.t -> Var.t -> int) model (v : Var.t)
-    (cf : cformula) : cformula =
+let handle_infinitely_small_case (c: Var.t -> Var.t -> int) 
+    model (v: Var.t) (cf: cformula) : cformula = 
+  
   (* Filter for atoms that do not contain the variable to be
      eliminated *)
-  let cf' =
-    List.filter
-      (function
+  let cf' = 
+    List.filter 
+      (function 
         | GT pl -> Numeral.(get_coe_in_poly v pl = zero)
         | EQ pl -> Numeral.(get_coe_in_poly v pl = zero)
         | INEQ pl -> Numeral.(get_coe_in_poly v pl = zero)
-        | _ -> true)
-      cf
+        | _ -> true
+      )
+      cf 
   in
-
+  
   (* Substitute coe_lcm*v with its value in the model *)
-  substitute_variable_in_cformula c v
-    [ (Eval.num_of_value (Eval.eval_term [] model (Term.mk_var v)), None) ]
+  substitute_variable_in_cformula 
+    c 
+    v 
+    [(Eval.num_of_value (Eval.eval_term [] model (Term.mk_var v))), None] 
     cf'
+
 
 (* Check if the Presburger atom is trivial. Because all the atoms we
    have should be satisfied by the model.When the atom is trivial,
    it's trivially true. *)
-let preAtom_is_trivial (pret : preAtom) : bool =
+let preAtom_is_trivial (pret: preAtom) : bool = 
+
   match pret with
-  (* Eliminate t > 0 when t is a constant > 0 *)
-  | GT [ (c, None) ] when Numeral.(c > zero) -> true
-  (* Eliminate t = 0 when t is the constant 0 *)
-  | EQ [ (c, None) ] when Numeral.(c = zero) -> true
-  (* Eliminate t != 0 when t a constant != 0 *)
-  | INEQ [ (c, None) ] when Numeral.(c <> zero) -> true
-  (* Eliminate 1 | t *)
-  | DIVISIBLE (c, _) when Numeral.(c = one) -> true
-  (* Eliminate i | t when t is a constant s.t. t mod i = 0 *)
-  | DIVISIBLE (i, [ (c, None) ]) -> Numeral.(c mod i = zero)
-  (* Eliminate i !| t when t is a constant s.t. t mod i != 0 *)
-  | INDIVISIBLE (i, [ (c, None) ]) -> Numeral.(c mod i <> zero)
-  | _ -> false
+      
+    (* Eliminate t > 0 when t is a constant > 0 *)
+    | GT [(c, None)] when Numeral.(c > zero) -> true
+    
+    (* Eliminate t = 0 when t is the constant 0 *)
+    | EQ [(c, None)] when Numeral.(c = zero) -> true
+      
+    (* Eliminate t != 0 when t a constant != 0 *)
+    | INEQ [(c, None)] when Numeral.(c <> zero) -> true
+
+    (* Eliminate 1 | t *)
+    | DIVISIBLE (c, _) when Numeral.(c = one)-> true
+
+    (* Eliminate i | t when t is a constant s.t. t mod i = 0 *)
+    | DIVISIBLE (i, [(c, None)]) -> Numeral.(c mod i = zero)
+                         
+    (* Eliminate i !| t when t is a constant s.t. t mod i != 0 *)
+    | INDIVISIBLE (i, [(c, None)]) -> Numeral.(c mod i <> zero)
+
+    | _ -> false
+
 
 (* Quantifier elimination for variable v in formula cf. *)
-let eliminate_variable_in_cformula (c : Var.t -> Var.t -> int) model (v : Var.t)
-    (cf : cformula) : cformula =
-  Debug.qedetailed "Eliminating variable %a: @." Term.pp_print_term
-    (Term.mk_var v);
+let eliminate_variable_in_cformula (c: Var.t -> Var.t -> int) 
+    model (v: Var.t) (cf: cformula) : cformula =
+
+  Debug.qedetailed
+    "Eliminating variable %a: @."
+    Term.pp_print_term (Term.mk_var v);
 
   (* Find the least common multiple of the coefficient of all
      occurrences of the variable *)
   let coe_lcm = find_lcm_in_cformula v cf in
 
-  Debug.qedetailed "The coe_lcm on %a is %a" Term.pp_print_term (Term.mk_var v)
+  Debug.qedetailed
+    "The coe_lcm on %a is %a" 
+    Term.pp_print_term (Term.mk_var v)
     Numeral.pp_print_numeral coe_lcm;
 
   (* Variable does not occur in formula, then return unchanged *)
-  if Numeral.(coe_lcm = zero) then cf
-  else
+  if Numeral.(coe_lcm = zero) then cf else
+    
     (* Scale atom to have all occurrences of the variable to be
        eliminated with the same coefficient *)
     let scf = scale_coefficient_in_cformula v coe_lcm cf in
-
-    Debug.qedetailed "Scaling formula to:@. @[<hv>%a@]@;" Poly.pp_print_cformula
-      scf;
-
+    
+    Debug.qedetailed
+      "Scaling formula to:@. @[<hv>%a@]@;" 
+      Poly.pp_print_cformula scf;
+    
     try
-      (* Compute polynomial to eliminate the variable with *)
-      let lower_bound = find_lower_bound_in_cformula c model v coe_lcm scf in
 
-      Debug.qedetailed "@[<hv>The lowerbound is:@ @[<v>%a@]@]@."
-        Poly.pp_print_poly lower_bound;
+      (
+        
+        (* Compute polynomial to eliminate the variable with *)
+        let lower_bound = 
+          find_lower_bound_in_cformula c model v coe_lcm scf 
+        in
+        
+        Debug.qedetailed
+          "@[<hv>The lowerbound is:@ @[<v>%a@]@]@."
+          Poly.pp_print_poly lower_bound;
 
-      (* Substitute polynomial for all occurrences of coe_lcm*v *)
-      let ret = substitute_summand_in_cformula c v lower_bound scf in
+        (* Substitute polynomial for all occurrences of coe_lcm*v *)
+        let ret = substitute_summand_in_cformula c v lower_bound scf in
+        
+        Debug.qedetailed
+          "@[<hv>The result is:@ @[<v>%a@]@]@."
+          Poly.pp_print_cformula ret;
+        
+        (* Filter out all trivial atoms *)
+        List.filter (fun x -> not (preAtom_is_trivial x)) ret
 
-      Debug.qedetailed "@[<hv>The result is:@ @[<v>%a@]@]@."
-        Poly.pp_print_cformula ret;
+      )
+        
+    (* No lower bound for the variable to be eliminated *)
+    with Not_found -> 
 
-      (* Filter out all trivial atoms *)
-      List.filter (fun x -> not (preAtom_is_trivial x)) ret
-      (* No lower bound for the variable to be eliminated *)
-    with Not_found ->
       Debug.qedetailed "No lowerbound found.@.";
-
+      
       let ret = handle_infinitely_small_case c model v scf in
 
-      Debug.qedetailed "@[<hv>The result is:@ @[<v>%a@]@]@."
+      Debug.qedetailed
+        "@[<hv>The result is:@ @[<v>%a@]@]@."
         Poly.pp_print_cformula ret;
-
+      
       (* Filter out all trivial atoms *)
       List.filter (fun x -> not (preAtom_is_trivial x)) ret
 
+
+
 (* Eliminate a list of existentially quantified variables *)
-let rec eliminate model (v : Var.t list) (cf : cformula) : cformula =
-  let c = compare_variables v in
+let rec eliminate model (v: Var.t list) (cf: cformula) : cformula = 
+
+  let c = compare_variables v in 
 
   match v with
-  (* No more variables to be eliminated *)
-  | [] -> cf
-  (* Take first variable to be eliminated *)
-  | v :: l' ->
+    
+    (* No more variables to be eliminated *)
+    | [] -> cf
+
+    (* Take first variable to be eliminated *)
+    | v :: l' -> 
+
       (* Eliminate first variable *)
       let ret = eliminate_variable_in_cformula c model v cf in
-
+      
       (* Eliminate remaining variables *)
       eliminate model l' ret
+
 
 (*
 let test = 
@@ -838,6 +1002,7 @@ main ()
 *)
 *)
 
+
 (* 
    Local Variables:
    compile-command: "make -C .. -k"
@@ -845,3 +1010,5 @@ main ()
    indent-tabs-mode: nil
    End: 
 *)
+
+

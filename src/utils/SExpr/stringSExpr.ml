@@ -16,21 +16,25 @@
 
 *)
 
-(* Signature of an string atom as input for the functor {!SExprBase.Make} *)
-module StringAtom = struct
-  type t = string
 
-  let pp_print_atom = Format.pp_print_string
+(* Signature of an string atom as input for the functor {!SExprBase.Make} *)
+module StringAtom = struct 
+  type t = string 
+  let pp_print_atom = Format.pp_print_string 
 end
+
 
 (* Define the type of the result from the functor application *)
 module type StringSExpr = SExprBase.S with type atom = string
 
+
 (* Create a module of string S-expressions *)
 module StringSExpr = SExprBase.Make (StringAtom)
 
+
 (* Include the module here to avoid having to write StringSExpr.StringSExpr *)
 include StringSExpr
+
 
 (* 
    Local Variables:

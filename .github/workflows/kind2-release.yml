@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Delete old assets
       env:
@@ -77,14 +77,14 @@ jobs:
           - name: linux-arm64
             os: ubuntu-24.04-arm
           - name: macos-x86_64
-            os: macos-13
+            os: macos-15-intel
             bottle-suffix: monterey
             libsodium-version: 1.0.20
             libsodium-sha256: 0556f27feb8d4b5f31edf42e392eb4901daa5b9dbb8510499aa196c9e77134c6
             zeromq-version: 4.3.5
             zeromq-sha256: c8c1cafdffdc020cf504bc59888d61a016df6cdfc12650d89a43a846edb77ef2
           - name: macos-arm64
-            os: macos-14
+            os: macos-latest
             bottle-suffix: arm64_monterey
             libsodium-version: 1.0.20
             libsodium-sha256: 25377f9e16747b9af732be608a966b580287d0854c2d530f23eea1235bca1ff7
@@ -96,11 +96,11 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Build Kind 2 linux binary
       if: runner.os == 'Linux'
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v7
       with:
         file: docker/Dockerfile
         context: ./
@@ -111,7 +111,7 @@ jobs:
     - name: Extract Kind 2 linux binary
       id: extract
       if: runner.os == 'Linux'
-      uses: shrink/actions-docker-extract@v3
+      uses: shrink/actions-docker-extract@v4
       with:
         image: kind2:latest
         path: /home/opam/kind2-build/bin/kind2
@@ -128,10 +128,12 @@ jobs:
 
     - name: Install ZeroMQ and its dependency (libsodium)
       if: runner.os == 'macOS'
+      env:
+        HOMEBREW_DEVELOPER: 1 # Required by Brew >= 4.6.4. See https://github.com/Homebrew/brew/pull/20414
       run: |
         LIBSODIUM_BOTTLE=libsodium-${{ matrix.libsodium-version }}.${{ matrix.bottle-suffix }}.bottle.tar.gz
         curl -L -H "Authorization: Bearer QQ==" -o $LIBSODIUM_BOTTLE https://ghcr.io/v2/homebrew/core/libsodium/blobs/sha256:${{ matrix.libsodium-sha256 }}
-        brew reinstall -f $LIBSODIUM_BOTTLE
+        brew reinstall -f "$LIBSODIUM_BOTTLE"
 
         ZEROMQ_BOTTLE=zeromq-${{ matrix.zeromq-version }}.${{ matrix.bottle-suffix }}.bottle.tar.gz
         curl -L -H "Authorization: Bearer QQ==" -o $ZEROMQ_BOTTLE https://ghcr.io/v2/homebrew/core/zeromq/blobs/sha256:${{ matrix.zeromq-sha256 }}

@@ -19,11 +19,20 @@
 (* Abbreviations *)
 module E = LustreExpr
 
-type t = {
-  (* Free constants *)
-  free_constants : (LustreIdent.t * Var.t LustreIndex.t) list;
-  (* register bounds of state variables for later use *)
-  state_var_bounds : E.expr E.bound_or_fixed list StateVar.StateVarHashtbl.t;
-  (* Constraints on free constants *)
-  global_constraints : E.t list;
-}
+type state_var_bounds = (E.expr E.bound_or_fixed list) StateVar.StateVarHashtbl.t
+
+
+type t = 
+
+  { 
+
+    (* Free constants: ident, variable index, is_generated *)
+    free_constants : (LustreIdent.t * Var.t LustreIndex.t * bool) list;
+    
+    (* register bounds of state variables for later use *)
+    state_var_bounds : state_var_bounds;
+
+    (* Constraints on free constants *)
+    global_constraints: E.t list;
+  }
+

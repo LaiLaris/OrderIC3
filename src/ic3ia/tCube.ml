@@ -16,20 +16,29 @@
 
 *)
 
-type frame_ref = FrameNull | FrameInf | Frame of int
-type t = { cube : Cube.t; frame : frame_ref }
+type frame_ref =
+  | FrameNull
+  | FrameInf
+  | Frame of int 
+
+type t = {
+  cube : Cube.t;
+  frame: frame_ref;
+}
 
 let mk cube frame = { cube; frame }
+
 let cube { cube } = cube
+
 let frame { frame } = frame
 
 let frame_index { frame } =
   match frame with
   | Frame i -> i
   | FrameNull -> assert false
-  | FrameInf -> assert false
+  | FrameInf  -> assert false
 
-let next { cube; frame } =
+let next {cube; frame} =
   match frame with
-  | Frame i -> { cube; frame = Frame (i + 1) }
+  | Frame i -> {cube; frame=Frame (i+1)}
   | _ -> assert false

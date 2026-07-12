@@ -16,53 +16,57 @@
 
 *)
 
-(** S-Expressions
+(** S-Expressions 
 
-    This module defines S-expressions over arbitrary atoms. Use the functor
-    {!Make} to instantiate the type to a concrete type, see {!HStringSExpr}.
+    This module defines S-expressions over arbitrary atoms. Use the
+    functor {!Make} to instantiate the type to a concrete type, see
+    {!HStringSExpr}.
 
-    (Incorporating code from the OCaml sexplib, which is part of the OCaml Core
-    alternative standard library)
+    (Incorporating code from the OCaml sexplib, which is part of the
+    OCaml Core alternative standard library)
 
-    @author Christoph Sticksel *)
+    @author Christoph Sticksel
+*)
 
 (** {1 Functorized interface} *)
 
 (** Signature of an S-expression atom as input for the functor {!Make} *)
-module type SExprAtom = sig
-  type t
-
-  val pp_print_atom : Format.formatter -> t -> unit
+module type SExprAtom = sig 
+  type t 
+  val pp_print_atom : Format.formatter -> t -> unit 
 end
-
+  
 (** Output signature of the functor {!Make} *)
-module type S = sig
-  type atom
+module type S = 
+sig
+
   (** Atom in an S-expression *)
+  type atom
 
   (** S-expression is either an atom or a list of S-expressions *)
   type t = Atom of atom | List of t list
 
+  (** Pretty-print an S-expression *)
   val pp_print_sexpr : Format.formatter -> t -> unit
-  (** Pretty-print an S-expression *)
 
-  val pp_print_sexpr_list : Format.formatter -> t list -> unit
   (** Pretty-print a list of S-expressions enclosed in parentheses *)
+  val pp_print_sexpr_list : Format.formatter -> t list -> unit
 
-  val print_sexpr : t -> unit
   (** Pretty-print an S-expression to the standard formatter *)
+  val print_sexpr : t -> unit
 
-  val pp_print_sexpr_indent : int -> Format.formatter -> t -> unit
   (** Pretty-print an S-expression *)
-
+  val pp_print_sexpr_indent : int -> Format.formatter -> t -> unit
   val pp_print_sexpr_indent_compact : int -> Format.formatter -> t -> unit
 
-  val string_of_sexpr : t -> string
   (** Return a string representation of an S-Expression *)
-end
+  val string_of_sexpr : t -> string
 
+end
+  
 (** Functor to make S-expressions of atoms of type [atom] *)
-module Make : functor (Atom : SExprAtom) -> S with type atom = Atom.t
+module Make : functor (Atom: SExprAtom) -> S with type atom = Atom.t
+  
 
 (* 
    Local Variables:

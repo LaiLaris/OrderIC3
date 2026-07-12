@@ -18,15 +18,11 @@
 
 (** Realizability Checker
 
-    @author Daniel Larraz *)
+    @author Daniel Larraz
+*)
 
 type 'a analyze_func =
-  bool ->
-  Lib.kind_module list ->
-  'a InputSystem.t ->
-  Analysis.param ->
-  TransSys.t ->
-  unit
+  bool -> Lib.kind_module list -> 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
 
 type unrealizable_result
 
@@ -38,6 +34,15 @@ type realizability_result =
 
 val result_to_string : realizability_result -> string
 
+(** Checks whether there exists an implementation that satisfies a given specification
+
+    [realizability_check m s c0 v1 c1] checks whether the specification represented by
+    transition system [s] is realizable or not under the assumption that [c0] is
+    the list of controllable variables at offset 0, [v1] is the list of variables
+    at offset 1, [c1] is the list of variables at offset 1, and all terms in [s]
+    without controllable variables are assumed to hold. It uses function [m] to
+    get the set of variables of a term.
+*)
 val realizability_check :
   ?include_invariants:bool ->
   (Term.t -> Var.VarSet.t) ->
@@ -46,15 +51,7 @@ val realizability_check :
   Var.t list ->
   Var.t list ->
   realizability_result
-(** Checks whether there exists an implementation that satisfies a given
-    specification
 
-    [realizability_check m s c0 v1 c1] checks whether the specification
-    represented by transition system [s] is realizable or not under the
-    assumption that [c0] is the list of controllable variables at offset 0, [v1]
-    is the list of variables at offset 1, [c1] is the list of variables at
-    offset 1, and all terms in [s] without controllable variables are assumed to
-    hold. It uses function [m] to get the set of variables of a term. *)
 
 exception Trace_or_conflict_computation_failed of string
 
@@ -66,4 +63,5 @@ val compute_deadlocking_trace_and_conflict :
   Var.t list ->
   Var.t list ->
   unrealizable_result ->
-  (StateVar.t * Model.value list) list * ModelElement.loc_core
+  ((StateVar.t * Model.value list) list * ModelElement.loc_core)
+

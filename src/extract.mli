@@ -20,17 +20,14 @@
 
     @author Christoph Sticksel *)
 
-val extract :
-  (UfSymbol.t * (Var.t list * Term.t)) list ->
-  Model.t ->
-  Term.t ->
-  Term.t list * Term.t list
-(** Extract an active path from a formula and return a conjunction that is true
-    in the model given.
+(** Extract an active path from a formula and return a conjunction
+    that is true in the model given.
 
-    Assumption: the formula is satisfiable under the given partial assignment.
-    Then, return an active path [g] in the formula [f], that is, a formula [g]
-    that must be satisfied if the formula [f] is satisfied. *)
+    Assumption: the formula is satisfiable under the given partial
+    assignment. Then, return an active path [g] in the formula [f],
+    that is, a formula [g] that must be satisfied if the formula [f] is
+    satisfied. *)
+val extract : (UfSymbol.t * (Var.t list * Term.t)) list -> Model.t -> Term.t -> Term.t list * Term.t list
 
 (* 
    Local Variables:

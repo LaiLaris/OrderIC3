@@ -19,9 +19,15 @@
 include GenericSMTLIBDriver
 
 (* Configuration for Bitwuzla *)
-let cmd_line _ (* logic *) timeout _ (* produce_models *) _ (* produce_proofs *)
-    _ (* produce_unsat_cores *) _ (* produce_unsat_assumptions *) _
-    (* minimize_cores *) _ (* produce_interpolants *) =
+let cmd_line
+    _ (* logic *)
+    timeout
+    _ (* produce_models *) 
+    _ (* produce_proofs *)
+    _ (* produce_unsat_cores *)
+    _ (* produce_unsat_assumptions *)
+    _ (* minimize_cores *) 
+    _ (* produce_interpolants *) =
   (* Path and name of Bitwuzla executable *)
   let bitwuzla_bin = Flags.Smt.bitwuzla_bin () in
 
@@ -53,8 +59,10 @@ let string_of_logic l =
   let open TermLib.FeatureSet in
   match l with
   | `Inferred fs ->
-      if mem IA fs || mem RA fs then failwith "Bitwuzla only supports BV logics"
-      else GenericSMTLIBDriver.string_of_logic l
+      if mem IA fs || mem RA fs then
+        failwith "Bitwuzla only supports BV logics"
+      else
+        GenericSMTLIBDriver.string_of_logic l
   | `None -> "ALL"
   | `SMTLogic s ->
       if String.contains s 'I' || String.contains s 'R' then

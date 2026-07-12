@@ -16,7 +16,7 @@
 
 *)
 
-(** Property-directed reachability (aka IC3)
+(** Property-directed reachability (aka IC3) 
 
     Initial implementation by Piere-Loic Garoche
 
@@ -24,11 +24,12 @@
 
 exception UnsupportedFeature of string
 
-val main : 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
 (** Entry point *)
+val main : 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
 
-val on_exit : TransSys.t option -> unit
 (** Cleanup before exit *)
+val on_exit : TransSys.t option -> unit
+
 
 (* 
    Local Variables:

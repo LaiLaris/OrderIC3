@@ -16,11 +16,22 @@
 
 *)
 
-type frame_ref = FrameNull | FrameInf | Frame of int
-type t = { cube : Cube.t; frame : frame_ref }
+type frame_ref =
+  | FrameNull
+  | FrameInf
+  | Frame of int 
+
+type t = {
+  cube : Cube.t;
+  frame: frame_ref;
+}
 
 val mk : Cube.t -> frame_ref -> t
+
 val cube : t -> Cube.t
+
 val frame : t -> frame_ref
+
 val frame_index : t -> int
+
 val next : t -> t

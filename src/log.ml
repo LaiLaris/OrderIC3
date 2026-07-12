@@ -19,23 +19,24 @@
 open Pretty
 open Lib
 
+
 (* Signature of module for reuse in Event *)
 module type Sig = sig
   type 'a log_printer =
-    Lib.log_level -> ('a, Format.formatter, unit) format -> 'a
-
-  type 'a m_log_printer = Lib.kind_module -> 'a log_printer
-
-  val set_module : Lib.kind_module -> unit
+    Lib.log_level ->
+    ('a, Format.formatter, unit) format -> 'a
+  type 'a m_log_printer =
+    Lib.kind_module -> 'a log_printer
+  val set_module : Lib.kind_module -> unit 
   val get_module : unit -> Lib.kind_module
-
-  type log_format = F_pt | F_xml | F_json | F_relay
-
+  type log_format = | F_pt | F_xml | F_json | F_relay
   val get_log_format : unit -> log_format
   val set_log_format : log_format -> unit
   val set_log_format_pt : unit -> unit
   val set_log_format_xml : unit -> unit
   val set_log_format_json : unit -> unit
+  val get_show_props : unit -> bool
+  val set_show_props : bool -> unit
   val set_relay_log : unit -> unit
   val unset_relay_log : unit -> unit
   val pp_print_kind_module_xml_src : Format.formatter -> Lib.kind_module -> unit
@@ -46,35 +47,51 @@ module type Sig = sig
   val parse_log_json : Lib.log_level -> Lib.position -> string -> unit
 end
 
+
+
 (* ********************************************************************** *)
 (* Initialization for the messaging system                                *)
 (* ********************************************************************** *)
 
-type 'a log_printer = Lib.log_level -> ('a, Format.formatter, unit) format -> 'a
-type 'a m_log_printer = Lib.kind_module -> 'a log_printer
+type 'a log_printer =
+  Lib.log_level -> ('a, Format.formatter, unit) format -> 'a
+
+type 'a m_log_printer =
+  Lib.kind_module -> 'a log_printer
 
 (* Module currently running *)
 let this_module = ref `Parser
 
 (* Set module currently running *)
-let set_module mdl = this_module := mdl
+let set_module mdl = this_module := mdl 
 
 (* Get module currently running *)
 let get_module () = !this_module
+
 
 (* ********************************************************************** *)
 (* State of the logger                                                    *)
 (* ********************************************************************** *)
 
+
 (* Log formats *)
-type log_format = F_pt | F_xml | F_json | F_relay
+type log_format = 
+  | F_pt
+  | F_xml
+  | F_json
+  | F_relay
+
 
 (* Current log format *)
 let log_format = ref F_pt
 let prev_log_format = ref !log_format
+
 let get_log_format () = !log_format
 let set_log_format l = log_format := l
+
+let show_props = ref true 
 let first_log_flag = ref true
+
 
 (* ********************************************************************** *)
 (* Plain text output                                                      *)
@@ -82,12 +99,15 @@ let first_log_flag = ref true
 
 (* Output message as plain text *)
 let printf_pt level fmt =
-  (ignore_or_fprintf level) !log_ppf
-    ("%a @[<hov>" ^^ fmt ^^ "@]@.@.")
-    tag_of_level level
+  (ignore_or_fprintf level)
+    !log_ppf ("%a @[<hov>" ^^ fmt ^^ "@]@.@.") tag_of_level level
+
 
 (* Unconditional printing as plain text. *)
-let printf_pt_uncond fmt = Format.fprintf !log_ppf ("@[<hov>" ^^ fmt ^^ "@]@.@.")
+let printf_pt_uncond fmt =
+  Format.fprintf !log_ppf ("@[<hov>" ^^ fmt ^^ "@]@.@.")
+
+
 
 (* ********************************************************************** *)
 (* XML output                                                             *)
@@ -97,38 +117,57 @@ let printf_pt_uncond fmt = Format.fprintf !log_ppf ("@[<hov>" ^^ fmt ^^ "@]@.@."
 let xml_cls_of_level = string_of_log_level
 
 (* XML at the beginning the output *)
-let print_xml_header () = Format.fprintf !log_ppf "<?xml version=\"1.0\"?>@."
+let print_xml_header () =
+  Format.fprintf !log_ppf "<?xml version=\"1.0\"?>@."
+
 
 (* Pretty-print level as class attribute of log tag *)
-let pp_print_level_xml_cls ppf l = Format.fprintf ppf "%s" (xml_cls_of_level l)
+let pp_print_level_xml_cls ppf l = 
+  Format.fprintf ppf "%s" (xml_cls_of_level l)
 
 (* Kind module as source attribute of log tag *)
 let xml_src_of_kind_module = short_name_of_kind_module
 
 (* Pretty-print kind module as source attribute of log tag *)
-let pp_print_kind_module_xml_src ppf m =
+let pp_print_kind_module_xml_src ppf m = 
   Format.fprintf ppf "%s" (xml_src_of_kind_module m)
 
+
 (* XML at the end of the output *)
-let print_xml_trailer () = Format.fprintf !log_ppf "@.@.</Results>@."
+let print_xml_trailer () = 
+  Format.fprintf !log_ppf "@.@.</Results>@."
+
 
 (* Output message as XML *)
 let printf_xml_string mdl level s =
-  (ignore_or_fprintf level) !log_ppf
-    "@[<hv 2><Log class=\"%a\" source=\"%a\">@,@[<hov>%s@]@;<0 -2></Log>@]@."
-    pp_print_level_xml_cls level pp_print_kind_module_xml_src mdl s
+
+  (ignore_or_fprintf level)
+    !log_ppf 
+    ("@[<hv 2><Log class=\"%a\" source=\"%a\">@,\
+      @[<hov>%s@]@;<0 -2></Log>@]@.")
+    pp_print_level_xml_cls level
+    pp_print_kind_module_xml_src mdl s
+
 
 let printf_xml mdl level fmt =
+
   (ignore_or_kfprintf level)
-    (function
-      | _ ->
-          let s = Format.flush_str_formatter () |> Lib.escape_xml_string in
-          printf_xml_string mdl level s)
-    Format.str_formatter fmt
+    (function _ ->
+      let s =
+        Format.flush_str_formatter ()
+        |> Lib.escape_xml_string
+      in
+      printf_xml_string mdl level s
+    )
+
+    Format.str_formatter
+    fmt
+
 
 let parse_log_xml level pos msg =
   let pp_print_fname ppf fname =
-    if fname = "" then () else Format.fprintf ppf " file=\"%s\"" fname
+    if fname = "" then () else
+    Format.fprintf ppf " file=\"%s\"" fname
   in
   let pp_print_line_col ppf pos =
     try
@@ -137,72 +176,94 @@ let parse_log_xml level pos msg =
     with Invalid_argument _ -> ()
   in
   let file = file_of_pos pos in
-  (ignore_or_fprintf level) !log_ppf
-    "@[<hv 2><Log class=\"%a\" source=\"parse\"%a%a>@,\
-     @[<hov>%s@]@;\
-     <0 -2></Log>@]@."
+  (ignore_or_fprintf level)
+    !log_ppf
+    "@[<hv 2><Log class=\"%a\" source=\"parse\"%a%a>\
+    @,@[<hov>%s@]@;<0 -2></Log>@]@."
     pp_print_level_xml_cls level pp_print_line_col pos pp_print_fname file
     (Lib.escape_xml_string msg)
+
 
 (* ********************************************************************** *)
 (* JSON output                                                            *)
 (* ********************************************************************** *)
 
 let printf_json_string mdl level s =
-  (ignore_or_fprintf level) !log_ppf
-    ((if !first_log_flag then (
-        first_log_flag := false;
-        "")
-      else ",@.")
-    ^^ "{@[<v 1>@," ^^ "\"objectType\" : \"log\",@," ^^ "\"level\" : \"%s\",@,"
-    ^^ "\"source\" : \"%s\",@," ^^ "\"value\" : @[<h>\"%s\"@]" ^^ "@]@.}@.")
+  (ignore_or_fprintf level)
+    !log_ppf
+    ( (if !first_log_flag then
+         (first_log_flag := false; "")
+       else
+         ",@."
+      ) ^^
+      "{@[<v 1>@," ^^
+      "\"objectType\" : \"log\",@," ^^
+      "\"level\" : \"%s\",@," ^^
+      "\"source\" : \"%s\",@," ^^
+      "\"value\" : @[<h>\"%s\"@]" ^^
+      "@]@.}@.")
     (string_of_log_level level)
-    (short_name_of_kind_module mdl)
-    s
+    (short_name_of_kind_module mdl) s
 
 (* Output message as JSON *)
 let printf_json mdl level fmt =
+
   (ignore_or_kfprintf level)
-    (function
-      | _ ->
-          let s = Format.flush_str_formatter () |> Lib.escape_json_string in
-          printf_json_string mdl level s)
-    Format.str_formatter fmt
+    (function _ ->
+      let s =
+        Format.flush_str_formatter ()
+        |> Lib.escape_json_string
+      in
+      printf_json_string mdl level s
+    )
+
+    Format.str_formatter
+    fmt
 
 let parse_log_json level pos msg =
   let pp_print_fname ppf fname =
-    if fname = "" then () else Format.fprintf ppf "\"file\" : \"%s\",@," fname
+    if fname = "" then () else
+    Format.fprintf ppf "\"file\" : \"%s\",@," fname
   in
   let pp_print_line_col ppf pos =
     try
       let lnum, cnum = row_col_of_pos pos in
-      Format.fprintf ppf "\"line\" : %d,@,\"column\" : %d,@," lnum cnum
+      Format.fprintf ppf
+        "\"line\" : %d,@,\"column\" : %d,@," lnum cnum
     with Invalid_argument _ -> ()
   in
   let file = file_of_pos pos in
-  (ignore_or_fprintf level) !log_ppf
-    ((if !first_log_flag then (
-        first_log_flag := false;
-        "")
-      else ",@.")
-    ^^ "{@[<v 1>@,\
-        \"objectType\" : \"log\",@,\
-        \"level\" : \"%s\",@,\
-        \"source\" : \"parse\",@,\
-        %a%a\"value\" : @[<h>\"%s\"@]@]@.}@.")
+  (ignore_or_fprintf level)
+    !log_ppf
+    ( (if !first_log_flag then
+         (first_log_flag := false; "")
+       else
+         ",@."
+      ) ^^
+      "{@[<v 1>@,\
+       \"objectType\" : \"log\",@,\
+       \"level\" : \"%s\",@,\
+       \"source\" : \"parse\",@,\
+       %a\
+       %a\
+       \"value\" : @[<h>\"%s\"@]\
+       @]@.}@.\
+      "
+    )
     (string_of_log_level level)
-    pp_print_fname file pp_print_line_col pos
-    (Lib.escape_json_string msg)
+    pp_print_fname file
+    pp_print_line_col pos (Lib.escape_json_string msg)
+
 
 (*****************************************************************)
 (* Setup                                                         *)
 (*****************************************************************)
-
+  
 (* Set log format to plain text *)
 let set_log_format_pt () = log_format := F_pt
 
 (* Set log format to XML *)
-let set_log_format_xml () =
+let set_log_format_xml () = 
   log_format := F_xml;
   (* Print XML header *)
   print_xml_header ()
@@ -210,47 +271,51 @@ let set_log_format_xml () =
 (* Set log format to JSON *)
 let set_log_format_json () = log_format := F_json
 
+let get_show_props () = !show_props
+let set_show_props value = show_props := value 
+
 (* Relay log messages to invariant manager *)
 let set_relay_log () =
   prev_log_format := !log_format;
   log_format := F_relay
+
 
 let unset_relay_log () = log_format := !prev_log_format
 
 module type SLog = sig
   val log : 'a log_printer
   val log_uncond : ('a, Format.formatter, unit) format -> 'a
-
-  val log_result :
-    (Format.formatter -> 'a -> unit) ->
-    (Format.formatter -> 'a -> unit) ->
-    (Format.formatter -> 'a -> unit) ->
-    'a ->
-    unit
+  val log_result : (Format.formatter -> 'a -> unit)
+    -> (Format.formatter -> 'a -> unit)
+    -> (Format.formatter -> 'a -> unit)
+    -> 'a
+    -> unit
 end
 
-module Make (R : sig
-  val printf_relay : 'a m_log_printer
-end) : SLog = struct
+module Make (R : sig val printf_relay : 'a m_log_printer end) : SLog = struct
+
   (* ********************************************************************** *)
   (* Generic logging functions                                              *)
   (* ********************************************************************** *)
 
   (* Log a message with source and log level *)
   let log level fmt =
+
     let mdl = get_module () in
 
-    match !log_format with
+    match !log_format with 
     | F_pt -> printf_pt level fmt
     | F_xml -> printf_xml mdl level fmt
     | F_json -> printf_json mdl level fmt
     | F_relay -> R.printf_relay mdl level fmt
 
+
   (* Unconditionally logs a message. *)
   let log_uncond fmt =
+
     let mdl = get_module () in
 
-    match !log_format with
+    match !log_format with 
     | F_pt -> printf_pt_uncond fmt
     | F_xml -> printf_xml mdl L_info fmt
     | F_json -> printf_json mdl L_info fmt
@@ -258,22 +323,24 @@ end) : SLog = struct
 
   (* Logs the result of a post-analysis. *)
   let log_result pt xml json a =
+
     let fmt = !Lib.log_ppf in
     let print =
       (*Format.fprintf fmt "%a"*)
       Lib.ignore_or_fprintf L_note fmt "%a"
     in
 
-    match !log_format with
+    match !log_format with 
     | F_pt -> print pt a
     | F_xml -> print xml a
     | F_json -> print json a
     | F_relay -> ()
+ 
 end
 
-include Make (struct
-  let printf_relay _ _ _ = failwith "Uninitialized"
-end)
+
+include Make (struct let printf_relay _ _ _ = failwith "Uninitialized" end)
+
 
 (* 
    Local Variables:

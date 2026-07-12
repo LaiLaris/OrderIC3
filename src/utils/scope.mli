@@ -20,33 +20,32 @@
 
     @author Christoph Sticksel *)
 
-type t = Ident.t list
+
 (** Scope as a sequence of identifiers
+    
+      This type will become private later *)
+type t = Ident.t list
 
-    This type will become private later *)
-
-val equal : t -> t -> bool
 (** Equality of scopes *)
-
-val compare : t -> t -> int
+val equal : t -> t -> bool
+  
 (** Total order of scopes *)
+val compare : t -> t -> int
 
-val hash : t -> int
 (** Hash of a scope *)
+val hash : t -> int
 
-module Set : Set.S with type elt = t
 (** Set of scopes *)
+module Set : Set.S with type elt = t
 
-module Map : Map.S with type key = t
 (** Map of scopes *)
+module Map : Map.S with type key = t
 
-val mk_scope : Ident.t list -> t
 (** Construct a scope from a list of identifiers *)
+val mk_scope : Ident.t list -> t
 
-val pp_print_scope : Format.formatter -> t -> unit
-(** Pretty-print a scope *)
-
-val to_string : t -> string
+(** Pretty-print a scope. Only for internal (non-user-facing) use *)
+val pp_print_scope_internal : Format.formatter -> t -> unit
 
 (* 
    Local Variables:

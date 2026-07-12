@@ -4,5 +4,5 @@ node N(x: int) returns (y: int);
   guarantee "G1" exists (z: history(x)) y = z + 1;
 *)
 let
-  y = x + 1 -> if any bool then x + 1 else pre y;
+  y = x + 1 -> if any@<bool> then x + 1 else pre y;
 tel

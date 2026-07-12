@@ -20,4 +20,6 @@ type t =
   | GenericCall of Lib.kind_module
   | IC3IA_Call of bool * bool * Property.t * string
 
-let get_kind_module = function GenericCall m -> m | IC3IA_Call _ -> `IC3IA
+let get_kind_module = function
+  | GenericCall m -> m
+  | IC3IA_Call _ -> `IC3IA

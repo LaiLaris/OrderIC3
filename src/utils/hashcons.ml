@@ -13,40 +13,35 @@
 (*                                                                        *)
 (**************************************************************************)
 
+
 module type HSig = sig
   type ('a, 'b) hash_consed = private {
     hkey : int;
     tag : int;
     node : 'a;
-    prop : 'b;
-  }
-
+    prop : 'b }
   val compare : ('a, 'b) hash_consed -> ('a, 'b) hash_consed -> int
   val equal : ('a, 'b) hash_consed -> ('a, 'b) hash_consed -> bool
   val hash : ('a, 'b) hash_consed -> int
-
   type ('a, 'b) t
-
   val create : int -> ('a, 'b) t
   val clear : ('a, 'b) t -> unit
   val hashcons : ('a, 'b) t -> 'a -> 'b -> ('a, 'b) hash_consed
   val iter : (('a, 'b) hash_consed -> unit) -> ('a, 'b) t -> unit
   val fold : (('a, 'b) hash_consed -> 'c -> 'c) -> ('a, 'b) t -> 'c -> 'c
   val stats : ('a, 'b) t -> int * int * int * int * int * int
-
-  module type HashedType = sig
+  module type HashedType =
+  sig
     type t
     type prop
-
     val equal : t -> t -> bool
     val hash : t -> int
   end
-
-  module type S = sig
+  module type S =
+  sig
     type key
     type prop
     type t
-
     val create : int -> t
     val clear : t -> unit
     val hashcons : t -> key -> prop -> (key, prop) hash_consed
@@ -55,12 +50,12 @@ module type HSig = sig
     val fold : ((key, prop) hash_consed -> 'a -> 'a) -> t -> 'a -> 'a
     val stats : t -> int * int * int * int * int * int
   end
-
-  module Make (H : HashedType) : S with type key = H.t and type prop = H.prop
+  module Make(H : HashedType) : (S with type key = H.t and type prop = H.prop)
 end
 
 include (val (module HashconsWeak : HSig))
 
+  
 (* 
    Local Variables:
    compile-command: "make -C .. -k"

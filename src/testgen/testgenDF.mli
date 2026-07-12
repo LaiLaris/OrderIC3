@@ -16,24 +16,15 @@
 
 *)
 
-val log_prefix : string
 (** Prefix for logging testgen related things. *)
+val log_prefix: string
 
-val main :
-  Analysis.param -> _ InputSystem.t -> TransSys.t -> string -> string list
 (** Entry point. *)
+val main :
+  Analysis.param -> _ InputSystem.t -> TransSys.t -> string -> unit
 
-val log_test_glue_file :
-  string ->
-  string ->
-  string * (Lib.position * int) list * (string * Lib.position * int) list ->
-  string ->
-  string list ->
-  unit
-(** Logs the top level XML glue file. *)
-
-val on_exit : 'a -> unit
 (** Clean exit. *)
+val on_exit: 'a -> unit
 
 (* 
    Local Variables:

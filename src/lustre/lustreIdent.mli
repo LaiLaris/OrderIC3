@@ -16,94 +16,100 @@
 
 *)
 
+
 (** Lustre identifier
 
-    An identifier is a string with a (possibly empty) list of integer indexes.
+    An identifier is a string with a (possibly empty) list of integer
+    indexes. 
 
-    This module also provides some pre-defined identifiers that are used in the
-    translation.
+    This module also provides some pre-defined identifiers that are
+    used in the translation.
 
     @author Christoph Sticksel *)
 
-type t = private Ident.t * int list
 (** An identifier is a string with integer indexes *)
+type t = private Ident.t * int list 
 
-val equal : t -> t -> bool
 (** Equality on identifiers *)
+val equal : t -> t -> bool
 
-val hash : t -> int
 (** Hash an identifier *)
+val hash : t -> int
 
-val compare : t -> t -> int
 (** Total ordering of identifiers *)
+val compare : t -> t -> int
 
-module Hashtbl : Hashtbl.S with type key = t
 (** Hash table over identifiers *)
+module Hashtbl : Hashtbl.S with type key = t
 
-module Set : Set.S with type elt = t
 (** Set of identifiers *)
+module Set : Set.S with type elt = t
 
-module Map : Map.S with type key = t
 (** Map of identifiers *)
+module Map : Map.S with type key = t
 
 (** {1 Constructors and Converters} *)
 
+(** Return a string representation of the identifier 
+
+    [string_of_ident safe ident] returns the identifier with the
+    indexes appended in [\[] and [\]] if [safe] is [false]. Otherwise
+    the indexes are appended separated by [_], which makes the string
+    a valid Lustre identifier. *)
 val string_of_ident : bool -> t -> string
-(** Return a string representation of the identifier
 
-    [string_of_ident safe ident] returns the identifier with the indexes
-    appended in [\[] and [\]] if [safe] is [false]. Otherwise the indexes are
-    appended separated by [_], which makes the string a valid Lustre identifier.
-*)
-
-val push_index : t -> int -> t
 (** Add the given integer as an index to the identifier *)
+val push_index : t -> int -> t 
 
-val mk_string_ident : string -> t
 (** Construct an identifier of a string *)
+val mk_string_ident : string -> t
 
-val of_scope : Scope.t -> t
 (** Construct an identifier of a scope *)
+val of_scope : Scope.t -> t
 
-val to_scope : t -> Scope.t
-(** Return a scope of an identifier
+(** Return a scope of an identifier 
 
     The indexes of the identifier become separate scope levels. *)
+val to_scope : t -> Scope.t
 
-val pp_print_ident : bool -> Format.formatter -> t -> unit
-(** Pretty-print an identifier
+(** Pretty-print an identifier 
 
-    [pp_print_ident safe ident] prints the indexes separated by [_] if [safe] is
-    [true] as in {!string_of_ident}. *)
+    [pp_print_ident safe ident] prints the indexes separated by [_] if
+    [safe] is [true] as in {!string_of_ident}. *)
+val pp_print_ident : bool -> Format.formatter -> t -> unit 
 
 (** {1 Reserved Identifiers} *)
 
-val reserved_scope : Scope.t
 (** Scope for reserved identifiers *)
+val reserved_scope : Scope.t
 
-val user_scope : Scope.t
 (** Scope for identifiers in user input *)
+val user_scope : Scope.t
 
-val abs_ident : t
 (** Identifier for abstracted variables *)
+val abs_ident : t
 
-val oracle_ident : t
 (** Identifier for oracle inputs *)
+val oracle_ident : t
 
-val instance_ident : t
 (** Identifier for unique identifier for node instance *)
+val instance_ident : t
 
-val init_flag_ident : t
 (** Identifier for first instant flag *)
+val init_flag_ident : t
 
-val inst_ident : t
 (** Identifier for instantiated variables in node calls *)
+val inst_ident : t
 
-val eq_vars_ident : t
 (** Identifier for variables stating two variables are equal so far *)
+val eq_vars_ident : t
 
-val index_ident : t
 (** Identifier for index variables in arrays *)
+val index_ident : t
+
+(** HString to ident *)
+val of_hstring: HString.t -> t
+
 
 (* 
    Local Variables:
@@ -111,3 +117,4 @@ val index_ident : t
    indent-tabs-mode: nil
    End: 
 *)
+  

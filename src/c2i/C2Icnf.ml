@@ -16,19 +16,20 @@
 
 *)
 
+
 (** TODO: optimize multi-property reset. See [reset_props_of]. *)
+
+
 
 (** |===| Shorthand for modules, types and functions. *)
 
-module Candidate = C2ICandidate
 (** Modules. *)
-
+module Candidate = C2ICandidate
 module Solver = SMTSolver
 module Sys = TransSys
 
-type model = Model.t
 (** Types. *)
-
+type model = Model.t
 type term = Term.t
 
 (** Functions. *)
@@ -54,89 +55,98 @@ let eval sys model bump = (fun term ->
 )
 *)
 
+
 (** Log prefix. *)
 (*let pref = "C2I(cnf) "*)
 
+
 (** Output statistics. *)
-let print_stats () =
-  KEvent.stat
-    [
-      (Stat.misc_stats_title, Stat.misc_stats);
-      (Stat.c2i_stats_title, Stat.c2i_stats);
-      (Stat.smt_stats_title, Stat.smt_stats);
-    ]
+let print_stats () = KEvent.stat [
+  Stat.misc_stats_title, Stat.misc_stats ;
+  Stat.c2i_stats_title, Stat.c2i_stats ;
+  Stat.smt_stats_title, Stat.smt_stats ;
+]
 
 (** Stop all timers. *)
 let stop () = Stat.c2i_stop_timers ()
 
 (** Clean exit. *)
 let on_exit _ =
-  stop ();
+  stop () ;
   (* Outputing stats. *)
   print_stats ()
 
-type contex = {
-  sys : TransSys.t;
-  props : (string * term) list;
-  mutable white : model list;
-  mutable grey : (model * model) list;
-  mutable black : model list;
-  solver1 : Solver.t;
-  solver2 : Solver.t;
-  solver3 : Solver.t;
-}
 (** Context maintained by the C2I CNF version. *)
+type contex = {
+  sys           : TransSys.t           ;
+  props         : (string * term )list ;
+  mutable white : model list           ;
+  mutable grey  : (model * model) list ;
+  mutable black : model list           ;
+  solver1       : Solver.t             ;
+  solver2       : Solver.t             ;
+  solver3       : Solver.t             ;
+}
+
 
 (** |===| Solver-related stuff. *)
 
-(** Creates a solver. If [init], then variables are be declared at -1 and 0 and
-    init are asserted at 0. Otherwise, variables are declared at -1, 0 and 1,
-    and a transition between 0 and 1 is asserted. *)
+
+(** Creates a solver. If [init], then variables are be declared at -1 and 0
+    and init are asserted at 0. Otherwise, variables are declared at -1, 0 and
+    1, and a transition between 0 and 1 is asserted. *)
 let mk_solver sys init =
-  let solver =
-    Solver.create_instance ~produce_models:true (Sys.get_logic sys)
-      (Flags.Smt.solver ())
+  let solver = Solver.create_instance
+    ~produce_models:true
+    (Sys.get_logic sys)
+    (Flags.Smt.solver ())
   in
 
   (* Variable declaration upper bound, predicate to assert. *)
   let var_ub, pred =
-    if init then
-      ( Numeral.zero,
-        Sys.init_of_bound (Some (Solver.declare_fun solver)) sys Numeral.zero )
-    else
-      ( Numeral.one,
-        Sys.trans_of_bound (Some (Solver.declare_fun solver)) sys Numeral.one )
+    if init
+    then Numeral.zero,
+         Sys.init_of_bound (Some (Solver.declare_fun solver)) sys Numeral.zero
+    else Numeral.one,
+         Sys.trans_of_bound (Some (Solver.declare_fun solver)) sys Numeral.one
   in
 
   (* Defining and declaring everything. *)
-  Sys.define_and_declare_of_bounds sys (Solver.define_fun solver)
+  Sys.define_and_declare_of_bounds
+    sys
+    (Solver.define_fun solver)
     (Solver.declare_fun solver)
     (Solver.declare_sort solver)
-    Numeral.zero var_ub;
+    Numeral.zero var_ub ;
 
   (* Asserting predicate. *)
-  Solver.assert_term solver pred;
+  Solver.assert_term solver pred ;
 
   (* Asserting invariants at 0. *)
-  Sys.invars_of_bound ~one_state_only:true sys Numeral.zero
-  |> Term.mk_and |> Solver.assert_term solver;
+  Sys.invars_of_bound
+    ~one_state_only:true sys Numeral.zero
+  |> Term.mk_and
+  |> Solver.assert_term solver ;
 
   if not init then
     (* Asserting invariants at 1. *)
-    Sys.invars_of_bound sys Numeral.one
-    |> Term.mk_and |> Solver.assert_term solver;
+    Sys.invars_of_bound sys Numeral.one |> Term.mk_and
+    |> Solver.assert_term solver ;
 
   solver
 
 (** Creates the three solvers used by C2I. Initializes them and updates the
     solver references (deletes previous solvers). *)
 let mk_solvers sys =
+
   (* Creating solvers. *)
   let s1, s2, s3 =
-    (mk_solver sys true, mk_solver sys false, mk_solver sys false)
+    mk_solver sys true,
+    mk_solver sys false,
+    mk_solver sys false
   in
 
-  (s1, s2, s3)
+  s1, s2, s3
 
 (** Resets the solvers of a context if enough actlits have been created. *)
 (*
@@ -150,25 +160,29 @@ let reset_solvers_of t =
   ) else t
 *)
 
+
+
 (** |===| Context-related stuff. *)
+
 
 (** Creates a context. *)
 let mk_context sys props =
+
   (* Extracting property terms. *)
   let props =
-    props
-    |> List.map (fun name ->
-           (name, (Sys.property_of_name sys name).Property.prop_term))
+    props |> List.map (fun name ->
+      name, (Sys.property_of_name sys name).Property.prop_term
+    )
   in
 
   (* Creating solvers. *)
   let solver1, solver2, solver3 = mk_solvers sys in
 
   (* Original model sets. *)
-  let white, grey, black = ([], [], []) in
+  let white, grey, black = [], [], [] in
 
   (* Returning context. *)
-  { sys; props; white; grey; black; solver1; solver2; solver3 }
+  { sys ; props ; white ; grey ; black ; solver1 ; solver2 ; solver3 }
 
 (*
 (** Resets a context with a new prop. Changes [prop] and resets [black].
@@ -330,7 +344,7 @@ let query_solvers { sys ; props ; solver1 ; solver2 ; solver3 } candidate =
   check_2 sys solver2 candidate,
   check_3 sys solver3 candidate props*)
 
-(* match ... with
+  (* match ... with
   | (_, []), (_, []), ([], _) ->
     KEvent.log L_info "%sInvariant found." pref ;
   | (_, []), (_, []), (str, fal) ->
@@ -349,31 +363,40 @@ let query_solvers { sys ; props ; solver1 ; solver2 ; solver3 } candidate =
     ) ;
   | info -> info *)
 
+
+
+
+
 (** Runs C2I cnf version. *)
 let run context candidate = ()
 
+
+
 (** Entry point. *)
 let main input_sys aparam sys =
+
   match Sys.get_split_properties sys with
   | _, _, [] ->
-      (* No properties to strengthen. *)
-      ()
+    (* No properties to strengthen. *)
+    ()
   | _, _, props ->
-      (* Extracting property names. *)
-      let props = List.map (fun p -> p.Property.prop_name) props in
 
-      (* Start timers. *)
-      Stat.start_timer Stat.c2i_total_time;
-      (* New candidate. *)
-      let candidate = Candidate.mk sys in
-      (* Building context. *)
-      let context = mk_context sys props in
+    (* Extracting property names. *)
+    let props = List.map (fun p -> p.Property.prop_name) props in
 
-      (* Running. *)
-      run context candidate;
+    (* Start timers. *)
+    Stat.start_timer Stat.c2i_total_time ;
+    (* New candidate. *)
+    let candidate = Candidate.mk sys in
+    (* Building context. *)
+    let context = mk_context sys props in
 
-      (* Done. *)
-      stop ()
+    (* Running. *)
+    run context candidate ;
+
+    (* Done. *)
+    stop ()
+
 
 (* 
    Local Variables:

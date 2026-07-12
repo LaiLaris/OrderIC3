@@ -19,13 +19,21 @@
 type t
 
 module CubeSet : Set.S with type elt = t
+
 module CubeMap : Map.S with type key = t
 
 val empty : t
+
 val add : Term.t -> t -> t
+
 val remove : Term.t -> t -> t
+
 val literals : t -> Term.t list
+
 val subsumes : t -> t -> bool
+
 val contains : Term.t -> t -> bool
+
 val to_term : t -> Term.t
+
 val pp_print_cube : Format.formatter -> t -> unit

@@ -16,40 +16,34 @@
 
 *)
 
-type _ t
 (** Stores IO things to log testcases to xml. *)
+type _ t
 
 (* [mk sys root name title] creates a new IO struct for system [sys], in
    directory [root]. [name] is an ident-like description of the testgen
    strategy and [title] is a more verbose description. *)
-val mk : 'a InputSystem.t -> TransSys.t -> string -> string -> string -> 'a t
+val mk: 'a InputSystem.t -> TransSys.t -> string -> string -> string -> 'a t
 
-val rm : 'a t -> unit
+
 (** Closes internal file descriptors. *)
+val rm: 'a t -> unit
 
-val testcase_count : 'a t -> int
 (** The number of testcases generated. *)
+val testcase_count: 'a t -> int
 
-val error_count : 'a t -> int
 (** The number of errors generated. *)
+val error_count: 'a t -> int
 
-val log_testcase : 'a t -> Scope.t list list -> Model.t -> Numeral.t -> unit
-(** [log_testcase t modes model k] logs a test case of length [k] represented by
-    model [model] and activating modes [modes] using the info in [t]. *)
+(** [log_testcase t modes model k] logs a test case of length [k]
+    represented by model [model] and activating modes [modes] using the info
+    in [t]. *)
+val log_testcase: 'a t -> Scope.t list list -> Model.t -> Numeral.t -> unit
 
-val log_deadlock : 'a t -> Scope.t list list -> Model.t -> Numeral.t -> unit
 (** [log_deadlock t modes model k] logs a deadlock trace of length [k]
-    represented by model [model] and activating modes [modes] using the info in
-    [t]. *)
+    represented by model [model] and activating modes [modes] using the info
+    in [t]. *)
+val log_deadlock: 'a t -> Scope.t list list -> Model.t -> Numeral.t -> unit
 
-val log_test_glue_file :
-  string ->
-  string ->
-  string * (Lib.position * int) list * (string * Lib.position * int) list ->
-  string ->
-  string list ->
-  unit
-(** Logs the top level XML glue file. *)
 
 (* 
    Local Variables:

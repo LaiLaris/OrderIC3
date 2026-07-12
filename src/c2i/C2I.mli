@@ -18,10 +18,13 @@
 
 (** C2I is a machine-learning-based invariant generation technique.
 
-    See documentation in source file for more details. *)
+See documentation in source file for more details. *)
 
-val main : 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
-val on_exit : TransSys.t option -> unit
+
+val main: 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
+
+val on_exit: TransSys.t option -> unit
+
 
 (* 
    Local Variables:

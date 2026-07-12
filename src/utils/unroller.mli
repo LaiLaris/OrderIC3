@@ -16,19 +16,23 @@
 
 *)
 
-(** Very basic helper functions for unrolling. More precisely, asserting one-
-    and two-state invariants. *)
 
-val assert_0_to : SMTSolver.t -> Numeral.t -> Term.t -> unit
+(** Very basic helper functions for unrolling. More precisely, asserting
+one- and two-state invariants. *)
+
 (** Asserts some terms from [0] to [k-1]. *)
+val assert_0_to : SMTSolver.t -> Numeral.t -> Term.t -> unit
 
-val assert_1_to : SMTSolver.t -> Numeral.t -> Term.t -> unit
 (** Asserts some terms from [1] to [k-1]. *)
+val assert_1_to : SMTSolver.t -> Numeral.t -> Term.t -> unit
 
-val assert_new_invs_to :
-  SMTSolver.t -> Numeral.t -> Term.TermSet.t * Term.TermSet.t -> unit
-(** Asserts some new one- and two-state invariant up to [k-1], starting at * [0]
-    for one-state invariants, * [1] for two-state invariants. *)
+(** Asserts some new one- and two-state invariant up to [k-1], starting at
+  * [0] for one-state invariants,
+  * [1] for two-state invariants. *)
+val assert_new_invs_to : SMTSolver.t -> Numeral.t -> (
+  Term.TermSet.t * Term.TermSet.t
+) -> unit
+
 
 (* 
    Local Variables:

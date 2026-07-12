@@ -16,9 +16,9 @@
 
 *)
 
+(** Translates the contract from the first file into properties and writes
+the result in the second file. *)
 val translate_file : string -> string -> unit
-(** Translates the contract from the first file into properties and writes the
-    result in the second file. *)
 
 (* 
    Local Variables:
@@ -27,3 +27,4 @@ val translate_file : string -> string -> unit
    indent-tabs-mode: nil
    End: 
 *)
+  

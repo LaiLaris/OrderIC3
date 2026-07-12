@@ -16,71 +16,65 @@
 
 *)
 
+
 module type S = sig
+
   (** {2 Solver configuration options} *)
 
-  val cmd_line :
-    TermLib.logic ->
-    int ->
-    bool ->
-    bool ->
-    bool ->
-    bool ->
-    bool ->
-    bool ->
-    string array
   (** Command line options *)
+  val cmd_line : TermLib.logic -> int -> bool -> bool -> bool -> bool -> bool -> bool -> string array
 
-  val check_sat_limited_cmd : int -> string
   (** Internal command for check-sat with timeout in milliseconds*)
-
-  val check_sat_assuming_supported : unit -> bool
+  val check_sat_limited_cmd : int -> string
+    
   (** Returns [true] if check-sat-assuming functionality is supported *)
-
-  val check_sat_assuming_cmd : unit -> string
+  val check_sat_assuming_supported : unit -> bool
+    
   (** Special command for check-sat-assuming *)
+  val check_sat_assuming_cmd : unit -> string
 
-  val headers : bool -> string list
   (** Solver specific headers to add at the beginning of the file *)
+  val headers : bool -> string list
 
-  val prelude : string list
   (** Solver specific commands to add at the beginning of the file *)
+  val prelude : string list
 
-  val trace_extension : string
   (** File extension for traces *)
+  val trace_extension : string
 
-  val comment_delims : string * string
   (** Begin / end delimiters for comments *)
+  val comment_delims : string * string
 
-  (** {2 Sort conversions} *)
+  (** {2 Sort conversions } *)
 
-  val interpr_type : Type.t -> Type.t
   (** Can interpret type in a supported sort. Fails on unsupported sorts. *)
+  val interpr_type : Type.t -> Type.t
 
-  val pp_print_sort : Format.formatter -> Type.t -> unit
   (** Print a sort *)
+  val pp_print_sort : Format.formatter -> Type.t -> unit
 
-  val string_of_sort : Type.t -> string
   (** Return an SMTLIB string expression of a sort *)
+  val string_of_sort : Type.t -> string
 
-  val string_of_logic : TermLib.logic -> string
   (** Return an SMTLIB string expression for the logic *)
+  val string_of_logic : TermLib.logic -> string 
 
-  val pp_print_logic : Format.formatter -> TermLib.logic -> unit
   (** Pretty-print a logic in SMTLIB format *)
+  val pp_print_logic : Format.formatter -> TermLib.logic -> unit
 
-  val pp_print_symbol : ?arity:int -> Format.formatter -> Symbol.t -> unit
   (** Pretty-print a symbol *)
+  val pp_print_symbol :  ?arity:int -> Format.formatter -> Symbol.t -> unit
 
-  val string_of_symbol : ?arity:int -> Symbol.t -> string
   (** Return a string representation of a symbol *)
+  val string_of_symbol : ?arity:int -> Symbol.t -> string 
 
-  val pp_print_expr : Format.formatter -> Term.t -> unit
   (** Pretty-print an expression *)
+  val pp_print_expr : Format.formatter -> Term.t -> unit
 
-  val print_expr : Term.t -> unit
   (** Pretty-print an expression to the default formatter *)
+  val print_expr : Term.t -> unit
 
-  val string_of_expr : Term.t -> string
   (** Return a string representation of an expression *)
+  val string_of_expr : Term.t -> string
+
 end

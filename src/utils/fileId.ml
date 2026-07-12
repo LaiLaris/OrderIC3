@@ -17,19 +17,23 @@
 *)
 
 module FileId = struct
-  type t = int * int
 
+  type t = int * int
+    
   (* Total order on identifiers *)
   let compare (ino1, dev1) (ino2, dev2) =
-    match compare ino1 ino2 with 0 -> compare dev1 dev2 | c -> c
+    match compare ino1 ino2 with
+    | 0 -> compare dev1 dev2
+    | c -> c
 
   let equal id1 id2 = compare id1 id2 = 0
+
 end
 
 include FileId
 
 let get_id filename =
-  let { Unix.st_dev; Unix.st_ino } = Unix.stat filename in
-  (st_ino, st_dev)
+  let { Unix.st_dev; Unix.st_ino } = Unix.stat filename in (st_ino, st_dev)
 
 module FileIdSet = Set.Make (FileId)
+

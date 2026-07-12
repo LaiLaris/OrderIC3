@@ -25,231 +25,248 @@
 (** {1 Types and hash-consing} *)
 
 (** Type of an expression *)
-type kindtype =
+type kindtype = 
   | Bool
   | Int
   | IntRange of Numeral.t option * Numeral.t option
   | Enum of Numeral.t * Numeral.t
   | Real
   | UBV of int
-  | BV of int
+  | BV of int 
   | Array of t * t
   | Abstr of string
 
-and t
 (** Hashconsed type *)
+and t
 
-val node_of_type : t -> kindtype
 (** Return the value {!kindtype} in a hashconsed type *)
+val node_of_type : t -> kindtype
+
+val get_bv_size : t -> int option
 
 (** {1 Hashtables, maps and sets} *)
 
-val compare_types : t -> t -> int
 (** Comparison function on types *)
+val compare_types : t -> t -> int
 
-val equal_types : t -> t -> bool
 (** Equality function on types *)
+val equal_types : t -> t -> bool
 
-val hash_type : t -> int
 (** Hashing function on types *)
+val hash_type : t -> int
 
-module TypeHashtbl : Hashtbl.S with type key = t
 (** Hash table over types *)
+module TypeHashtbl : Hashtbl.S with type key = t
 
-module TypeSet : Set.S with type elt = t
 (** Set over types *)
+module TypeSet : Set.S with type elt = t
 
-module TypeMap : Map.S with type key = t
 (** Map over types *)
+module TypeMap : Map.S with type key = t
+
 
 (** {1 Constructor} *)
 
-val mk_type : kindtype -> t
 (** Hashcons a type *)
+val mk_type : kindtype -> t
 
-val mk_bool : unit -> t
 (** Return the boolean type *)
+val mk_bool : unit -> t
 
-val mk_int : unit -> t
 (** Return the integer type *)
+val mk_int : unit -> t 
 
-val mk_int_range : Numeral.t option -> Numeral.t option -> t
 (** Return the integer range type *)
+val mk_int_range : Numeral.t option -> Numeral.t option -> t
 
-val mk_real : unit -> t
 (** Return the real decimal type *)
+val mk_real : unit -> t
 
-val mk_ubv : int -> t
 (** Return the unsigned bitvector type *)
+val mk_ubv : int -> t
 
-val mk_bv : int -> t
 (** Return the bitvector type *)
+val mk_bv : int -> t
 
-val mk_array : t -> t -> t
 (** Return an array type of index sort and element sort *)
+val mk_array : t -> t -> t
 
-val mk_abstr : string -> t
 (** Return an abstract type *)
+val mk_abstr : string -> t
 
-val mk_enum : string -> string list -> t
 (** Return an enumerated datatype type *)
+val mk_enum : string -> string list -> t
 
-val import : t -> t
 (** Import a type from a different instance into this hashcons table *)
+val import : t -> t 
 
-val t_bool : t
 (** The boolean type *)
+val t_bool : t
 
-val t_int : t
 (** The integer type *)
+val t_int : t
 
-val t_real : t
 (** The real decimal type *)
+val t_real : t
 
-val t_ubv : int -> t
 (** The unsigned bitvector type *)
+val t_ubv : int -> t
 
-val t_bv : int -> t
 (** The bitvector type *)
+val t_bv : int -> t
 
 (** {1 Type checking} *)
 
-val check_type : t -> t -> bool
 (** [check_type s t] returns [true] if [s] is a subtype of [t] *)
+val check_type : t -> t -> bool
+
 
 (** {1 Predicates} *)
 
-val is_bool : t -> bool
 (** Return [true] if the type is the Boolean type *)
+val is_bool : t -> bool
 
-val is_int : t -> bool
 (** Return [true] if the type is the integer type *)
+val is_int : t -> bool
 
 (* @author Arjun Viswanathan*)
-
-val is_ubitvector : t -> bool
 (** Return [true] if the type is an unsigned bitvector (integern) type *)
+val is_ubitvector : t -> bool
 
+(** Return [true] if the type is an unsigned bitvector (integern) type of the given width *)
+val is_ubitvector_len : int -> t -> bool
+
+(** Return [true] if the type is a bitvector (integern) type *)
 val is_bitvector : t -> bool
-(** Return [true] if the type is a bitvector (integern) type *)
 
+(** Return [true] if the type is a bitvector (integern) type of the given width *)
+val is_bitvector_len : int -> t -> bool
+
+(** Return [true] if the type is a bitvector (integern) type *)
 val bitvectorsize : t -> int
-(** Return [true] if the type is a bitvector (integern) type *)
 
-val is_uint8 : t -> bool
 (** Return [true] if the type is the unsigned integer8 type *)
+val is_uint8 : t -> bool
 
-val is_uint16 : t -> bool
 (** Return [true] if the type is the unsigned integer16 type *)
+val is_uint16 : t -> bool
 
-val is_uint32 : t -> bool
 (** Return [true] if the type is the unsigned integer32 type *)
+val is_uint32 : t -> bool
 
-val is_uint64 : t -> bool
 (** Return [true] if the type is the unsigned integer64 type *)
+val is_uint64 : t -> bool
 
-val is_int8 : t -> bool
 (** Return [true] if the type is the integer8 type *)
+val is_int8 : t -> bool
 
-val is_int16 : t -> bool
 (** Return [true] if the type is the integer16 type *)
+val is_int16 : t -> bool
 
-val is_int32 : t -> bool
 (** Return [true] if the type is the integer32 type *)
+val is_int32 : t -> bool
 
-val is_int64 : t -> bool
 (** Return [true] if the type is the integer64 type *)
+val is_int64 : t -> bool
 
+(** Return [true] if the type is an integer range type *)
 val is_int_range : t -> bool
-(** Return [true] if the type is an integer range type *)
 
+(** Return [true] if the type is an integer range type *)
 val is_enum : t -> bool
-(** Return [true] if the type is an integer range type *)
 
-val is_real : t -> bool
 (** Return [true] if the type is the real type *)
+val is_real : t -> bool
 
-val is_array : t -> bool
 (** Return [true] if the type is an array type *)
+val is_array : t -> bool
 
-val is_abstr : t -> bool
 (** Return [true] if the type is abstract *)
+val is_abstr : t -> bool
 
 (** {1 Ranges} *)
 
-val bounds_of_int_range : t -> Numeral.t option * Numeral.t option
 (** Return bounds of an integer range type, fail with
-    [Invalid_argument "bounds_of_int_range"] if the type is not an integer range
-    type. *)
+    [Invalid_argument "bounds_of_int_range"] if the type is not an
+    integer range type. *)
+val bounds_of_int_range : t -> (Numeral.t option * Numeral.t option)
 
-val bounds_of_enum : t -> Numeral.t * Numeral.t
-(** Return bounds of an enum type, fail with [Invalid_argument "bounds_of_enum"]
-    if the type is not an integer range type. *)
+(** Return bounds of an enum type, fail with
+    [Invalid_argument "bounds_of_enum"] if the type is not an
+    integer range type. *)
+val bounds_of_enum : t -> (Numeral.t * Numeral.t)
 
-val generalize : t -> t
+
 (** Generalize a type (remove actual intranges) *)
+val generalize : t -> t
 
-(** {1 Arrays} *)
 
-val index_type_of_array : t -> t
+(** {1 Arrays } *)
+
 (** Return type of array index *)
+val index_type_of_array : t -> t 
 
+(** Return all array index types of a nested array type *)
 val all_index_types_of_array : t -> t list
-(** Return all array index types of a nested array type *)
 
-val elem_type_of_array : t -> t
 (** Return type of array elements *)
+val elem_type_of_array : t -> t
 
-val last_elem_type_of_array : t -> t
+(** Return type of array indices *)
+val idx_type_of_array : t -> t
+
 (** Return all array index types of a nested array type *)
+val last_elem_type_of_array : t -> t
 
-(** {1 Enumerated datatypes} *)
+(** {1 Enumerated datatypes } *)
 
-val constructors_of_enum : t -> string list
 (** Return constructors of an enumerated datatype *)
+val constructors_of_enum : t -> string list
 
-val name_of_enum : t -> string
 (** Return the name of an enumerated datatype encoded as int ranges *)
+val name_of_enum : t -> string
 
-val get_constr_of_num : Numeral.t -> string
 (** Return the constructor encoded by the numeral argument *)
+val get_constr_of_num : Numeral.t -> string
 
-val get_all_abstr_types : unit -> t list
 (** Return abstract types that have been built *)
+val get_all_abstr_types : unit -> t list
 
-val get_num_of_constr : string -> Numeral.t
 (** Return the numeral encoding of a construcor of an enumerated datatype *)
+val get_num_of_constr : string -> Numeral.t
 
-val enum_of_constr : string -> t
 (** Return the enumerated dataype to which the constructor belongs *)
+val enum_of_constr : string -> t
+
 
 (** {1 Pretty-printing} *)
 
+(** Pretty-print a type *)
 val pp_print_type_node : Format.formatter -> kindtype -> unit
-(** Pretty-print a type *)
 
+(** Pretty-print a type *)
 val pp_print_type : Format.formatter -> t -> unit
-(** Pretty-print a type *)
 
+(** Pretty-print a type to the standard formatter *)
 val print_type : t -> unit
-(** Pretty-print a type to the standard formatter *)
 
+(** Return a string representation of a type *)
 val string_of_type : t -> string
-(** Return a string representation of a type *)
 
-(** {1 Pretty-printing for debugging - differentiates UBV and BV} *)
 
+(** {1 Pretty-printing for debugging - differentiates UBV and BV } *)
+
+(** Pretty-print a type *)
 val pp_print_type_node_debug : Format.formatter -> kindtype -> unit
-(** Pretty-print a type *)
 
+(** Pretty-print a type *)
 val pp_print_type_debug : Format.formatter -> t -> unit
-(** Pretty-print a type *)
 
-val print_type_debug : t -> unit
 (** Pretty-print a type to the standard formatter *)
+val print_type_debug : t -> unit
 
-val string_of_type_debug : t -> string
 (** Return a string representation of a type *)
+val string_of_type_debug : t -> string
 
 (* 
    Local Variables:

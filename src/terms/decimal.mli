@@ -18,173 +18,176 @@
 
 (** Arbitrary precision real numbers
 
-    @author Christoph Sticksel *)
+    @author Christoph Sticksel
+*)
 
-type t
 (** Type of arbitrary precision rational numbers *)
+type t 
 
 (** {1 Pretty-printing and String Representation} *)
 
-val pp_print_decimal : Format.formatter -> t -> unit
 (** Pretty-print a rational *)
+val pp_print_decimal : Format.formatter -> t -> unit
 
-val pp_print_decimal_as_float : Format.formatter -> t -> unit
 (** Pretty-print a rational as an f64 (used by compilation to Rust) *)
+val pp_print_decimal_as_float : Format.formatter -> t -> unit
 
-val pp_print_decimal_as_lus_real : Format.formatter -> t -> unit
 (** Pretty-print a rational as a Lustre real *)
+val pp_print_decimal_as_lus_real: Format.formatter -> t -> unit
 
-val pp_print_decimal_approximation : Format.formatter -> t -> unit
 (** Pretty-print a rational in scientific format with the error magnitude *)
+val pp_print_decimal_approximation: Format.formatter -> t -> unit
 
-val pp_print_decimal_sexpr : Format.formatter -> t -> unit
 (** Pretty-print a rational as an S-expression *)
+val pp_print_decimal_sexpr : Format.formatter -> t -> unit
 
 val pp_print_decimal_as_json : Format.formatter -> t -> unit
 
-val string_of_decimal : t -> string
 (** Return a string representation of a rational *)
+val string_of_decimal : t -> string
 
-val string_of_decimal_sexpr : t -> string
 (** Return an S-expression string representation of a rational *)
+val string_of_decimal_sexpr : t -> string
 
-val string_of_decimal_lustre : t -> string
 (** Return a Lustre string representation of a rational *)
+val string_of_decimal_lustre : t -> string
 
 (** {1 Conversions} *)
 
-val of_int : int -> t
 (** Convert an integer to a rational *)
+val of_int : int -> t
 
-val of_big_int : Big_int.big_int -> t
 (** Convert an arbitrary large integer to a rational *)
+val of_big_int : Big_int.big_int -> t
 
-val of_num : Num.num -> t
 (** Convert an ocaml Num to a rational *)
+val of_num : Num.num -> t
 
-val of_string : string -> t
 (** Convert a string in floating-point notation [1.2E3] to rational number *)
+val of_string : string -> t
 
-val to_int : t -> int
 (** Convert a rational number to a rational
 
-    Truncates the rational number to an integer and raises the exception
-    [Failure "int_of_big_int"] if the numeral cannot be represented as an
-    integer. *)
+    Truncates the rational number to an integer and raises the
+    exception [Failure "int_of_big_int"] if the numeral cannot be
+    represented as an integer.  *)
+val to_int : t -> int
 
-val to_big_int : t -> Big_int.big_int
 (** Convert a rational number to an arbitrary large integer *)
+val to_big_int : t -> Big_int.big_int
 
-val is_int : t -> bool
 (** Return true if decimal coincides with an integer *)
+val is_int : t -> bool
 
+(** Returns 0 on zero, 1 for positives and -1 for negatives.
+    Works also on infinites but fails on undefined. *)
 val sign : t -> int
-(** Returns 0 on zero, 1 for positives and -1 for negatives. Works also on
-    infinites but fails on undefined. *)
 
-val epsilon : int -> t
 (** Returns the rational [2^p] with signed p. *)
+val epsilon : int -> t
 
+(** Returns a signed integer [n] such that [2^(n-1) < |dec| < 2^n ]
+    or [0] if [dec] is null. *)
 val magnitude : t -> int
-(** Returns a signed integer [n] such that [2^(n-1) < |dec| < 2^n ] or [0] if
-    [dec] is null. *)
 
 (** {1 Constants} *)
 
-val zero : t
 (** The rational number zero *)
+val zero : t
 
-val one : t
 (** The rational number one *)
+val one : t
 
 (** {1 Arithmetic operations} *)
 
-val succ : t -> t
 (** Successor *)
+val succ : t -> t 
 
-val pred : t -> t
 (** Predecessor *)
+val pred : t -> t 
 
-val abs : t -> t
 (** Absolute value *)
+val abs : t -> t
 
-val neg : t -> t
 (** Unary negation *)
+val neg : t -> t 
 
-val add : t -> t -> t
 (** Sum *)
+val add : t -> t -> t
 
-val sub : t -> t -> t
 (** Difference *)
+val sub : t -> t -> t
 
-val mult : t -> t -> t
 (** Product *)
+val mult : t -> t -> t
 
-val div : t -> t -> t
 (** Quotient *)
+val div : t -> t -> t
 
-val rem : t -> t -> t
 (** Remainder *)
+val rem : t -> t -> t
 
 (** {2 Infix operators} *)
 
-val ( ~- ) : t -> t
 (** Unary negation *)
+val ( ~- ) : t -> t
 
-val ( + ) : t -> t -> t
 (** Sum *)
+val ( + ) : t -> t -> t
 
-val ( - ) : t -> t -> t
 (** Difference *)
+val ( - ) : t -> t -> t
 
-val ( * ) : t -> t -> t
 (** Product *)
+val ( * ) : t -> t -> t
 
-val ( / ) : t -> t -> t
 (** Quotient *)
+val ( / ) : t -> t -> t
 
-val ( mod ) : t -> t -> t
 (** Remainder *)
+val ( mod ) : t -> t -> t
+
 
 (** {1 Comparison operators} *)
 
-val equal : t -> t -> bool
 (** Equality *)
+val equal : t -> t -> bool
 
-val compare : t -> t -> int
 (** Comparison *)
+val compare : t -> t -> int
 
-val leq : t -> t -> bool
 (** Less than or equal predicate *)
+val leq : t -> t -> bool
 
-val lt : t -> t -> bool
 (** Less than predicate *)
+val lt : t -> t -> bool
 
-val geq : t -> t -> bool
 (** Greater than or equal predicate *)
+val geq : t -> t -> bool
 
-val gt : t -> t -> bool
 (** Greater than predicate *)
+val gt : t -> t -> bool
 
 (** {2 Infix operators} *)
 
-val ( = ) : t -> t -> bool
 (** Equality *)
+val ( = ) : t -> t -> bool
 
-val ( <> ) : t -> t -> bool
 (** Disequality *)
+val ( <> ) : t -> t -> bool
 
-val ( <= ) : t -> t -> bool
 (** Less than or equal predicate *)
+val ( <= ) : t -> t -> bool
 
-val ( < ) : t -> t -> bool
 (** Less than predicate *)
+val ( < ) : t -> t -> bool
 
-val ( >= ) : t -> t -> bool
 (** Greater than or equal predicate *)
+val ( >= ) : t -> t -> bool
 
-val ( > ) : t -> t -> bool
 (** Greater than predicate *)
+val ( > ) : t -> t -> bool
+
 
 (* 
    Local Variables:

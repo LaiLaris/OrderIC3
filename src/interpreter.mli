@@ -16,15 +16,16 @@
 
 *)
 
-(** Interpreter for Lustre programs
+(** Interpreter for Lustre programs 
 
     @author Baoluo Meng *)
 
-val main : string -> 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
 (** Entry point *)
+val main : ?contract_monitor:bool -> string -> 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
 
-val on_exit : TransSys.t option -> unit
 (** Cleanup before exit *)
+val on_exit : TransSys.t option -> unit
+
 
 (* 
    Local Variables:

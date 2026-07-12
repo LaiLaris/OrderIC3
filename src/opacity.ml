@@ -22,4 +22,5 @@ type t =
   | Translucent
   (* Use the contract, and refine with the body if required *)
   | Transparent
-(* Always use the body *)
+  (* Always use the body *)
+

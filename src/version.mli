@@ -16,18 +16,21 @@
 
 *)
 
-(** Static and autoconfigured defaults
+(** Static and autoconfigured defaults 
 
-    Do not edit the .ml file but rather the .ml.in file, the .ml file is
-    generated from the .ml.in file after each run of the configure script.
+    Do not edit the .ml file but rather the .ml.in file, the .ml file
+    is generated from the .ml.in file after each run of the configure
+    script.
 
-    @author Christoph Sticksel *)
+    @author Christoph Sticksel
+*)
 
-val package_name : string
 (** Name of the program *)
+val package_name : string
 
-val version : string
 (** *)
+val version : string
+
 
 (* 
    Local Variables:

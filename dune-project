@@ -1,7 +1,13 @@
 (lang dune 2.7)
 
 (name kind2)
-(version 2.3.0)
+(version 3.0.0)
+
+(license Apache-2.0)
+(authors "The Kind 2 development team")
+(maintainers "Daniel Larraz <daniel-larraz@uiowa.edu>")
+(source
+  (github kind2-mc/kind2))
 
 (package
  (name kind2)
@@ -12,32 +18,46 @@ or infinite-state synchronous reactive systems expressed as in an extension of t
 In its basic configuration it takes as input a Lustre file annotated with properties to be proven invariant,
 and outputs for each property either a confirmation or a counterexample, i.e., a sequence inputs that falsifies the property.
 More advanced features include contract-based compositional verification, proof generation for proven properties, and contract-based test generation.")
- (license Apache-2.0)
- (authors "The Kind 2 development team")
- (maintainers "Daniel Larraz <daniel-larraz@uiowa.edu>")
- (source
-  (github kind2-mc/kind2))
  (homepage "https://kind2-mc.github.io/kind2")
  (documentation "https://kind.cs.uiowa.edu/kind2_user_doc")
  (depends
   (ocaml
-   (>= 4.09))
+   (>= 4.14))
   dune
   dune-build-info
   (menhir
-   (>= 20250912)) ; Required by dune when the infer option is used
+   (>= 20180523)) ; Required by dune when the infer option is used
                   ; See issue: https://github.com/ocaml/dune/issues/1392
   num
   (odoc :with-doc)
   (ounit2 :with-test)
-  (yojson 
-   (<= 2.2.2))
+  yojson
   (zmq
    (>= 5.1.0))
-  (graphicspdf
-   (>= 2.2.1))
-  )
  )
+)
+
+(package
+ (name kmoxi)
+ (synopsis "A model checker for the MoXI language based on Kind 2")
+ (description "kMoXI is a model checker for the MoXI language that uses Kind 2 back-end technology for model checking")
+ (homepage "https://kind2-mc.github.io/kind2")
+ (depends
+  (ocaml
+   (>= 4.14))
+  dune
+  dune-build-info
+  (menhir
+   (>= 20180523)) ; Required by dune when the infer option is used
+                  ; See issue: https://github.com/ocaml/dune/issues/1392
+  num
+  (odoc :with-doc)
+  (ounit2 :with-test)
+  yojson
+  (zmq
+   (>= 5.1.0))
+ )
+)
 
 (using menhir 2.0)
 

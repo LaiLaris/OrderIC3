@@ -18,14 +18,18 @@
 
 (** S-Expressions over string atoms
 
-    @author Christoph Sticksel *)
+    @author Christoph Sticksel 
 
-module type StringSExpr = SExprBase.S with type atom = string
-(** Define the type of the result from the functor application *)
-
-include StringSExpr
-(** Include the module here to avoid having to write [StringSExpr.StringSExpr]
 *)
+
+
+(** Define the type of the result from the functor application *)
+module type StringSExpr = SExprBase.S with type atom = string
+
+(** Include the module here to avoid having to write
+    [StringSExpr.StringSExpr] *)
+include StringSExpr
+
 
 (* 
    Local Variables:

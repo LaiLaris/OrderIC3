@@ -19,284 +19,318 @@
 module A = LustreAst
 module AH = LustreAstHelpers
 module AN = LustreAstNormalizer
+module GI = GeneratedIdentifiers
+module NI = NodeId
 
-let rec flatten_ref_type ctx ty =
-  match ty with
-  | A.UserType (pos, ty_args, str) -> (
-      let ty = TypeCheckerContext.lookup_ty_syn ctx str ty_args in
-      match ty with
-      | Some ty -> flatten_ref_type ctx ty
-      | None -> A.UserType (pos, ty_args, str))
-  | RecordType (pos, id, tis) ->
-      let tis =
-        List.map (fun (pos, id, ty) -> (pos, id, flatten_ref_type ctx ty)) tis
-      in
-      RecordType (pos, id, tis)
-  | TupleType (pos, tys) | GroupType (pos, tys) ->
-      let tys = List.map (flatten_ref_type ctx) tys in
-      TupleType (pos, tys)
-  | ArrayType (pos, (ty, expr)) ->
-      let ty = flatten_ref_type ctx ty in
-      ArrayType (pos, (ty, expr))
-  | RefinementType (pos, (pos2, id, ty), expr) -> (
-      let ty = flatten_ref_type ctx ty in
-      let rec chase_refinements ty =
-        match ty with
-        | A.RefinementType (_, (_, id2, ty2), expr2) ->
-            let cons = chase_refinements ty2 in
-            AH.substitute_naive id2 (Ident (pos, id)) expr2 :: cons
-        | RecordType (_, _, tis) ->
-            List.map
-              (fun (_, id2, ty) ->
-                let exprs = chase_refinements ty in
-                List.map
-                  (AH.substitute_naive id
-                     (A.RecordProject (pos, Ident (pos, id), id2)))
-                  exprs)
-              tis
-            |> List.flatten
-        | TupleType (pos, tys) | GroupType (pos, tys) ->
-            List.mapi
-              (fun i ty ->
-                let exprs = chase_refinements ty in
-                List.map
-                  (AH.substitute_naive id
-                     (A.TupleProject (pos, Ident (pos, id), i)))
-                  exprs)
-              tys
-            |> List.flatten
-        | ArrayType (pos, (ty, len)) ->
-            let dummy_index = AN.mk_fresh_dummy_index () in
-            let exprs = chase_refinements ty in
-            List.map
-              (fun expr ->
-                let expr =
-                  AH.substitute_naive id
-                    (A.ArrayIndex
-                       (pos, Ident (pos, id), Ident (pos, dummy_index)))
-                    expr
-                in
-                let bound1 =
-                  A.CompOp
-                    ( pos,
-                      Lte,
-                      A.Const (pos, Num (HString.mk_hstring "0")),
-                      A.Ident (pos, dummy_index) )
-                in
-                let bound2 =
-                  A.CompOp (pos, Lt, A.Ident (pos, dummy_index), len)
-                in
-                let expr =
-                  A.BinaryOp
-                    (pos, Impl, A.BinaryOp (pos, And, bound1, bound2), expr)
-                in
-                A.Quantifier
-                  (pos, Forall, [ (pos, dummy_index, A.Int pos) ], expr))
-              exprs
-        | Int _ | Int64 _ | Int32 _ | Int16 _ | Int8 _ | UInt64 _ | UInt32 _
-        | UInt16 _ | UInt8 _ | Bool _ | IntRange _ | Real _ | AbstractType _
-        | EnumType _ | History _ | TArr _ | UserType _ ->
-            []
-      in
-      let constraints = chase_refinements ty in
-      let expr =
-        List.fold_left
-          (fun acc expr -> A.BinaryOp (pos, And, acc, expr))
-          expr constraints
-      in
-      match LustreTypeChecker.expand_type_syn_reftype_history ctx ty with
+let rec flatten_ref_type ctx ty = match ty with
+  | A.UserType (pos, ty_args, str) -> 
+    let ty = TypeCheckerContext.lookup_ty_syn ctx str ty_args in 
+    (match ty with 
+    | Some ty -> flatten_ref_type ctx ty
+    | None -> A.UserType (pos, ty_args, str))
+  | RecordType (pos, id, tis) -> 
+    let tis = List.map (fun (pos, id, ty) -> pos, id, flatten_ref_type ctx ty) tis in 
+    RecordType (pos, id, tis) 
+  | Set (pos, ty) -> 
+    let ty = flatten_ref_type ctx ty in 
+    Set (pos, ty)
+  | Map (pos, ty1, ty2) -> 
+    let ty1 = flatten_ref_type ctx ty1 in 
+    let ty2 = flatten_ref_type ctx ty2 in 
+    Map (pos, ty1, ty2)
+  | TupleType (pos, tys) | GroupType (pos, tys) -> 
+    let tys = List.map (flatten_ref_type ctx) tys in 
+    TupleType (pos, tys)
+  | ArrayType (pos, (ty, expr)) -> 
+    let ty = flatten_ref_type ctx ty in 
+    ArrayType (pos, (ty, expr))
+  | RefinementType (pos, (pos2, id, ty), expr) -> 
+    let ty = flatten_ref_type ctx ty in
+    let rec chase_refinements ty = match ty with 
+    | A.RefinementType (_, (_, id2, ty2), expr2) -> 
+      let cons = chase_refinements ty2 in
+      (AH.substitute_naive id2 (Ident(pos, id)) expr2) :: cons
+    | RecordType (_, _, tis) ->
+      List.map (fun (_, id2, ty) -> 
+        let exprs = chase_refinements ty in 
+        List.map (AH.substitute_naive id (A.RecordProject(pos, Ident(pos, id), id2))) exprs
+      ) tis |> List.flatten
+    | TupleType (pos, tys) | GroupType (pos, tys) -> 
+      List.mapi (fun i ty ->
+        let exprs = chase_refinements ty in
+        let i = i |> string_of_int |> HString.mk_hstring in
+        List.map (AH.substitute_naive id (A.IndexAccess (pos, Ident(pos, id), A.Const (pos, A.Num i), A.Tuple))) exprs
+      ) tys |> List.flatten
+    | Set (pos, ty) ->
+      let dummy_index = AN.mk_fresh_dummy_index () in
+      let exprs = chase_refinements ty in
+      List.map (fun expr ->
+        let idx = A.Ident(pos, dummy_index) in
+        let expr = AH.substitute_naive id idx expr in
+        let expr = 
+          A.BinaryOp(pos, A.Impl, A.BinaryOp(pos, In Set, Ident(pos, dummy_index), Ident(pos, id)), expr) 
+        in
+        let ty = LustreTypeChecker.expand_type_syn_reftype_history_subrange ctx ty |> Result.get_ok in 
+        A.Quantifier(pos, Forall, [pos, dummy_index, ty], expr)
+      ) exprs
+    | Map (pos, ty1, ty2) ->
+      let dummy_index = AN.mk_fresh_dummy_index () in
+      let exprs1 = chase_refinements ty1 in
+      let exprs1 = List.map (fun expr ->
+        let idx = A.Ident(pos, dummy_index) in
+        let expr = AH.substitute_naive id idx expr in
+        let expr = 
+          A.BinaryOp(pos, A.Impl, A.BinaryOp(pos, In Map, Ident(pos, dummy_index), Ident(pos, id)), expr) 
+        in
+        let ty1 = LustreTypeChecker.expand_type_syn_reftype_history_subrange ctx ty1 |> Result.get_ok in 
+        A.Quantifier(pos, Forall, [pos, dummy_index, ty1], expr)
+      ) exprs1 in 
+      let exprs2 = chase_refinements ty2 in
+      let exprs2 = List.map (fun expr ->
+        let idx =
+          A.IndexAccess(pos, Ident(pos, id), Ident(pos, dummy_index), Map)
+        in
+        let expr = AH.substitute_naive id idx expr in
+        let expr = 
+          A.BinaryOp(pos, A.Impl, A.BinaryOp(pos, In Map, Ident(pos, dummy_index), Ident(pos, id)), expr) 
+        in
+        A.Quantifier(pos, Forall, [pos, dummy_index, ty1], expr)
+      ) exprs2 in 
+      exprs1 @ exprs2
+    | ArrayType (pos, (ty, len)) ->
+      let dummy_index = AN.mk_fresh_dummy_index () in
+      let exprs = chase_refinements ty in
+      List.map (fun expr ->
+        let idx =
+          A.IndexAccess(pos, Ident(pos, id), Ident(pos, dummy_index), Array)
+        in
+        let expr = AH.substitute_naive id idx expr in
+        let bound1 = 
+          A.CompOp(pos, Lte, A.Const(pos, Num (HString.mk_hstring "0")), A.Ident(pos, dummy_index)) 
+        in 
+        let bound2 = A.CompOp(pos, Lt, A.Ident(pos, dummy_index), len) in
+        let expr = A.BinaryOp(pos, Impl, A.BinaryOp(pos, And, bound1, bound2), expr) in
+        A.Quantifier(pos, Forall, [pos, dummy_index, A.Int pos], expr)
+      ) exprs
+    | Int _ | Bool _ | IntRange _ | Real _ | AbstractType _ | EnumType _ 
+    | History _ | TArr _ | UserType _ | SBitVector _ | UBitVector _ -> []
+    in
+    let constraints = chase_refinements ty in 
+    let expr = List.fold_left (fun acc expr ->
+      A.BinaryOp(pos, And, acc, expr)
+    ) expr constraints in
+    (match LustreTypeChecker.expand_type_syn_reftype_history ctx ty with 
       | Ok ty -> RefinementType (pos, (pos2, id, ty), expr)
       | _ -> assert false)
-  | Int _ | Int64 _ | Int32 _ | Int16 _ | Int8 _ | UInt64 _ | UInt32 _
-  | UInt16 _ | UInt8 _ | Bool _ | IntRange _ | Real _ | AbstractType _
-  | EnumType _ | History _ | TArr _ ->
-      ty
+  (* Desugar subranges with symbolic bounds to refinement types *)
+  | IntRange (pos, Some lb, None) -> ( 
+    match LustreAstInlineConstants.eval_int_expr ctx lb with 
+    | Ok _ -> ty
+    | Error _ -> 
+      let id = HString.mk_hstring "x" in 
+      let bound_var = A.Ident (pos, id) in  
+      RefinementType (pos, (pos, id, A.Int pos), A.CompOp (pos, A.Lte, lb, bound_var))
+    )
+  | IntRange (pos, None, Some ub) -> ( 
+    match LustreAstInlineConstants.eval_int_expr ctx ub with 
+    | Ok _ -> ty
+    | Error _ -> 
+      let id = HString.mk_hstring "x" in 
+      let bound_var = A.Ident (pos, id) in  
+      RefinementType (pos, (pos, id, A.Int pos), A.CompOp (pos, A.Lte, bound_var, ub))
+    )
+  | IntRange (pos, Some lb, Some ub) -> ( 
+    match LustreAstInlineConstants.eval_int_expr ctx lb,
+          LustreAstInlineConstants.eval_int_expr ctx ub with  
+    | Ok _, Ok _ -> ty
+    | Error _, _ | _, Error _ -> 
+      let id = HString.mk_hstring "x" in 
+      let bound_var = A.Ident (pos, id) in  
+      RefinementType (pos, (pos, id, A.Int pos), 
+        A.BinaryOp (pos, A.And, A.CompOp (pos, A.Lte, lb, bound_var), A.CompOp (pos, A.Lte, bound_var, ub))))
+  | Int _ | Bool _ | IntRange _ | Real _ | AbstractType _ | EnumType _ 
+  | History _ | TArr _ | SBitVector _ | UBitVector _ -> ty
 
-let flatten_ref_types_local_decl ctx = function
+let flatten_ref_types_local_decl ctx = function 
   | A.NodeConstDecl (pos, FreeConst (pos2, id, ty)) ->
-      A.NodeConstDecl (pos, FreeConst (pos2, id, flatten_ref_type ctx ty))
+    A.NodeConstDecl (pos, FreeConst (pos2, id, flatten_ref_type ctx ty))
   | A.NodeConstDecl (pos, TypedConst (pos2, id, expr, ty)) ->
-      A.NodeConstDecl (pos, TypedConst (pos2, id, expr, flatten_ref_type ctx ty))
-  | NodeVarDecl (pos, (pos2, id, ty, cl)) ->
-      NodeVarDecl (pos, (pos2, id, flatten_ref_type ctx ty, cl))
-  | decl -> decl
+    A.NodeConstDecl (pos, TypedConst (pos2, id, expr, flatten_ref_type ctx ty)) 
+  | NodeVarDecl (pos, (pos2, id, ty, cl)) -> 
+    NodeVarDecl (pos, (pos2, id, flatten_ref_type ctx ty, cl))
+  | decl -> decl 
 
-let rec flatten_ref_types_expr :
-    TypeCheckerContext.tc_context -> A.expr -> A.expr =
- fun ctx e ->
-  let rec_call = flatten_ref_types_expr ctx in
+
+let rec flatten_ref_types_expr: TypeCheckerContext.tc_context -> A.expr -> A.expr = 
+  fun ctx e -> 
+  let rec_call = flatten_ref_types_expr ctx in  
   match e with
-  (* Quantified expressions *)
+  (* Expressions with types *)
   | Quantifier (p, q, tis, e) ->
-      let tis =
-        List.map (fun (p, id, ty) -> (p, id, flatten_ref_type ctx ty)) tis
-      in
-      Quantifier (p, q, tis, rec_call e)
+    let tis = List.map (fun (p, id, ty) -> p, id, flatten_ref_type ctx ty) tis in
+    Quantifier (p, q, tis, rec_call e)
+  | EmptySet (p, Some ty) -> 
+    EmptySet (p, Some (flatten_ref_type ctx ty))
+  | EmptyMap (p, Some (kt, vt)) ->
+    EmptyMap (p, Some (flatten_ref_type ctx kt, flatten_ref_type ctx vt))
   (* Everything else *)
-  | (Ident _ | ModeRef _) as e -> e
-  | RecordProject (p, e, i) -> RecordProject (p, rec_call e, i)
-  | TupleProject (p, e, i) -> TupleProject (p, rec_call e, i)
+  | Ident _ | EmptyMap (_, None) | EmptySet (_, None)
+  | ModeRef _ as e -> e 
+  | RecordProject (p, e, i) -> RecordProject (p, rec_call e, i)  
   | Const _ as e -> e
   | UnaryOp (p, op, e) -> UnaryOp (p, op, rec_call e)
-  | BinaryOp (p, op, e1, e2) -> BinaryOp (p, op, rec_call e1, rec_call e2)
-  | TernaryOp (p, op, e1, e2, e3) ->
-      TernaryOp (p, op, rec_call e1, rec_call e2, rec_call e3)
-  | ConvOp (p, op, e) -> ConvOp (p, op, rec_call e)
+  | BinaryOp (p, op, e1, e2) -> BinaryOp (p, op, rec_call e1, rec_call e2) 
+  | TernaryOp (p, op, e1, e2, e3) -> TernaryOp (p, op, rec_call e1, rec_call e2, rec_call e3)
+  | ConvOp  (p, op, e) -> ConvOp (p, op, rec_call e)
   | CompOp (p, op, e1, e2) -> CompOp (p, op, rec_call e1, rec_call e2)
-  | AnyOp _ -> assert false (* desugared in lustreDesugarAnyOps *)
+  | Extract (p, e, idx1, idx2) -> Extract (p, rec_call e, idx1, idx2)
+  | AnyOp _ -> assert false (* desugared in lustreDesugarAnyChooseOps *)
+  | ChooseOp _ -> assert false (* desugared in lustreDesugarAnyChooseOps *)
   | RecordExpr (p, i, ps, flds) ->
-      let ps = List.map (flatten_ref_type ctx) ps in
-      RecordExpr (p, i, ps, List.map (fun (f, e) -> (f, rec_call e)) flds)
+    let ps = List.map (flatten_ref_type ctx) ps in
+    RecordExpr (p, i, ps, (List.map (fun (f, e) -> (f, rec_call e)) flds))
   | GroupExpr (p, g, es) -> GroupExpr (p, g, List.map rec_call es)
-  | StructUpdate (p, e1, i, e2) -> StructUpdate (p, rec_call e1, i, rec_call e2)
-  | ArrayConstr (p, e1, e2) -> ArrayConstr (p, rec_call e1, rec_call e2)
-  | ArrayIndex (p, e1, e2) -> ArrayIndex (p, rec_call e1, rec_call e2)
-  | When (p, e, c) -> When (p, rec_call e, c)
+  | StructUpdate (p, e1, i, Some e2) -> StructUpdate (p, rec_call e1, i, Some (rec_call e2))
+  | StructUpdate (p, e1, i, None) -> StructUpdate (p, rec_call e1, i, None) 
+  | ArrayConstr (p, e1, e2) -> ArrayConstr (p, rec_call e1, rec_call e2) 
+  | IndexAccess (p, e1, e2, k) -> IndexAccess (p, rec_call e1, rec_call e2, k)
+  | When (p, e, c) -> When (p, rec_call e, c) 
   | Condact (p, e1, e2, i, es1, es2) ->
-      Condact
-        ( p,
-          rec_call e1,
-          rec_call e2,
-          i,
-          List.map rec_call es1,
-          List.map rec_call es2 )
+    Condact (p, rec_call e1
+              , rec_call e2
+              , i
+              , List.map rec_call es1
+              , List.map rec_call es2)
   | Activate (p, i, e1, e2, es) ->
-      Activate (p, i, rec_call e1, rec_call e2, List.map rec_call es)
-  | Merge (p, i, es) -> Merge (p, i, List.map (fun (i, e) -> (i, rec_call e)) es)
+    Activate(p, i
+              , rec_call e1
+              , rec_call e2
+              , List.map rec_call es)
+  | Merge (p, i, es) ->
+    Merge (p, i, List.map (fun (i, e) -> i, rec_call e) es)
   | RestartEvery (p, i, es, e) ->
-      RestartEvery (p, i, List.map rec_call es, rec_call e)
-  | Pre (p, e) -> Pre (p, rec_call e)
-  | Arrow (p, e1, e2) -> Arrow (p, rec_call e1, rec_call e2)
+    RestartEvery (p, i, List.map rec_call es, rec_call e)
+  | Pre (p, e) -> Pre(p, rec_call e)
+  | Arrow (p, e1, e2) ->  Arrow (p, rec_call e1, rec_call e2)
+  | TypeAscription (p, e, ty) ->
+    TypeAscription (p, rec_call e, flatten_ref_type ctx ty)
   | Call (p, ty_args, i, es) -> Call (p, ty_args, i, List.map rec_call es)
 
-let flatten_ref_types_item ctx item =
-  match item with
-  | A.AnnotProperty (p, id, expr, k) ->
-      A.AnnotProperty (p, id, flatten_ref_types_expr ctx expr, k)
-  | Body _ | FrameBlock _ | IfBlock _ | AnnotMain _ -> item
+let flatten_ref_types_item ctx item = 
+  match item with 
+  | A.AnnotProperty (p, id, expr, k) -> A.AnnotProperty (p, id, flatten_ref_types_expr ctx expr, k)
+  | Body _ | FrameBlock _ | IfBlock _ | WhenBlock _ | AnnotMain _ -> item
 
 let flatten_ref_types_const_decl ctx decl =
   match decl with
-  | A.FreeConst (pos, id, ty) -> A.FreeConst (pos, id, flatten_ref_type ctx ty)
-  | TypedConst (pos, id, expr, ty) ->
-      TypedConst (pos, id, expr, flatten_ref_type ctx ty)
-  | UntypedConst _ -> decl
+  | (A.FreeConst (pos, id, ty)) ->
+    (A.FreeConst (pos, id, flatten_ref_type ctx ty))
+  | (TypedConst (pos, id, expr, ty)) ->
+    (TypedConst (pos, id, expr, flatten_ref_type ctx ty))
+  | (UntypedConst _)  -> decl
 
 let flatten_ref_types_contract_eq ctx eq =
   match eq with
-  | A.GhostConst cd -> A.GhostConst (flatten_ref_types_const_decl ctx cd)
+  | A.GhostConst cd ->
+    A.GhostConst (flatten_ref_types_const_decl ctx cd)
   | A.GhostVars (p1, GhostVarDec (p2, tids), expr) ->
-      let tids =
-        List.map (fun (p, id, ty) -> (p, id, flatten_ref_type ctx ty)) tids
-      in
-      A.GhostVars (p1, GhostVarDec (p2, tids), expr)
+    let tids =
+      List.map (fun (p, id, ty) -> (p, id, flatten_ref_type ctx ty)) tids
+    in
+    A.GhostVars (p1, GhostVarDec (p2, tids), expr)
   | A.Assume (p, id, s, expr) ->
-      A.Assume (p, id, s, flatten_ref_types_expr ctx expr)
+    A.Assume (p, id, s, flatten_ref_types_expr ctx expr)
   | A.Guarantee (p, id, s, expr) ->
-      A.Guarantee (p, id, s, flatten_ref_types_expr ctx expr)
-  | A.Mode (p, id, requires, ensures) ->
-      let requires =
-        List.map
-          (fun (p, id, expr) -> (p, id, flatten_ref_types_expr ctx expr))
-          requires
-      in
-      let ensures =
-        List.map
-          (fun (p, id, expr) -> (p, id, flatten_ref_types_expr ctx expr))
-          ensures
-      in
-      A.Mode (p, id, requires, ensures)
-  | A.ContractCall (pos, id, ps, args, outputs) ->
-      let args = List.map (flatten_ref_types_expr ctx) args in
-      let ps = List.map (flatten_ref_type ctx) ps in
-      A.ContractCall (pos, id, ps, args, outputs)
+    A.Guarantee (p, id, s, flatten_ref_types_expr ctx expr)
+  | A.Mode (p, id, requires, ensures) -> (
+    let requires =
+      List.map (fun (p, id, expr) ->
+        (p, id, flatten_ref_types_expr ctx expr)
+      ) requires
+    in
+    let ensures =
+      List.map (fun (p, id, expr) ->
+        (p, id, flatten_ref_types_expr ctx expr)
+      ) ensures
+    in
+    A.Mode (p, id, requires, ensures)
+  )
+  | A.ContractCall (pos, id, ps, args, outputs) -> (
+    let args =
+      List.map (flatten_ref_types_expr ctx) args
+    in
+    let ps =
+      List.map (flatten_ref_type ctx) ps
+    in
+    A.ContractCall (pos, id, ps, args, outputs)
+  )
   | AssumptionVars _ -> eq
 
 let flatten_ref_types_contract ctx (p, contract_eqs) =
   (p, List.map (flatten_ref_types_contract_eq ctx) contract_eqs)
 
 let flatten_ref_types_contract_opt ctx = function
-  | Some c -> Some (flatten_ref_types_contract ctx c)
-  | None -> None
+| Some c -> Some (flatten_ref_types_contract ctx c)
+| None -> None
 
-let flatten_ref_types ctx sorted_node_contract_decls =
-  List.map
-    (fun decl ->
-      match decl with
-      | A.TypeDecl (pos, AliasType (pos2, id, ps, ty)) ->
-          A.TypeDecl (pos, AliasType (pos2, id, ps, flatten_ref_type ctx ty))
-      | NodeDecl
-          (pos, (id, imported, opac, params, ips, ops, locals, items, contract))
-        ->
-          let ctx =
-            List.fold_left
-              (fun acc p ->
-                TypeCheckerContext.add_ty_syn acc p
-                  (A.AbstractType (Lib.dummy_pos, p)))
-              ctx params
-          in
-          let ips =
-            List.map
-              (fun (pos, id, ty, cl, b) ->
-                (pos, id, flatten_ref_type ctx ty, cl, b))
-              ips
-          in
-          let ops =
-            List.map
-              (fun (pos, id, ty, cl) -> (pos, id, flatten_ref_type ctx ty, cl))
-              ops
-          in
-          let locals = List.map (flatten_ref_types_local_decl ctx) locals in
-          let items = List.map (flatten_ref_types_item ctx) items in
-          let contract = flatten_ref_types_contract_opt ctx contract in
-          NodeDecl
-            ( pos,
-              (id, imported, opac, params, ips, ops, locals, items, contract) )
-      | FuncDecl
-          (pos, (id, imported, opac, params, ips, ops, locals, items, contract))
-        ->
-          let ctx =
-            List.fold_left
-              (fun acc p ->
-                TypeCheckerContext.add_ty_syn acc p
-                  (A.AbstractType (Lib.dummy_pos, p)))
-              ctx params
-          in
-          let ips =
-            List.map
-              (fun (pos, id, ty, cl, b) ->
-                (pos, id, flatten_ref_type ctx ty, cl, b))
-              ips
-          in
-          let ops =
-            List.map
-              (fun (pos, id, ty, cl) -> (pos, id, flatten_ref_type ctx ty, cl))
-              ops
-          in
-          let locals = List.map (flatten_ref_types_local_decl ctx) locals in
-          let items = List.map (flatten_ref_types_item ctx) items in
-          let contract = flatten_ref_types_contract_opt ctx contract in
-          FuncDecl
-            ( pos,
-              (id, imported, opac, params, ips, ops, locals, items, contract) )
-      | NodeParamInst (pos, (id1, id2, tys)) ->
-          let tys = List.map (flatten_ref_type ctx) tys in
-          NodeParamInst (pos, (id1, id2, tys))
-      | ContractNodeDecl (pos, (id, params, ips, ops, contract)) ->
-          let ips =
-            List.map
-              (fun (pos, id, ty, cl, b) ->
-                (pos, id, flatten_ref_type ctx ty, cl, b))
-              ips
-          in
-          let ops =
-            List.map
-              (fun (pos, id, ty, cl) -> (pos, id, flatten_ref_type ctx ty, cl))
-              ops
-          in
-          let contract = flatten_ref_types_contract ctx contract in
-          ContractNodeDecl (pos, (id, params, ips, ops, contract))
-      | ConstDecl (pos, cd) ->
-          ConstDecl (pos, flatten_ref_types_const_decl ctx cd)
-      | A.TypeDecl (_, FreeType _) -> decl)
-    sorted_node_contract_decls
+let flatten_ref_types ctx (gids : GI.t NI.Map.t) decls = 
+  let decls = List.map (fun decl -> match decl with
+    | A.TypeDecl (pos, AliasType (pos2, id, ps, ty)) -> 
+      A.TypeDecl (pos, AliasType (pos2, id, ps, flatten_ref_type ctx ty))
+    | NodeDecl (pos, (id, imported, opac, params, ips, ops, locals, items, contract)) ->
+      let ctx =
+        List.fold_left (fun acc p ->
+          TypeCheckerContext.add_ty_syn acc p (A.AbstractType (Lib.dummy_pos, p))
+        )
+        ctx params
+      in
+      let ips = List.map (fun (pos, id, ty, cl, b) -> 
+        (pos, id, flatten_ref_type ctx ty, cl, b)
+      ) ips in
+      let ops = List.map (fun (pos, id, ty, cl) -> 
+        (pos, id, flatten_ref_type ctx ty, cl)
+      ) ops in
+      let locals = List.map (flatten_ref_types_local_decl ctx) locals in
+      let items = List.map (flatten_ref_types_item ctx) items in
+      let contract = flatten_ref_types_contract_opt ctx contract in
+      NodeDecl (pos, (id, imported, opac, params, ips, ops, locals, items, contract))
+    | FuncDecl (pos, (id, imported, opac, params, ips, ops, locals, items, contract)) ->
+      let ctx =
+        List.fold_left (fun acc p ->
+          TypeCheckerContext.add_ty_syn acc p (A.AbstractType (Lib.dummy_pos, p))
+        )
+        ctx params
+      in
+      let ips = List.map (fun (pos, id, ty, cl, b) -> 
+        (pos, id, flatten_ref_type ctx ty, cl, b)
+      ) ips in
+      let ops = List.map (fun (pos, id, ty, cl) -> 
+        (pos, id, flatten_ref_type ctx ty, cl)
+      ) ops in
+      let locals = List.map (flatten_ref_types_local_decl ctx) locals in
+      let items = List.map (flatten_ref_types_item ctx) items in
+      let contract = flatten_ref_types_contract_opt ctx contract in
+      FuncDecl (pos, (id, imported, opac, params, ips, ops, locals, items, contract))
+    | NodeParamInst (pos, (id1, id2, tys)) -> 
+      let tys = List.map (flatten_ref_type ctx) tys in 
+      NodeParamInst (pos, (id1, id2, tys))
+    | ContractNodeDecl (pos, (id, params, ips, ops, contract)) -> 
+      let ips = List.map (fun (pos, id, ty, cl, b) -> 
+        (pos, id, flatten_ref_type ctx ty, cl, b)
+      ) ips in
+      let ops = List.map (fun (pos, id, ty, cl) -> 
+        (pos, id, flatten_ref_type ctx ty, cl)
+      ) ops in
+      let contract = flatten_ref_types_contract ctx contract in
+      ContractNodeDecl (pos, (id, params, ips, ops, contract))
+    | ConstDecl (pos, cd) -> ConstDecl (pos, flatten_ref_types_const_decl ctx cd)
+    | A.TypeDecl (_, FreeType _) -> decl
+    
+  ) decls in 
+  let gids = NI.Map.map (fun gids -> 
+    { gids with 
+      GI.ib_oracles = List.map (fun (id, ty) -> id, flatten_ref_type ctx ty) gids.GI.ib_oracles; 
+      GI.locals = GI.StringMap.map (fun ty -> flatten_ref_type ctx ty) gids.GI.locals;
+    } 
+  ) gids in 
+  decls, gids

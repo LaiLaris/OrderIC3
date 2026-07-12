@@ -21,95 +21,101 @@ module Ast = LustreAst
 let pp_print_fname_json ppf fname =
   if fname = "" then () else Format.fprintf ppf "\"file\" : \"%s\",@," fname
 
-let lsp_type_decl_json ppf ctx { Ast.start_pos = spos; Ast.end_pos = epos } tyd
-    =
+let lsp_type_decl_json ppf ctx { Ast.start_pos = spos; Ast.end_pos = epos } tyd =
   let print p id ps =
     let file, slnum, scnum = Lib.file_row_col_of_pos spos in
     let _, elnum, ecnum = Lib.file_row_col_of_pos epos in
     let ty_args = List.map (fun id -> LustreAst.AbstractType (p, id)) ps in
-    let ty =
-      TypeCheckerContext.expand_type_syn ctx
-        (LustreAst.UserType (p, ty_args, id))
-    in
+    let ty = TypeCheckerContext.expand_type_syn ctx (LustreAst.UserType (p, ty_args, id)) in
     let contains_ref = TypeCheckerContext.type_contains_ref ctx ty in
     Format.fprintf ppf
       ",@.{@[<v 1>@,\
-       \"objectType\" : \"lsp\",@,\
-       \"source\" : \"lsp\",@,\
-       \"kind\" : \"typeDecl\",@,\
-       \"name\" : \"%a\",@,\
-       \"containsRefinementType\" : \"%b\",@,\
-       %a\"startLine\" : %d,@,\
-       \"startColumn\" : %d,@,\
-       \"endLine\" : %d,@,\
-       \"endColumn\" : %d@]@.}@."
-      HString.pp_print_hstring id contains_ref pp_print_fname_json file slnum
-      scnum elnum ecnum
+        \"objectType\" : \"lsp\",@,\
+        \"source\" : \"lsp\",@,\
+        \"kind\" : \"typeDecl\",@,\
+        \"name\" : \"%a\",@,\
+        \"containsRefinementType\" : \"%b\",@,\
+        %a\"startLine\" : %d,@,\
+        \"startColumn\" : %d,@,\
+        \"endLine\" : %d,@,\
+        \"endColumn\" : %d@]@.}@."
+      HString.pp_print_hstring id
+      contains_ref
+      pp_print_fname_json file
+      slnum scnum
+      elnum ecnum
   in
   match tyd with
   | LustreAst.AliasType (p, id, ps, _) -> print p id ps
   | LustreAst.FreeType (p, id) -> print p id []
 
-let lsp_const_decl_json ppf { Ast.start_pos = spos; Ast.end_pos = epos } =
-  function
-  | LustreAst.FreeConst (_, id, _)
-  | LustreAst.UntypedConst (_, id, _)
-  | LustreAst.TypedConst (_, id, _, _) ->
-      let file, slnum, scnum = Lib.file_row_col_of_pos spos in
-      let _, elnum, ecnum = Lib.file_row_col_of_pos epos in
-      Format.fprintf ppf
-        ",@.{@[<v 1>@,\
-         \"objectType\" : \"lsp\",@,\
-         \"source\" : \"lsp\",@,\
-         \"kind\" : \"constDecl\",@,\
-         \"name\" : \"%a\",@,\
-         %a\"startLine\" : %d,@,\
-         \"startColumn\" : %d,@,\
-         \"endLine\" : %d,@,\
-         \"endColumn\" : %d@]@.}@."
-        HString.pp_print_hstring id pp_print_fname_json file slnum scnum elnum
-        ecnum
+
+let lsp_const_decl_json ppf { Ast.start_pos = spos; Ast.end_pos = epos } decl =
+  let id, type_str = match decl with
+    | LustreAst.FreeConst (_, id, _) -> id, "paramDecl"
+    | LustreAst.UntypedConst (_, id, _) 
+    | LustreAst.TypedConst (_, id, _, _) -> id, "constDecl"
+  in
+    let file, slnum, scnum = Lib.file_row_col_of_pos spos in
+    let _, elnum, ecnum = Lib.file_row_col_of_pos epos in
+    Format.fprintf ppf
+      ",@.{@[<v 1>@,\
+        \"objectType\" : \"lsp\",@,\
+        \"source\" : \"lsp\",@,\
+        \"kind\" : \"%s\",@,\
+        \"name\" : \"%a\",@,\
+        %a\"startLine\" : %d,@,\
+        \"startColumn\" : %d,@,\
+        \"endLine\" : %d,@,\
+        \"endColumn\" : %d@]@.}@."
+      type_str
+      HString.pp_print_hstring id
+      pp_print_fname_json file
+      slnum scnum
+      elnum ecnum
 
 let lsp_node_json ppf { Ast.start_pos = spos; Ast.end_pos = epos }
-    (id, imported, _, _, _, _, _, _, contract) =
+    (node_id, imported, _, _, _, _, _, _, contract) =
   let file, slnum, scnum = Lib.file_row_col_of_pos spos in
   let _, elnum, ecnum = Lib.file_row_col_of_pos epos in
-  match contract with
+  match contract with 
   | Some (cpos, _) ->
-      let _, celnum, cecnum = Lib.file_row_col_of_pos cpos in
-      Format.fprintf ppf
-        ",@.{@[<v 1>@,\
-         \"objectType\" : \"lsp\",@,\
-         \"source\" : \"lsp\",@,\
-         \"kind\" : \"node\",@,\
-         \"name\" : \"%a\",@,\
-         \"imported\" : \"%b\",@,\
-         %a\"startLine\" : %d,@,\
-         \"startColumn\" : %d,@,\
-         \"endLine\" : %d,@,\
-         \"endColumn\" : %d,@,\
-         \"contractStartLine\" : %d,@,\
-        \ \n\
-        \     \"contractStartColumn\" : %d@]@.}@."
-        HString.pp_print_hstring id imported pp_print_fname_json file slnum
-        scnum elnum ecnum celnum cecnum
-  | None ->
-      Format.fprintf ppf
-        ",@.{@[<v 1>@,\
-         \"objectType\" : \"lsp\",@,\
-         \"source\" : \"lsp\",@,\
-         \"kind\" : \"node\",@,\
-         \"name\" : \"%a\",@,\
-         \"imported\" : \"%b\",@,\
-         %a\"startLine\" : %d,@,\
-         \"startColumn\" : %d,@,\
-         \"endLine\" : %d,@,\
-         \"endColumn\" : %d@]@.}@."
-        HString.pp_print_hstring id imported pp_print_fname_json file slnum
-        scnum elnum ecnum
+    let _, celnum, cecnum = Lib.file_row_col_of_pos cpos in
+    Format.fprintf ppf
+    ",@.{@[<v 1>@,\
+     \"objectType\" : \"lsp\",@,\
+     \"source\" : \"lsp\",@,\
+     \"kind\" : \"node\",@,\
+     \"name\" : \"%a\",@,\
+     \"imported\" : \"%b\",@,\
+     %a\"startLine\" : %d,@,\
+     \"startColumn\" : %d,@,\
+     \"endLine\" : %d,@,\
+     \"endColumn\" : %d,@,\
+     \"contractStartLine\" : %d,@,\ 
+     \"contractStartColumn\" : %d@]@.}@."
+    NodeId.pp_print_node_id_user_name node_id
+    imported pp_print_fname_json file slnum scnum
+    elnum ecnum
+    celnum cecnum
+  | None -> 
+    Format.fprintf ppf
+    ",@.{@[<v 1>@,\
+     \"objectType\" : \"lsp\",@,\
+     \"source\" : \"lsp\",@,\
+     \"kind\" : \"node\",@,\
+     \"name\" : \"%a\",@,\
+     \"imported\" : \"%b\",@,\
+     %a\"startLine\" : %d,@,\
+     \"startColumn\" : %d,@,\
+     \"endLine\" : %d,@,\
+     \"endColumn\" : %d@]@.}@."
+    NodeId.pp_print_node_id_user_name node_id
+    imported pp_print_fname_json file slnum scnum
+    elnum ecnum
 
 let lsp_function_json ppf { Ast.start_pos = spos; Ast.end_pos = epos }
-    (id, imported, _, _, _, _, _, _, _) =
+    (node_id, imported, _, _, _, _, _, _, _) =
   let file, slnum, scnum = Lib.file_row_col_of_pos spos in
   let _, elnum, ecnum = Lib.file_row_col_of_pos epos in
   Format.fprintf ppf
@@ -123,11 +129,12 @@ let lsp_function_json ppf { Ast.start_pos = spos; Ast.end_pos = epos }
      \"startColumn\" : %d,@,\
      \"endLine\" : %d,@,\
      \"endColumn\" : %d@]@.}@."
-    HString.pp_print_hstring id imported pp_print_fname_json file slnum scnum
+    NodeId.pp_print_node_id_user_name node_id
+    imported pp_print_fname_json file slnum scnum
     elnum ecnum
 
 let lsp_contract_json ppf { Ast.start_pos = spos; Ast.end_pos = epos }
-    (id, _, _, _, _) =
+    (node_id, _, _, _, _) =
   let file, slnum, scnum = Lib.file_row_col_of_pos spos in
   let _, elnum, ecnum = Lib.file_row_col_of_pos epos in
   Format.fprintf ppf
@@ -140,7 +147,9 @@ let lsp_contract_json ppf { Ast.start_pos = spos; Ast.end_pos = epos }
      \"startColumn\" : %d,@,\
      \"endLine\" : %d,@,\
      \"endColumn\" : %d@]@.}@."
-    HString.pp_print_hstring id pp_print_fname_json file slnum scnum elnum ecnum
+    NodeId.pp_print_node_id_user_name node_id
+    pp_print_fname_json file slnum scnum elnum
+    ecnum
 
 let print_ast_info ctx declarations =
   List.iter

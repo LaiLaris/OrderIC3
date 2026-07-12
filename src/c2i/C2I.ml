@@ -16,11 +16,14 @@
 
 *)
 
+
 (* TODO:
   - not sure the way to deal with partial models is fine in [model_equal].
   - don't [failwith] when [white \cap black \not = \emptyset].
   - communicate non-strengthening invariants (when no black models).
 *)
+
+
 
 (*
 
@@ -114,36 +117,36 @@ If both cases apply, then P is invalid.
 
 open Lib
 open Actlit
+
 module Candidate = C2ICandidate
 
 (* Output statistics *)
-let print_stats () =
-  KEvent.stat
-    [
-      (Stat.misc_stats_title, Stat.misc_stats);
-      (Stat.c2i_stats_title, Stat.c2i_stats);
-      (Stat.smt_stats_title, Stat.smt_stats);
-    ]
+let print_stats () = KEvent.stat [
+  Stat.misc_stats_title, Stat.misc_stats ;
+  Stat.c2i_stats_title, Stat.c2i_stats ;
+  Stat.smt_stats_title, Stat.smt_stats
+]
 
 let stop () =
   (* Stop all timers. *)
   Stat.c2i_stop_timers ()
 
 let on_exit _ =
-  stop ();
+  stop () ;
   (* Output statistics. *)
   print_stats ()
 
+
 type context = {
-  sys : TransSys.t;
-  prop : string;
-  mutable white : Model.t list;
-  mutable grey : (Model.t * Model.t) list;
-  mutable black : Model.t list;
-  solver1 : SMTSolver.t;
-  solver2 : SMTSolver.t;
-  solver3 : SMTSolver.t;
-  mutable k : int;
+  sys: TransSys.t ;
+  prop: string ;
+  mutable white: Model.t list ;
+  mutable grey: (Model.t * Model.t) list ;
+  mutable black: Model.t list ;
+  solver1: SMTSolver.t ;
+  solver2: SMTSolver.t ;
+  solver3: SMTSolver.t ;
+  mutable k: int;
 }
 
 (* Creates two solvers for the context. Initializes them and updates the
@@ -151,120 +154,117 @@ type context = {
 let mk_solvers sys =
   (* Destroy all existing solvers. *)
   let solver1 =
-    SMTSolver.create_instance ~produce_models:true (TransSys.get_logic sys)
-      (Flags.Smt.solver ())
+    SMTSolver.create_instance
+      ~produce_models:true
+      (TransSys.get_logic sys) (Flags.Smt.solver ())
   in
 
   let solver2 =
-    SMTSolver.create_instance ~produce_models:true (TransSys.get_logic sys)
-      (Flags.Smt.solver ())
+    SMTSolver.create_instance
+      ~produce_models:true
+      (TransSys.get_logic sys) (Flags.Smt.solver ())
   in
 
   let solver3 =
-    SMTSolver.create_instance ~produce_models:true (TransSys.get_logic sys)
-      (Flags.Smt.solver ())
+    SMTSolver.create_instance
+      ~produce_models:true
+      (TransSys.get_logic sys) (Flags.Smt.solver ())
   in
 
   (* Defining uf's and declaring variables. *)
-  TransSys.define_and_declare_of_bounds sys
+  TransSys.define_and_declare_of_bounds
+    sys
     (SMTSolver.define_fun solver1)
     (SMTSolver.declare_fun solver1)
     (SMTSolver.declare_sort solver1)
-    Numeral.zero Numeral.zero;
+    Numeral.zero Numeral.zero ;
 
   (* Defining uf's and declaring variables. *)
-  TransSys.define_and_declare_of_bounds sys
+  TransSys.define_and_declare_of_bounds
+    sys
     (SMTSolver.define_fun solver2)
     (SMTSolver.declare_fun solver2)
     (SMTSolver.declare_sort solver2)
-    Numeral.zero Numeral.one;
+    Numeral.zero Numeral.one ;
 
   (* Defining uf's and declaring variables. *)
-  TransSys.define_and_declare_of_bounds sys
+  TransSys.define_and_declare_of_bounds
+    sys
     (SMTSolver.define_fun solver3)
     (SMTSolver.declare_fun solver3)
     (SMTSolver.declare_sort solver3)
-    Numeral.zero Numeral.one;
+    Numeral.zero Numeral.one ;
 
-  TransSys.assert_global_constraints sys (SMTSolver.assert_term solver1);
+  TransSys.assert_global_constraints sys (SMTSolver.assert_term solver1) ;
 
   (* Asserting init in [solver1]. *)
   TransSys.init_of_bound (Some (SMTSolver.declare_fun solver1)) sys Numeral.zero
-  |> SMTSolver.assert_term solver1;
+  |> SMTSolver.assert_term solver1 ;
 
-  TransSys.assert_global_constraints sys (SMTSolver.assert_term solver2);
+  TransSys.assert_global_constraints sys (SMTSolver.assert_term solver2) ;
 
   (* Asserting trans in [solver2]. *)
   TransSys.trans_of_bound (Some (SMTSolver.declare_fun solver2)) sys Numeral.one
-  |> SMTSolver.assert_term solver2;
+  |> SMTSolver.assert_term solver2 ;
 
-  TransSys.assert_global_constraints sys (SMTSolver.assert_term solver3);
+  TransSys.assert_global_constraints sys (SMTSolver.assert_term solver3) ;
 
   (* Asserting trans in [solver3]. *)
   TransSys.trans_of_bound (Some (SMTSolver.declare_fun solver3)) sys Numeral.one
-  |> SMTSolver.assert_term solver3;
+  |> SMTSolver.assert_term solver3 ;
 
   (* Retrieving invariants @0. *)
   let invs0 = TransSys.invars_of_bound sys Numeral.zero in
   (* Asserting in all solvers. *)
-  invs0 |> Term.mk_and |> SMTSolver.assert_term solver1;
-  invs0 |> Term.mk_and |> SMTSolver.assert_term solver2;
-  invs0 |> Term.mk_and |> SMTSolver.assert_term solver3;
+  invs0 |> Term.mk_and |> SMTSolver.assert_term solver1 ;
+  invs0 |> Term.mk_and |> SMTSolver.assert_term solver2 ;
+  invs0 |> Term.mk_and |> SMTSolver.assert_term solver3 ;
   (* Retrieving invariant @1. *)
   let invs1 = TransSys.invars_of_bound sys Numeral.one in
   (* Asserting invariants @1 in 2 and 3. *)
-  invs1 |> Term.mk_and |> SMTSolver.assert_term solver2;
-  invs1 |> Term.mk_and |> SMTSolver.assert_term solver3;
+  invs1 |> Term.mk_and |> SMTSolver.assert_term solver2 ;
+  invs1 |> Term.mk_and |> SMTSolver.assert_term solver3 ;
 
-  (solver1, solver2, solver3)
+  solver1, solver2, solver3
 
 (* Initializes the solvers, creates the context. *)
 let mk_context sys prop =
   let solver1, solver2, solver3 = mk_solvers sys in
-  {
-    sys;
-    prop;
+  { sys ; prop ;
     k = 1;
-    white = [];
-    grey = [];
-    black = [];
-    solver1;
-    solver2;
-    solver3;
-  }
+    white = [] ; grey = [] ; black = [] ;
+    solver1 ; solver2 ; solver3 }
+
 
 (* Resets a context with a new prop. Changes [prop] and resets [black]. *)
-let reset_prop_of context prop = { context with prop; black = [] }
+let reset_prop_of context prop =
+  { context with prop = prop; black = [] }
 
 (* Resets the grey sets of a context. *)
 let reset_grey_of context = { context with grey = [] }
 
 (* Resets the solvers of a context every 20 checks. *)
 let reset_solvers_of ({ sys } as context) =
-  if Actlit.fresh_actlit_count () / 3 mod 10 = 0 then (
+  if (Actlit.fresh_actlit_count () / 3) mod 10 = 0 then (
     (* Reset solvers. *)
     let solver1, solver2, solver3 = mk_solvers sys in
     (* Reset actlits. *)
-    Actlit.reset_fresh_actlit_count ();
-    { context with solver1; solver2; solver3 })
-  else context
+    Actlit.reset_fresh_actlit_count () ;
+    { context with solver1 ; solver2 ; solver3 }
+  ) else context
 
 (* Variable hash table. *)
 module VHT = Var.VarHashtbl
 
 (* Offset of a variable. *)
 let offset_of = Var.offset_of_state_var_instance
-
 (* Sets the offset of a variable. *)
 let set_offset = Var.set_offset_of_state_var_instance
-
 (* Returns true iff a variable is a constant. *)
 let is_const = Var.is_const_state_var
-
 (* Creates a _non randomized_ variable hash table. They need to be
    deterministic for equality of models. *)
 let mk_vht = VHT.create (* ~random:false *)
-
 (* Adds a binding to a variable hash table. *)
 let vht_add = VHT.add
 
@@ -277,28 +277,24 @@ let vht_add = VHT.add
    number of state variables in the system. *)
 let model_split n model =
   (* Creating result hash tables. *)
-  let m0, m1 = (mk_vht n, mk_vht n) in
+  let m0, m1 = mk_vht n, mk_vht n in
   (* Time for side-effects. Would be better to iterate backwards so that
      insertion is O(1), but I don't know how to do that. *)
   model
   |> VHT.iter (fun var va1 ->
-         if is_const var then (
-           vht_add m0 var va1;
-           vht_add m1 var va1)
-         else
-           match offset_of var |> Numeral.to_int with
-           | -1 ->
-               (* Ignoring that. *)
-               ()
-           | 0 -> vht_add m0 var va1
-           | 1 ->
-               let var = set_offset var Numeral.zero in
-               vht_add m1 var va1
-           | n ->
-               Format.sprintf "unexpected offset of variable %d > 1" n
-               |> failwith);
+    if is_const var then (
+      vht_add m0 var va1 ;
+      vht_add m1 var va1 ;
+    ) else match offset_of var |> Numeral.to_int with
+    | -1 ->
+      (* Ignoring that. *)
+      ()
+    | 0 -> vht_add m0 var va1
+    | 1 -> let var = set_offset var Numeral.zero in vht_add m1 var va1
+    | n -> Format.sprintf "unexpected offset of variable %d > 1" n |> failwith
+  ) ;
   (* Returning hash tables. *)
-  (m0, m1)
+  m0, m1
 
 (* Exception thrown inside [model_equal], if they're not equal. This allows to
    break the iteration on the bindings asap. *)
@@ -307,52 +303,58 @@ exception Not_equal
 (* Checks if two models are equal. *)
 let model_equal m1 m2 =
   try
-    m1
-    |> VHT.iter (fun var va1 ->
-           try if VHT.find m2 var == va1 then () else raise Not_equal
-           with Not_found -> raise Not_equal
-           (* Format.printf "m1 = @[<hv>%a@]@." Model.pp_print_model m1 ;
+    m1 |> VHT.iter (fun var va1 ->
+      try
+        if (VHT.find m2 var) == va1 then () else raise Not_equal
+      with Not_found -> raise Not_equal
+        (* Format.printf "m1 = @[<hv>%a@]@." Model.pp_print_model m1 ;
         Format.printf "m2 = @[<hv>%a@]@." Model.pp_print_model m2 ;
         Format.asprintf
           "could not find variable %a in rhs model" Var.pp_print_var var
-        |> failwith *));
+        |> failwith *)
+    ) ;
     true
   with Not_equal -> false
 
 (* Checks if a model is in a list of models. *)
 let contains model models =
   try
-    List.find (model_equal model) models |> ignore;
+    List.find (model_equal model) models |> ignore ;
     true
   with Not_found -> false
 
+
 (* Asserts a new invariant in both solvers of the context. *)
-let assert_invariant { solver1; solver2 } (inv, is_one_state) =
+let assert_invariant { solver1 ; solver2 } (inv, is_one_state) =
   (* Asserting invariant @0 in both solvers. *)
   if is_one_state then (
-    SMTSolver.assert_term solver1 inv;
-    SMTSolver.assert_term solver2 inv);
+    SMTSolver.assert_term solver1 inv ;
+    SMTSolver.assert_term solver2 inv
+  ) ;
   (* Asserting invariant @1 in [solver2]. *)
   Term.bump_state Numeral.one inv |> SMTSolver.assert_term solver2
 
 (* Asserts new invariants in both solvers of the context. *)
-let assert_invariants { solver1; solver2 } invs =
-  Unroller.assert_new_invs_to solver1 Numeral.one invs;
+let assert_invariants { solver1 ; solver2 } invs =
+  Unroller.assert_new_invs_to solver1 Numeral.one invs ;
   Unroller.assert_new_invs_to solver2 Numeral.(succ one) invs
+
 
 (* Check-sat with assumption, returns [Some] of the model if sat, [None]
    otherwise. *)
 let get_model_option solver =
-  SMTSolver.check_sat_assuming solver
+  SMTSolver.check_sat_assuming
+    solver
     (fun s ->
       (* KEvent.log L_info "C2I Getting model" ; *)
-      Some (SMTSolver.get_model s))
+      Some (SMTSolver.get_model s) )
     (fun _ -> None)
 
 (* Checks (1), (2) and (3) for a candidate invariant. Returns a triple of
    [Model option]. *)
-let query_solvers { sys; prop; solver1; solver2; solver3 } candidate =
-  Stat.start_timer Stat.c2i_query_time;
+let query_solvers { sys ; prop ; solver1 ; solver2 ; solver3 } candidate =
+
+  Stat.start_timer Stat.c2i_query_time ;
 
   (* Getting actlit for this candidate. *)
   let actlit_uf = fresh_actlit () in
@@ -361,104 +363,96 @@ let query_solvers { sys; prop; solver1; solver2; solver3 } candidate =
 
   (* KEvent.log L_info "C2I Checking 1)." ; *)
   (* Checking (1). *)
-  SMTSolver.declare_fun solver1 actlit_uf;
+  SMTSolver.declare_fun solver1 actlit_uf ;
   (* Can the candidate be false in the initial state? *)
-  Term.mk_implies [ actlit; candidate |> Term.mk_not ]
-  |> SMTSolver.assert_term solver1;
+  Term.mk_implies [ actlit ; candidate |> Term.mk_not ]
+  |> SMTSolver.assert_term solver1 ;
   let model_opt_1 = get_model_option solver1 [ actlit ] in
 
   (* KEvent.log L_info "C2I Checking 2)." ; *)
   (* Checking (2). Reusing same actlit as solver is different. *)
-  SMTSolver.declare_fun solver2 actlit_uf;
+  SMTSolver.declare_fun solver2 actlit_uf ;
   (* Does the candidate imply the property after a transition? *)
-  Term.mk_implies
-    [
-      actlit;
-      Term.mk_and
-        [
-          candidate;
-          TransSys.get_prop_term sys prop
-          |> Term.bump_state Numeral.one
-          |> Term.mk_not;
-        ];
+  Term.mk_implies [ actlit ;
+    Term.mk_and [
+      candidate ;
+      TransSys.get_prop_term sys prop
+      |> Term.bump_state Numeral.one |> Term.mk_not
     ]
-  |> SMTSolver.assert_term solver2;
+  ] |> SMTSolver.assert_term solver2 ;
   let model_opt_2 = get_model_option solver2 [ actlit ] in
 
   (* KEvent.log L_info "C2I Checking 3)." ; *)
   (* Checking (3). Reusing same actlit as solver is different. *)
-  SMTSolver.declare_fun solver3 actlit_uf;
+  SMTSolver.declare_fun solver3 actlit_uf ;
   (* Is the candidate inductive? *)
-  Term.mk_implies
-    [
-      actlit;
-      Term.mk_and
-        [ candidate; candidate |> Term.bump_state Numeral.one |> Term.mk_not ];
+  Term.mk_implies [ actlit ;
+    Term.mk_and [
+      candidate ; candidate |> Term.bump_state Numeral.one |> Term.mk_not
     ]
-  |> SMTSolver.assert_term solver3;
+  ] |> SMTSolver.assert_term solver3 ;
   let model_opt_3 = get_model_option solver3 [ actlit ] in
 
   (* Deactivating actlit. *)
   let nactlit = Term.mk_not actlit in
-  SMTSolver.assert_term solver1 nactlit;
-  SMTSolver.assert_term solver2 nactlit;
-  SMTSolver.assert_term solver3 nactlit;
+  SMTSolver.assert_term solver1 nactlit ;
+  SMTSolver.assert_term solver2 nactlit ;
+  SMTSolver.assert_term solver3 nactlit ;
 
-  Stat.record_time Stat.c2i_query_time;
+  Stat.record_time Stat.c2i_query_time ;
 
-  (model_opt_1, model_opt_2, model_opt_3)
+  model_opt_1, model_opt_2, model_opt_3
+
 
 (* Exception thrown when [white \cap black \not = \emptyset]. *)
 exception PropIsFalse
 
 (* Updates the white, grey and black lists. *)
 let update_colors t (check1, check2, check3) =
-  let { white; grey; black } = t in
+  let {white ; grey ; black} = t in
   Debug.c2i "Updating colors";
-  let white =
-    match check1 with
+  let white = match check1 with
     | None -> white
     | Some m ->
-        Debug.c2i "| white";
-        (model_split 0 m |> fst) :: white
+      Debug.c2i "| white";
+      (model_split 0 m |> fst) :: white
   in
-  let black =
-    match check2 with
+  let black = match check2 with
     | None -> black
     | Some m ->
-        Debug.c2i "| black";
-        (model_split 0 m |> fst) :: black
+      Debug.c2i "| black";
+      (model_split 0 m |> fst) :: black
   in
-  let white, grey, black =
+  let white, grey, black = 
     match check3 with
-    | None -> (white, grey, black)
-    | Some m -> (
-        (* First, split m. *)
-        Debug.c2i "| grey";
-        (* TODO: change the [0] in the number of state variables. *)
-        let m, m' = model_split 0 m in
+    | None -> white, grey, black
+    | Some m ->
+      (* First, split m. *)
+      Debug.c2i "| grey";
+      (* TODO: change the [0] in the number of state variables. *)
+      let m, m' = model_split 0 m in
 
-        match (contains m white, contains m' black) with
-        | true, false ->
-            Debug.c2i " \\ to white";
-            (* [m] is white, so is [m']. *)
-            (m' :: white, grey, black)
-        | false, true ->
-            Debug.c2i " \\ to black";
-            (* [m'] is black, so is [m]. *)
-            (white, grey, m :: black)
-        | false, false ->
-            Debug.c2i " \\ to grey";
-            (* None of the above, adding to grey. *)
-            (white, (m, m') :: grey, black)
-        | true, true ->
-            Debug.c2i " \\ invalid";
-            (* Property is invalid. *)
-            raise PropIsFalse)
+      match contains m white, contains m' black with
+      | true, false ->
+        Debug.c2i " \\ to white";
+        (* [m] is white, so is [m']. *)
+        m' :: white, grey, black
+      | false, true ->
+        Debug.c2i " \\ to black";
+        (* [m'] is black, so is [m]. *)
+        white, grey, m :: black
+      | false, false ->
+        Debug.c2i " \\ to grey";
+        (* None of the above, adding to grey. *)
+        white, (m,m') :: grey, black
+      | true, true ->
+        Debug.c2i " \\ invalid";
+        (* Property is invalid. *)
+        raise PropIsFalse
   in
-  t.white <- white;
-  t.grey <- grey;
-  t.black <- black;
+  t.white <- white ;
+  t.grey <- grey ;
+  t.black <- black ;
 
   ()
 
@@ -468,29 +462,33 @@ let gamma = log 2.0
 
 (* Returns a candidate with a cost of zero. *)
 let zero_cost_candidate t candidate =
-  let { white; grey; black } = t in
-  Debug.c2i
-    "|=====| generating zero cost candidate (%d white, %d grey, %d black)"
-    (List.length white) (List.length grey) (List.length black);
+  let {white ; grey ; black} = t in
+  Debug.c2i "\
+        |=====| generating zero cost candidate (%d white, %d grey, %d black)\
+      " (List.length white) (List.length grey) (List.length black);
 
   let rec loop rated_candidate =
-    Debug.c2i "|===| loop (%d white, %d grey, %d black)" (List.length white)
-      (List.length grey) (List.length black);
-    Debug.c2i "candidate: @[<v>%a@]" Term.pp_print_term
-      (Candidate.candidate_of_rated rated_candidate |> Candidate.term_of);
-    KEvent.check_termination ();
+    Debug.c2i "|===| loop (%d white, %d grey, %d black)"
+        (List.length white) (List.length grey) (List.length black);
+    Debug.c2i "candidate: @[<v>%a@]"
+        Term.pp_print_term (
+          Candidate.candidate_of_rated rated_candidate |> Candidate.term_of
+        );
+    KEvent.check_termination () ;
     let cost = Candidate.cost_of_rated rated_candidate in
     (* If zero we're done. *)
-    if cost = 0 then Candidate.candidate_of_rated rated_candidate
+    if cost = 0 then
+      Candidate.candidate_of_rated rated_candidate
     else (
       (* Check for termination. *)
-      KEvent.check_termination ();
+      KEvent.check_termination () ;
       (* Otherwise, make a move. *)
       let candidate = Candidate.rated_move rated_candidate in
-      Stat.incr Stat.c2i_moves;
-
-      Debug.c2i "new candidate: @[<v>%a@]" Term.pp_print_term
-        (Candidate.term_of candidate);
+      Stat.incr Stat.c2i_moves ;
+      
+      Debug.c2i
+        "new candidate: @[<v>%a@]"
+          Term.pp_print_term (Candidate.term_of candidate);
       (* Get its cost. *)
       let rated_candidate' =
         Candidate.rated_cost_function candidate white grey black
@@ -501,40 +499,47 @@ let zero_cost_candidate t candidate =
       (* Keeping [candidate'] if *)
       if
         (* its cost is lower. *)
-        cost' < cost
-        ||
+        (cost' < cost) ||
         (* or some random thing from the paper. *)
-        exp (-.gamma *. float_of_int (cost' - cost))
-        > Random.float max_float /. max_float
-      then
+        ( exp (-. gamma *. ( float_of_int (
+          cost' - cost
+        ) ))
+          > (Random.float max_float) /. max_float )
+      then (
         (* KEvent.log L_info
           "C2I   | new cost %d" cost' ; *)
-        loop rated_candidate' (* Otherwise keep the previous one. *)
-      else
+        loop rated_candidate'
+      (* Otherwise keep the previous one. *)
+      ) else (
         (* KEvent.log L_info
           "C2I   | skipping cost %d@." cost' ; *)
-        loop rated_candidate)
+        loop rated_candidate
+      )
+    )
   in
 
   (* Getting cost of initial candidate. *)
-  let rated_candidate =
+  let rated_candidate = 
     Candidate.rated_cost_function candidate white grey black
   in
-  Debug.c2i "| initial cost %d@." (Candidate.cost_of_rated rated_candidate);
+  Debug.c2i
+    "| initial cost %d@." (Candidate.cost_of_rated rated_candidate);
   (* Loop. *)
   loop rated_candidate
 
+
 (* Gets a 0-cost candidate and then queries the solvers.
    Returns a strengthening invariant as a term. *)
-let rec loop in_sys param ({ sys } as context) candidate =
-  Stat.update_time Stat.c2i_total_time;
+let rec loop in_sys param ({sys} as context) candidate =
+
+  Stat.update_time Stat.c2i_total_time ;
 
   (* KEvent.log L_info "C2I Getting zero cost candidate" ; *)
   (* Getting zero cost candidate. *)
-  Stat.start_timer Stat.c2i_move_time;
+  Stat.start_timer Stat.c2i_move_time ;
   let candidate = zero_cost_candidate context candidate in
-  Stat.record_time Stat.c2i_move_time;
-  Stat.incr Stat.c2i_zero_cost;
+  Stat.record_time Stat.c2i_move_time ;
+  Stat.incr Stat.c2i_zero_cost ;
   (* Extracting term. *)
   let term = Candidate.term_of candidate in
   (* Format.printf "@.  Candidate @[<hv>%a@]@." Term.pp_print_term term ; *)
@@ -556,57 +561,62 @@ let rec loop in_sys param ({ sys } as context) candidate =
 
   (* Checking if candidate is a strengthening invariant. *)
   match models with
+
   | None, None, None ->
-      (* Found a strengthening invariant. *)
-      Some term
+    (* Found a strengthening invariant. *)
+    Some term
+
   | models ->
-      (* Checking if the current candidate is an invariant. *)
-      (match models with
+
+    (* Checking if the current candidate is an invariant. *)
+    ( match models with
       | None, _, None ->
-          (* It is, communicating. *)
-          KEvent.log L_info "C2I Candidate is invariant (non-strengthening)";
-          (* k-inductive certificate from context *)
-          let cert = (context.k, term) in
-          let term = TransSys.add_invariant context.sys term cert false in
-          assert_invariant context (term, false);
-          (* Broadcasting invariant. *)
-          KEvent.invariant
-            (TransSys.scope_of_trans_sys context.sys)
-            term cert false
-      | _ -> ());
+        (* It is, communicating. *)
+        KEvent.log L_info "C2I Candidate is invariant (non-strengthening)" ;
+        (* k-inductive certificate from context *)
+        let cert = context.k, term in
+        let term =
+          TransSys.add_invariant context.sys term cert false
+        in
+        assert_invariant context (term, false) ;
+        (* Broadcasting invariant. *)
+        KEvent.invariant (
+          TransSys.scope_of_trans_sys context.sys
+        ) term cert false ;
+      | _ -> () ) ;
 
-      (* Counterexample, updating context. *)
-      Stat.start_timer Stat.c2i_model_comp_time;
-      update_colors context models;
-      Stat.record_time Stat.c2i_model_comp_time;
+    (* Counterexample, updating context. *)
+    Stat.start_timer Stat.c2i_model_comp_time ;
+    update_colors context models ;
+    Stat.record_time Stat.c2i_model_comp_time ;
+    (* Format.printf "@." ; *)
 
-      (* Format.printf "@." ; *)
-
-      (* Communicating. *)
-      let new_invs, is_done =
-        KEvent.recv () |> KEvent.update_trans_sys in_sys param sys
-        |> fun (invs, props) ->
-        ( invs,
-          props
-          |> List.exists (function
-               | _, (name, Property.PropInvariant _)
-               | _, (name, Property.PropFalse _) ->
-                   name = context.prop
-               | _ -> false) )
-      in
-      (* Asserting invariants if any. *)
-      assert_invariants context new_invs;
-      let rcved_new_invs =
-        new_invs |> fst |> Term.TermSet.is_empty |> not
-        || new_invs |> snd |> Term.TermSet.is_empty |> not
-      in
-      let context = if rcved_new_invs then reset_grey_of context else context in
-      (* increasing k *)
-      context.k <- context.k + 1;
-      (* If done, return [None]. *)
-      if is_done then None
-      (* Looping. *)
-        else loop in_sys param context candidate
+    (* Communicating. *)
+    let new_invs, is_done =
+      KEvent.recv ()
+      |> KEvent.update_trans_sys in_sys param sys
+      |> fun (invs,props) ->
+        invs,
+        props |> List.exists (function
+          | _, (name, Property.PropInvariant _)
+          | _, (name, Property.PropFalse _) ->
+            name = context.prop
+          | _ -> false
+        )
+    in
+    (* Asserting invariants if any. *)
+    assert_invariants context new_invs ;
+    let rcved_new_invs =
+      ( new_invs |> fst |> Term.TermSet.is_empty |> not ) ||
+      ( new_invs |> snd |> Term.TermSet.is_empty |> not )
+    in
+    let context = if rcved_new_invs then reset_grey_of context else context in
+    (* increasing k *)
+    context.k <- context.k + 1;
+    (* If done, return [None]. *)
+    if is_done then None
+    (* Looping. *)
+    else loop in_sys param context candidate
 
 (* Runs invariant hunting on each property of a list of ([string *
    prop_status]). *)
@@ -614,82 +624,90 @@ let rec run in_sys param context_option candidate sys =
   match TransSys.get_split_properties sys with
   (* No more properties, done. *)
   | _, _, [] -> ()
-  | _, _, prop :: _ -> (
-      match Property.get_prop_status prop with
-      | Property.PropInvariant _ | Property.PropFalse _ ->
-          (* We don't care about this one .*)
-          run in_sys param context_option candidate sys
-      | _ ->
-          let prop = prop.Property.prop_name in
-          (* Check for termination. *)
-          KEvent.check_termination ();
-          (* Let's do this. *)
-          KEvent.log L_info "C2I @[<v>Running on property %s@]" prop;
-          (* New context. *)
-          let context =
-            match context_option with
-            | None -> mk_context sys prop
-            | Some context -> reset_prop_of context prop |> reset_grey_of
-          in
-          let candidate = Candidate.reset candidate in
-          (* Let's do random stuff now. *)
-          (try
-             match loop in_sys param context candidate with
-             | Some str_inv -> (
-                 KEvent.log L_info
-                   "C2I @[<v>Strengthening invariant found for %s@]" prop;
-                 Stat.incr Stat.c2i_str_invs;
-                 let cert = (context.k, str_inv) in
-                 let str_inv =
-                   TransSys.add_invariant context.sys str_inv cert false
-                 in
-                 assert_invariant context (str_inv, false);
-                 (* Broadcasting strengthening invariant. *)
-                 KEvent.invariant
-                   (TransSys.scope_of_trans_sys context.sys)
-                   str_inv cert false;
 
-                 (* Communicating. *)
-                 let new_invs, _ (* is_done *) =
-                   KEvent.recv () |> KEvent.update_trans_sys in_sys param sys
-                   |> fun (invs, props) ->
-                   ( invs,
-                     props
-                     |> List.exists (function
-                          | _, (name, Property.PropInvariant _)
-                          | _, (name, Property.PropFalse _) ->
-                              name = context.prop
-                          | _ -> false) )
-                 in
-                 (* Asserting invariants if any. *)
-                 assert_invariants context new_invs;
+  | _, _, prop :: _ -> ( match Property.get_prop_status prop with
+    | Property.PropInvariant _ | Property.PropFalse _ ->
+      (* We don't care about this one .*)
+      run in_sys param context_option candidate sys
 
-                 (* Updating local system. *)
-                 match TransSys.get_prop_status context.sys context.prop with
-                 | Property.PropUnknown -> ()
-                 | _ ->
-                     TransSys.set_prop_invariant context.sys context.prop
-                       cert (* TODO check*);
-                     TransSys.get_prop_term context.sys context.prop |> fun t ->
-                     (TransSys.add_invariant context.sys t cert false, false)
-                     |> assert_invariant context)
-             | None ->
-                 (* Proved or disproved by another technique, or termination was
+    | _ ->
+      let prop = prop.Property.prop_name in
+      (* Check for termination. *)
+      KEvent.check_termination () ;
+      (* Let's do this. *)
+      KEvent.log L_info "C2I @[<v>Running on property %s@]" prop ;
+      (* New context. *)
+      let context = match context_option with
+        | None -> mk_context sys prop
+        | Some context ->
+          reset_prop_of context prop |> reset_grey_of
+      in
+      let candidate = Candidate.reset candidate in
+      (* Let's do random stuff now. *)
+      ( try
+        ( match loop in_sys param context candidate with
+          | Some str_inv ->
+            KEvent.log L_info
+              "C2I @[<v>Strengthening invariant found for %s@]" prop ;
+            Stat.incr Stat.c2i_str_invs ;
+            let cert = context.k, str_inv in
+            let str_inv =
+              TransSys.add_invariant context.sys str_inv cert false
+            in
+            assert_invariant context (str_inv, false) ;
+            (* Broadcasting strengthening invariant. *)
+            KEvent.invariant (
+              TransSys.scope_of_trans_sys context.sys
+            ) str_inv cert false ;
+
+            (* Communicating. *)
+            let new_invs, _ (* is_done *) =
+              KEvent.recv ()
+              |> KEvent.update_trans_sys in_sys param sys
+              |> fun (invs,props) ->
+                invs,
+                props |> List.exists (function
+                  | _, (name, Property.PropInvariant _)
+                  | _, (name, Property.PropFalse _) ->
+                    name = context.prop
+                  | _ -> false
+                )
+            in
+            (* Asserting invariants if any. *)
+            assert_invariants context new_invs ;
+
+            (* Updating local system. *)
+            ( match TransSys.get_prop_status context.sys context.prop with
+              | Property.PropUnknown -> ()
+              | _ ->
+                TransSys.set_prop_invariant context.sys context.prop cert (* TODO check*);
+                TransSys.get_prop_term context.sys context.prop
+                |> fun t ->
+                  (TransSys.add_invariant context.sys t cert false, false)
+                  |> assert_invariant context
+            )
+          | None ->
+            (* Proved or disproved by another technique, or termination was
                requested. *)
-                 if TransSys.is_proved sys prop then
-                   KEvent.log L_info "C2I %s proved by another technique" prop
-                 else if TransSys.is_disproved sys prop then
-                   KEvent.log L_info "C2I %s disproved by another technique"
-                     prop
-           with PropIsFalse ->
-             KEvent.log L_info "C2I @[<v>Falsification for %s detected@]" prop);
-          (* Looping. *)
-          run in_sys param (Some context) candidate sys)
+            if TransSys.is_proved sys prop then
+              KEvent.log L_info
+                "C2I %s proved by another technique"
+                prop
+            else if TransSys.is_disproved sys prop then
+              KEvent.log L_info
+                "C2I %s disproved by another technique"
+                prop ) ;
+      with PropIsFalse ->
+        KEvent.log L_info "C2I @[<v>Falsification for %s detected@]" prop ) ;
+      (* Looping. *)
+      run in_sys param (Some context) candidate sys
+    )
 
 (* Entry point. *)
 let main input_sys aparam sys =
+
   (* Start timers. *)
-  Stat.start_timer Stat.c2i_total_time;
+  Stat.start_timer Stat.c2i_total_time ;
   (* New candidate. *)
   let candidate = Candidate.mk sys in
 
@@ -704,10 +722,14 @@ let main input_sys aparam sys =
   ) ; *)
 
   (* Running. *)
-  run input_sys aparam None candidate sys;
+  run input_sys aparam None candidate sys ;
 
   (* Done. *)
   stop ()
+
+
+
+
 
 (* 
    Local Variables:

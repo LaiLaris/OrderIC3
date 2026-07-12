@@ -27,7 +27,7 @@ open Lib
 (* ********************************************************************* *)
 
 (* Type of an expression in KIND *)
-type kindtype =
+type kindtype = 
   | Bool
   | Int
   | IntRange of Numeral.t option * Numeral.t option
@@ -46,6 +46,7 @@ type kindtype =
    {!kindtype} type, but not on the {!kindtype_node} type *)
 and kindtype_node = kindtype
 
+
 (* Properties of a type
 
    Only keep essential properties here that are shared by all
@@ -55,11 +56,14 @@ and kindtype_node = kindtype
    No properties for now. *)
 and kindtype_prop = unit
 
-(* Hashconsed type *)
+
+(* Hashconsed type *) 
 and t = (kindtype_node, kindtype_prop) Hashcons.hash_consed
 
-(* Hashing and equality on uninterpreted symbols *)
-module Kindtype_node = struct
+
+(* Hashing and equality on uninterpreted symbols *) 
+module Kindtype_node = struct 
+
   (* Type node *)
   type t = kindtype_node
 
@@ -67,30 +71,28 @@ module Kindtype_node = struct
   type prop = kindtype_prop
 
   (* Hashing for types *)
-  let hash = Hashtbl.hash
+  let hash = Hashtbl.hash 
 
   (* Equality of types *)
-  let equal t1 t2 =
-    match (t1, t2) with
+  let equal t1 t2 = match t1, t2 with 
     | Bool, Bool -> true
     | Bool, _ -> false
     | Int, Int -> true
-    | Int, _ -> false
+    | Int, _ -> false    
     | IntRange (l1, u1), IntRange (l2, u2) ->
-        let eq1 =
-          match (l1, l2) with
-          | None, None -> true
-          | Some l1, Some l2 -> Numeral.equal l1 l2
-          | _ -> false
-        in
-        let eq2 =
-          match (u1, u2) with
-          | None, None -> true
-          | Some u1, Some u2 -> Numeral.equal u1 u2
-          | _ -> false
-        in
-        eq1 && eq2
-    | Enum (l1, u1), Enum (l2, u2) -> Numeral.equal l1 l2 && Numeral.equal u1 u2
+      let eq1 = match l1, l2 with
+        | None, None -> true 
+        | Some l1, Some l2 -> Numeral.equal l1 l2 
+        | _ -> false
+      in
+      let eq2 = match u1, u2 with
+        | None, None -> true 
+        | Some u1, Some u2 -> Numeral.equal u1 u2 
+        | _ -> false
+      in
+      eq1 && eq2
+    | Enum (l1, u1), Enum (l2, u2) ->
+      Numeral.equal l1 l2 && Numeral.equal u1 u2 
     | IntRange _, _ -> false
     | Enum _, _ -> false
     | Real, Real -> true
@@ -99,55 +101,66 @@ module Kindtype_node = struct
     | UBV _, _ -> false
     | BV i, BV j -> i = j
     | BV _, _ -> false
-    | Array (i1, t1), Array (i2, t2) -> i1 == i2 && t1 == t2
+    | Array (i1, t1), Array (i2, t2) -> (i1 == i2) && (t1 == t2)
     | Array (_, _), _ -> false
     | Abstr s1, Abstr s2 -> s1 = s2
     | Abstr _, _ -> false
+      
 end
+
 
 (* Hashconsed types *)
 module Hkindtype = Hashcons.Make (Kindtype_node)
 
+
 (* Storage for uninterpreted function symbols *)
 let ht = Hkindtype.create 7
 
+
 (* Return the node of a type *)
 let node_of_type { Hashcons.node = s } = s
+
 
 (* ********************************************************************* *)
 (* Hashtables, maps and sets                                             *)
 (* ********************************************************************* *)
 
+
 (* Comparison function on types *)
 let compare_types = Hashcons.compare
 
 (* Equality function on types *)
-let equal_types = Hashcons.equal
+let equal_types = Hashcons.equal 
 
 (* Hashing function on types *)
-let hash_type = Hashcons.hash
+let hash_type = Hashcons.hash 
+
 
 (* Module as input to functors *)
-module HashedType = struct
+module HashedType = struct 
+
   (* Dummy type to prevent writing [type t = t] which is cyclic *)
   type z = t
   type t = z
 
   (* Compare tags of hashconsed symbols for equality *)
   let equal = equal_types
-
+    
   (* Use hash of symbol *)
   let hash = hash_type
+
 end
 
 (* Module as input to functors *)
-module OrderedType = struct
+module OrderedType = struct 
+
   (* Dummy type to prevent writing [type t = t] which is cyclic *)
   type z = t
   type t = z
 
   (* Compare tags of hashconsed symbols *)
   let compare = compare_types
+
 end
 
 (* Hashtable of symbols *)
@@ -159,32 +172,65 @@ module TypeHashtbl = Hashtbl.Make (HashedType)
    gain in efficiency. *)
 module TypeSet = Set.Make (OrderedType)
 
+
 (* Map of symbols
 
    Try to turn this into a patricia set with Hset for another small
    gain in efficiency. *)
 module TypeMap = Map.Make (OrderedType)
 
+
 (* ********************************************************************* *)
 (* Pretty-printing                                                       *)
 (* ********************************************************************* *)
 
 (* Pretty-print a type *)
-let rec pp_print_type_node ppf = function
+let rec pp_print_type_node ppf = function 
+
   | Bool -> Format.pp_print_string ppf "Bool"
+
   | Int -> Format.pp_print_string ppf "Int"
-  | IntRange (i, j) ->
-      Format.fprintf ppf "(IntRange %a %a)" pp_print_bound_opt i
-        pp_print_bound_opt j
-  | Enum (i, j) ->
-      Format.fprintf ppf "(Enum %a %a)" Numeral.pp_print_numeral i
-        Numeral.pp_print_numeral j
+
+  | IntRange (i, j) -> 
+    Format.fprintf
+      ppf 
+      "(IntRange %a %a)" 
+      pp_print_bound_opt i 
+      pp_print_bound_opt j
+
+  | Enum (i, j) -> 
+
+    Format.fprintf
+      ppf 
+      "(Enum %a %a)" 
+      Numeral.pp_print_numeral i 
+      Numeral.pp_print_numeral j
+
   | Real -> Format.pp_print_string ppf "Real"
-  | UBV i -> Format.fprintf ppf "(_ BitVec %d)" i
-  | BV i -> Format.fprintf ppf "(_ BitVec %d)" i
-  | Array (s, t) ->
-      Format.fprintf ppf "(Array %a %a)" pp_print_type s pp_print_type t
+
+  | UBV i -> 
+
+    Format.fprintf
+      ppf 
+      "(_ BitVec %d)" 
+      i 
+
+  | BV i -> 
+
+    Format.fprintf
+      ppf 
+      "(_ BitVec %d)" 
+      i
+
+  | Array (s, t) -> 
+    Format.fprintf
+      ppf 
+      "(Array %a %a)"
+      pp_print_type t
+      pp_print_type s
+
   | Abstr s -> Format.pp_print_string ppf s
+
 
 (* Pretty-print a hashconsed variable *)
 and pp_print_type ppf { Hashcons.node = t } = pp_print_type_node ppf t
@@ -194,68 +240,103 @@ let print_type = pp_print_type Format.std_formatter
 (* Return a string representation of a type *)
 let string_of_type t = string_of_t pp_print_type t
 
+
 (* Pretty-printing for debugging - these functions differentiate
    signed and unsigned bitvectors *)
-let rec pp_print_type_node_debug ppf = function
+let rec pp_print_type_node_debug ppf = function 
+
   | Bool -> Format.pp_print_string ppf "Bool"
+
   | Int -> Format.pp_print_string ppf "Int"
-  | IntRange (i, j) ->
-      Format.fprintf ppf "(IntRange %a %a)" pp_print_bound_opt i
-        pp_print_bound_opt j
-  | Enum (i, j) ->
-      Format.fprintf ppf "(Enum %a %a)" Numeral.pp_print_numeral i
-        Numeral.pp_print_numeral j
+
+  | IntRange (i, j) -> 
+    Format.fprintf
+      ppf 
+      "(IntRange %a %a)" 
+      pp_print_bound_opt i 
+      pp_print_bound_opt j
+
+  | Enum (i, j) -> 
+
+    Format.fprintf
+      ppf 
+      "(Enum %a %a)" 
+      Numeral.pp_print_numeral i 
+      Numeral.pp_print_numeral j
+
   | Real -> Format.pp_print_string ppf "Real"
-  | UBV i -> Format.fprintf ppf "(_ UBitVec %d)" i
-  | BV i -> Format.fprintf ppf "(_ SBitVec %d)" i
-  | Array (s, t) ->
-      Format.fprintf ppf "(Array %a %a)" pp_print_type s pp_print_type t
+
+  | UBV i -> 
+
+    Format.fprintf
+      ppf 
+      "(_ UBitVec %d)" 
+      i 
+
+  | BV i -> 
+
+    Format.fprintf
+      ppf 
+      "(_ SBitVec %d)" 
+      i
+
+  | Array (s, t) -> 
+    Format.fprintf
+      ppf 
+      "(Array %a %a)"
+      pp_print_type t
+      pp_print_type s
+
   | Abstr s -> Format.pp_print_string ppf s
 
 (* Pretty-print a hashconsed variable *)
-and pp_print_type_debug ppf { Hashcons.node = t } =
-  pp_print_type_node_debug ppf t
+and pp_print_type_debug ppf { Hashcons.node = t } = pp_print_type_node_debug ppf t
 
 let print_type_debug = pp_print_type_debug Format.std_formatter
 
 (* Return a string representation of a type *)
 let string_of_type_debug t = string_of_t pp_print_type_debug t
 
+
 (* ********************************************************************* *)
 (* Constructors                                                          *)
 (* ********************************************************************* *)
 
+
 (* Return a hashconsed type *)
 let mk_type t = Hkindtype.hashcons ht t ()
+
 let mk_bool () = Hkindtype.hashcons ht Bool ()
+
 let mk_int () = Hkindtype.hashcons ht Int ()
 
 let mk_int_range l u =
-  match (l, u) with
-  | Some l', Some u' ->
-      assert (Numeral.(l' <= u'));
-      Hkindtype.hashcons ht (IntRange (l, u)) ()
+  match l, u with 
+  | Some l', Some u' -> assert (Numeral.(l' <= u')); Hkindtype.hashcons ht (IntRange (l, u)) ()
   | _ -> Hkindtype.hashcons ht (IntRange (l, u)) ()
-
+  
 let mk_real () = Hkindtype.hashcons ht Real ()
+
 let mk_ubv w = Hkindtype.hashcons ht (UBV w) ()
+
 let mk_bv w = Hkindtype.hashcons ht (BV w) ()
+
 let mk_array i t = Hkindtype.hashcons ht (Array (i, t)) ()
+
 let mk_abstr s = Hkindtype.hashcons ht (Abstr s) ()
 
-module HNum = Hashtbl.Make (struct
-  type t = Numeral.t
 
-  let equal = Numeral.equal
-  let hash = Hashtbl.hash
-end)
+module HNum = Hashtbl.Make (struct
+    type t = Numeral.t
+    let equal = Numeral.equal
+    let hash = Hashtbl.hash
+  end)
+    
 
 (* Table from constructors to name if any and encoding to ranges *)
 let enums_table = Hashtbl.create 7
-
 (* Table from numeral encoding to a constructor and its type *)
 let num_enums = HNum.create 17
-
 (* Talbe from constructors to their numeral encoding *)
 let constr_nums = Hashtbl.create 7
 
@@ -266,46 +347,57 @@ let mk_enum =
     with Not_found ->
       let size = List.length cs in
       let n = !next_n in
-      let l, u = (Numeral.of_int n, Numeral.of_int (n + size - 1)) in
+      let l, u = Numeral.of_int n, Numeral.of_int (n + size - 1) in
       let range = Hkindtype.hashcons ht (Enum (l, u)) () in
-      List.iteri
-        (fun i c ->
+      List.iteri (fun i c ->
           let nu = Numeral.of_int (n + i) in
           HNum.add num_enums nu (c, cs, range);
-          Hashtbl.add constr_nums c nu)
-        cs;
+          Hashtbl.add constr_nums c nu;
+        ) cs;
       Hashtbl.add enums_table cs (name, range);
       next_n := n + size;
       range
 
+
 let get_constr_of_num n =
-  let c, _, _ = HNum.find num_enums n in
-  c
+  let c, _, _ = HNum.find num_enums n in c
 
 let get_enum_range_of_num n =
-  let _, _, r = HNum.find num_enums n in
-  r
+  let _, _, r = HNum.find num_enums n in r
 
 let get_constrs_of_num n =
-  let _, cs, _ = HNum.find num_enums n in
-  cs
+  let _, cs, _ = HNum.find num_enums n in cs
 
 let get_num_of_constr c = Hashtbl.find constr_nums c
 
 (* let get_enum_range_of_constrs cs = Hashtbl.find enums_table cs |> snd *)
 
 let get_enum_name_of_constrs cs = Hashtbl.find enums_table cs |> fst
-let enum_of_constr c = get_num_of_constr c |> get_enum_range_of_num
-let get_enum_name_of_num n = get_constrs_of_num n |> get_enum_name_of_constrs
+
+let enum_of_constr c =
+  get_num_of_constr c |> get_enum_range_of_num
+
+let get_enum_name_of_num n =
+  get_constrs_of_num n |> get_enum_name_of_constrs
+
 
 (* Import a type from a different instance into this hashcons table *)
-let rec import { Hashcons.node = n } =
-  match n with
+let rec import { Hashcons.node = n } = match n with 
   (* Import leaf types directly *)
-  | (Bool | Int | IntRange _ | Enum _ | UBV _ | BV _ | Real) as t -> mk_type t
+  | Bool
+  | Int
+  | IntRange _
+  | Enum _
+  | UBV _
+  | BV _ 
+  | Real as t -> mk_type t
+
+
   (* Import index and value types of array type *)
   | Array (i, t) -> mk_array (import i) (import t)
+
   | Abstr s -> mk_abstr s
+
 
 (* Static values *)
 let t_bool = mk_bool ()
@@ -314,59 +406,111 @@ let t_ubv w = mk_ubv w
 let t_bv w = mk_bv w
 let t_real = mk_real ()
 
+
 let get_all_abstr_types () =
-  Hkindtype.fold
-    (fun ty acc ->
-      match ty with { Hashcons.node = Abstr _ } -> ty :: acc | _ -> acc)
-    ht []
+  Hkindtype.fold (fun ty acc -> match ty with
+      | { Hashcons.node = Abstr _ } -> ty :: acc
+      | _ -> acc) ht []
   |> List.rev
+
+
 
 (* ********************************************************************* *)
 (* Predicates                                                            *)
 (* ********************************************************************* *)
 
-let is_int { Hashcons.node = t } =
-  match t with Int -> true | Array (_, _) -> false (* is_int t *) | _ -> false
 
-let is_int_range { Hashcons.node = t } =
-  match t with
-  | IntRange _ -> true
+let is_int { Hashcons.node = t } = match t with
+  | Int -> true 
+  | Array (_, _) -> false (* is_int t *)
+  | _-> false
+
+let is_int_range { Hashcons.node = t } = match t with
+  | IntRange _ -> true 
   | Array (_, _) -> false (* is_int_range t *)
+  |  _ -> false
+
+let bitvectorsize { Hashcons.node = t } = match t with
+  | UBV n -> n
+  | BV n -> n
+  | _ -> 0
+
+let get_bv_size { Hashcons.node = t } = match t with
+  | BV i -> Some i 
+  | UBV i -> Some i
+  | _-> None
+
+let is_bitvector { Hashcons.node = t } = match t with
+  | BV _ -> true 
+  | _-> false
+
+let is_bitvector_len n { Hashcons.node = t } = match t with
+  | BV w -> n = w 
+  | _-> false
+
+let is_ubitvector { Hashcons.node = t } = match t with
+  | UBV _ -> true
+  | _-> false
+
+let is_ubitvector_len n { Hashcons.node = t } = match t with
+  | UBV w -> n = w 
+  | _-> false
+
+let is_uint8 { Hashcons.node = t } = match t with
+  | UBV 8 -> true 
+  | _-> false
+
+let is_uint16 { Hashcons.node = t } = match t with
+  | UBV 16 -> true 
+  | _-> false
+
+let is_uint32 { Hashcons.node = t } = match t with
+  | UBV 32 -> true 
+  | _-> false
+
+let is_uint64 { Hashcons.node = t } = match t with
+  | UBV 64 -> true 
+  | _-> false
+
+let is_int8 { Hashcons.node = t } = match t with
+  | BV 8 -> true 
+  | _-> false
+
+let is_int16 { Hashcons.node = t } = match t with
+  | BV 16 -> true 
   | _ -> false
 
-let is_ubitvector { Hashcons.node = t } =
-  match t with UBV _ -> true | _ -> false
+let is_int32 { Hashcons.node = t } = match t with
+  | BV 32 -> true 
+  | _ -> false
 
-let is_bitvector { Hashcons.node = t } =
-  match t with BV _ -> true | _ -> false
+let is_int64 { Hashcons.node = t } = match t with
+  | BV 64 -> true 
+  | _-> false
 
-let bitvectorsize { Hashcons.node = t } =
-  match t with UBV n -> n | BV n -> n | _ -> 0
+let is_enum { Hashcons.node = t } = match t with
+  | Enum _ -> true 
+  |  _ -> false
 
-let is_uint8 { Hashcons.node = t } = match t with UBV 8 -> true | _ -> false
-let is_uint16 { Hashcons.node = t } = match t with UBV 16 -> true | _ -> false
-let is_uint32 { Hashcons.node = t } = match t with UBV 32 -> true | _ -> false
-let is_uint64 { Hashcons.node = t } = match t with UBV 64 -> true | _ -> false
-let is_int8 { Hashcons.node = t } = match t with BV 8 -> true | _ -> false
-let is_int16 { Hashcons.node = t } = match t with BV 16 -> true | _ -> false
-let is_int32 { Hashcons.node = t } = match t with BV 32 -> true | _ -> false
-let is_int64 { Hashcons.node = t } = match t with BV 64 -> true | _ -> false
-let is_enum { Hashcons.node = t } = match t with Enum _ -> true | _ -> false
-
-let is_bool { Hashcons.node = t } =
-  match t with
+let is_bool { Hashcons.node = t } = match t with
   | Bool -> true
   | Array (_, _) -> false (* is_bool t *)
-  | _ -> false
+  |  _ -> false
 
-let is_real { Hashcons.node = t } =
-  match t with
+let is_real { Hashcons.node = t } = match t with
   | Real -> true
   | Array (_, _) -> false (* is_real t *)
   | _ -> false
 
-let is_abstr { Hashcons.node = t } = match t with Abstr _ -> true | _ -> false
-let is_array { Hashcons.node = t } = match t with Array _ -> true | _ -> false
+
+let is_abstr { Hashcons.node = t } = match t with
+  | Abstr _ -> true
+  | _ -> false
+
+
+let is_array { Hashcons.node = t } = match t with
+  | Array _ -> true
+  | _ -> false
 
 (* let rec is_scalar { Hashcons.node = t } = match t with *)
 (*   | Scalar _ -> true *)
@@ -384,85 +528,109 @@ let bounds_of_enum = function
   | _ -> raise (Invalid_argument "bounds_of_enum")
 
 (* Return type of array index *)
-let index_type_of_array = function
+let index_type_of_array = function 
   | { Hashcons.node = Array (_, i) } -> i
   | _ -> raise (Invalid_argument "index_type_of_array")
 
 (* Return all index types of nested array type *)
-let rec all_index_types_of_array' accum = function
+let rec all_index_types_of_array' accum = function 
   | { Hashcons.node = Array (e, i) } -> all_index_types_of_array' (i :: accum) e
-  | _ -> List.rev accum
+  | _ -> List.rev accum 
 
 let all_index_types_of_array = all_index_types_of_array' []
 
 (* Return type of array elements *)
-let elem_type_of_array = function
+let elem_type_of_array = function 
   | { Hashcons.node = Array (e, _) } -> e
   | _ -> raise (Invalid_argument "elem_type_of_array")
 
+(* Return type of array indices *)
+let idx_type_of_array = function 
+  | { Hashcons.node = Array (_, i) } -> i
+  | _ -> raise (Invalid_argument "idx_type_of_array")
+
+
 (* Return element of nested array type *)
-let rec last_elem_type_of_array = function
-  | { Hashcons.node = Array (e, _) } when is_array e ->
-      last_elem_type_of_array e
-  | { Hashcons.node = Array (e, _) } -> e
+let rec last_elem_type_of_array = function 
+  | { Hashcons.node = Array (e,_) } when is_array e -> last_elem_type_of_array e
+  | { Hashcons.node = Array (e,_) } -> e
   | _ -> assert false
 
+
 let constructors_of_enum = function
-  | { Hashcons.node = Enum (l, _) } -> (
-      try get_constrs_of_num l
-      with Not_found -> raise (Invalid_argument "constructors_of_enum"))
+  | { Hashcons.node = Enum (l, _) } ->
+    (try get_constrs_of_num l
+     with Not_found -> raise (Invalid_argument "constructors_of_enum"))
   | _ -> raise (Invalid_argument "constructors_of_enum")
 
+
 let name_of_enum = function
-  | { Hashcons.node = Enum (l, _) } -> (
-      try get_enum_name_of_num l
-      with Not_found -> raise (Invalid_argument "constructors_of_enum"))
+  | { Hashcons.node = Enum (l, _) } ->
+    (try get_enum_name_of_num l
+     with Not_found -> raise (Invalid_argument "constructors_of_enum"))
   | _ -> raise (Invalid_argument "constructors_of_enum")
+
 
 (* ********************************************************************* *)
 (* Type checking                                                         *)
 (* ********************************************************************* *)
 
-(* Check if [t1] is a subtype of [t2] *)
-let rec check_type { Hashcons.node = t1 } { Hashcons.node = t2 } =
-  match (t1, t2) with
-  (* Types are identical *)
-  | Int, Int | Real, Real | Bool, Bool -> true
-  | UBV i, UBV j -> i = j
-  | BV i, BV j -> i = j
-  | Abstr s1, Abstr s2 -> s1 = s2
-  (* IntRange is a subtype of Int *)
-  | IntRange _, Int -> true
-  (* IntRange is subtype of IntRange if the interval is a subset *)
-  | IntRange (l1, u1), IntRange (l2, u2) ->
-      let eq1 =
-        match (l1, l2) with
-        | None, None -> true
-        | Some l1, Some l2 -> Numeral.(l1 >= l2)
-        | Some _, None -> true
-        | None, Some _ -> false
-      in
-      let eq2 =
-        match (u1, u2) with
-        | None, None -> true
-        | Some u1, Some u2 -> Numeral.(u1 <= u2)
-        | Some _, None -> true
-        | None, Some _ -> false
-      in
-      eq1 && eq2
-  (* Enum is subtype of Enum if the interval is a subset *)
-  | Enum (l1, u1), Enum (l2, u2) -> Numeral.(l1 >= l2) && Numeral.(u1 <= u2)
-  (* Array is a subtype of array if both index type and element type
-       are subtype *)
-  | Array (i1, _), Array (i2, _) -> check_type i1 i2 (* && (check_type t2 t1) *)
-  (* No other subtype relationships *)
-  | _ -> false
 
-let rec generalize t =
-  match node_of_type t with
-  | IntRange (_, _) -> t_int
+(* Check if [t1] is a subtype of [t2] *)
+let rec check_type  { Hashcons.node = t1 }  { Hashcons.node = t2 } = 
+  
+  match t1, t2 with 
+
+    (* Types are identical *)
+    | Int, Int
+    | Real, Real
+    | Bool, Bool -> true
+
+    | UBV i, UBV j -> i = j
+    
+    | BV i, BV j -> i = j
+    
+    | Abstr s1, Abstr s2 -> s1 = s2
+      
+    (* IntRange is a subtype of Int *)
+    | IntRange _, Int -> true
+
+    (* IntRange is subtype of IntRange if the interval is a subset *)
+    | IntRange (l1, u1), IntRange (l2, u2) ->
+      let eq1 = match l1, l2 with 
+        | None, None -> true 
+        | Some l1, Some l2 -> Numeral.(l1 >= l2)
+        | Some _, None -> true 
+        | None, Some _ -> false
+      in 
+      let eq2 = match u1, u2 with 
+        | None, None -> true 
+        | Some u1, Some u2 -> Numeral.(u1 <= u2)
+        | Some _, None -> true 
+        | None, Some _ -> false
+      in 
+      eq1 && eq2
+
+    (* Enum is subtype of Enum if the interval is a subset *)
+    | Enum (l1, u1), Enum (l2, u2) ->
+      Numeral.(l1 >= l2) && Numeral.(u1 <= u2)
+
+    (* Array is a subtype of array if both index type and element type
+       are subtype *)
+    | Array (i1, _), Array (i2, _) ->
+      (check_type i1 i2) (* && (check_type t2 t1) *)
+
+    (* No other subtype relationships *)
+    | _ -> false
+
+
+let rec generalize t = match node_of_type t with
+  | IntRange (_,_) -> t_int
   | Array (e, i) -> mk_array (generalize e) (generalize i)
   | _ -> t
+
+
+
 
 (* 
    Local Variables:

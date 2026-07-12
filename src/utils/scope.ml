@@ -18,6 +18,7 @@
 
 open Lib
 
+
 (* TODO: 
 
    - Hashccons identifiers and use for StateVar, UfSymbol etc. 
@@ -29,32 +30,39 @@ open Lib
 
 *)
 
-(* Pretty-print a scope *)
-let pp_print_scope ppf s =
-  Format.fprintf ppf "@{<blue>%a@}" (pp_print_list Ident.pp_print_ident ".") s
 
-module Scope = struct
+(* Pretty-print a scope. Only for internal (non-user-facing) use *)
+let pp_print_scope_internal ppf s =
+  Format.fprintf 
+    ppf
+    "@{<blue>%a@}"
+    (pp_print_list Ident.pp_print_ident Lib.StringValues.scope_sep)
+    s
+
+module Scope = struct 
+
   (* Scope as a sequence of identifiers *)
   type t = Ident.t list
-
+      
   (* Equality on scopes *)
   let equal s1 s2 =
     (* Scopes are equal if all identifiers are equal *)
-    try
-      List.for_all2 Ident.equal s1 s2
-      (* Scopes of different lengths are not equal *)
+    try List.for_all2 Ident.equal s1 s2
+    (* Scopes of different lengths are not equal *)
     with Invalid_argument _ -> false
-
+      
   (* Total order on scopes *)
-  let compare s1 s2 = compare_lists Ident.compare s1 s2
+  let compare s1 s2 = List.compare Ident.compare s1 s2
+
   let hash s = Hashtbl.hash s
+
 end
 
 include Scope
-module Set = Set.Make (Scope)
-module Map = Map.Make (Scope)
 
-let to_string s = string_of_t pp_print_scope s
+module Set = Set.Make (Scope)
+
+module Map = Map.Make (Scope)
 
 (* Construct a scope from a list of identifiers 
 

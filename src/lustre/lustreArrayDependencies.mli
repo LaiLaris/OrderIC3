@@ -16,20 +16,21 @@
 
  *)
 
-(** @author Andrew Marmaduke *)
+(**
+    @author Andrew Marmaduke *)
 
-type error_kind =
-  | Unknown of string
+type error_kind = Unknown of string
   | ComplicatedExpr of LustreAst.expr
   | Cycle of HString.t list
 
-val error_message : error_kind -> string
+val error_message: error_kind -> string
 (** Returns an message describing the error kind *)
 
-type error = [ `LustreArrayDependencies of Lib.position * error_kind ]
+type error = [
+  | `LustreArrayDependencies of Lib.position * error_kind
+]
 
-val check_inductive_array_dependencies :
-  TypeCheckerContext.tc_context ->
-  LustreAstDependencies.node_summary ->
-  LustreAst.t ->
-  (unit, [> error ]) result
+val check_inductive_array_dependencies: TypeCheckerContext.tc_context
+  -> LustreAstDependencies.node_summary
+  -> LustreAst.t
+  -> (unit, [> error]) result

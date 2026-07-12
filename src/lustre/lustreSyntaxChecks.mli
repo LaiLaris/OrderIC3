@@ -16,25 +16,30 @@
 
  *)
 (** Check various syntactic properties that do not depend on type information
-
-    @author Andrew Marmaduke *)
+  
+  @author Andrew Marmaduke *)
 
 module LA = LustreAst
 
-type error_kind =
-  | Unknown of string
+type error_kind = Unknown of string
   | UndefinedLocal of HString.t
   | DuplicateLocal of HString.t * Lib.position
   | DuplicateOutput of HString.t * Lib.position
+  | UndefinedOutput of HString.t 
   | DuplicateProperty of HString.t
+  | InvalidPropertyName of HString.t
   | UndefinedNode of HString.t
   | UndefinedContract of HString.t
   | DanglingIdentifier of HString.t
   | QuantifiedVariableInPre of HString.t
   | QuantifiedVariableInNodeArgument of HString.t * HString.t
   | SymbolicArrayIndexInNodeArgument of HString.t * HString.t
-  | AnyOpInFunction
-  | NodeCallInFunction of HString.t
+  | QuantifiedVariableInLazyGuardedNodeCall of HString.t * HString.t
+  | SymbolicArrayIndexInLazyGuardedNodeCall of HString.t * HString.t
+  | QuantifiedVariableInTypeAscription of HString.t 
+  | SymbolicArrayIndexInTypeAscription of HString.t 
+  | IllegalNodeCall of (HString.t * string)
+  | IllegalAnyOp of string
   | NodeCallInConstant of HString.t
   | NodeCallInGlobalTypeDecl of HString.t
   | IllegalTemporalOperator of string * string
@@ -46,32 +51,33 @@ type error_kind =
   | UnsupportedWhen of LustreAst.expr
   | UnsupportedParametricDeclaration
   | UnsupportedAssignment
+  | MultAssignArrayDef
   | AssumptionVariablesInContractNode
-  | ClockMismatchInMerge
   | MisplacedVarInFrameBlock of LustreAst.ident
   | MisplacedAssertInFrameBlock
-  | IllegalClockExprInActivate of LustreAst.expr
   | OpaqueWithoutContract of LustreAst.ident
   | TransparentWithoutBody of LustreAst.ident
   | IllegalHistoryVar of LustreAst.ident
+  | InductiveVarsWithArrayConstr of LustreAst.expr
 
-type error = [ `LustreSyntaxChecksError of Lib.position * error_kind ]
+type error = [
+  | `LustreSyntaxChecksError of Lib.position * error_kind
+]
 
 val error_message : error_kind -> string
 
-type warning_kind = UnusedBoundVariableWarning of HString.t
-type warning = [ `LustreSyntaxChecksWarning of Lib.position * warning_kind ]
+type warning_kind =
+  | UnusedBoundVariableWarning of HString.t
+
+type warning = [
+  | `LustreSyntaxChecksWarning of Lib.position * warning_kind
+]
 
 val warning_message : warning_kind -> string
-val syntax_check : LA.t -> ([> warning ] list * LA.t, [> error ]) result
 
-val no_mismatched_clock :
-  bool -> LA.expr -> ([> warning ] list, [> error ]) result
-(** Conservative syntactic check of clock arguments for merge expressions. To
-    eventually be replaced with more general clock inference/checking.
+val error_if_lus_strict: warning_kind -> bool
 
-    Note: type information is needed for this check, causing this check to be
-    called in the lustreTypeChecker *)
+val syntax_check : LA.t -> (([> warning] list * LA.t), [> error]) result
 
 val no_quant_vars_in_calls_to_non_inlinable_funcs :
-  LA.SI.t -> LA.t -> ([> warning ] list, [> error ]) result
+  TypeCheckerContext.tc_context -> NodeId.Set.t -> LA.t -> ([> warning ] list, [> error]) result

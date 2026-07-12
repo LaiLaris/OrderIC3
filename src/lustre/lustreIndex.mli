@@ -16,85 +16,108 @@
 
 *)
 
+
 (** Indexes for lists, records, tuples and arrays in Lustre
 
-    In Lustre some indexes must be static at compile time, we can thus flatten
-    all record, tuple and list values. The remaining indexes are array indexes,
-    which we allow to be variable.
+    In Lustre some indexes must be static at compile time, we can thus
+    flatten all record, tuple and list values. The remaining indexes
+    are array indexes, which we allow to be variable.
 
-    Array indexes are annotated with an expression denoting the bound. However,
-    this bound is not considered when comparing array indexes, because two
-    bounds of expressions can only be evaluated in a context. A syntactic
-    comparison of bound expressions will fail to make expressions equal that
-    should be equal, for example in node calls where the size of an input is
-    parametrized by another input.
+    Array indexes are annotated with an expression denoting the
+    bound. However, this bound is not considered when comparing array
+    indexes, because two bounds of expressions can only be evaluated
+    in a context. A syntactic comparison of bound expressions will
+    fail to make expressions equal that should be equal, for example
+    in node calls where the size of an input is parametrized by
+    another input.
 
-    Lists in Lustre are similar to tuples, but they cannot be constructed,
-    except as the inputs and outputs of node calls. Further, nested lists are to
-    be flattened such that [((a, b), c)], [(a, (b, c))] and [(a, b, c)] are
-    identical.
+    Lists in Lustre are similar to tuples, but they cannot be
+    constructed, except as the inputs and outputs of node
+    calls. Further, nested lists are to be flattened such that [((a,
+    b), c)], [(a, (b, c))] and [(a, b, c)] are identical.
 
     @author Christoph Sticksel *)
 
+
 (** An index element *)
-type one_index =
-  | RecordIndex of string  (** Field name as index of a record *)
-  | TupleIndex of int  (** Integer literal as index of a tuple *)
-  | ListIndex of int  (** Integer literal as index of a list *)
-  | ArrayIntIndex of int  (** Integer literal as index of an array *)
+type one_index = 
+
+  | RecordIndex of string
+    (** Field name as index of a record *)
+
+  | TupleIndex of int
+    (** Integer literal as index of a tuple *)
+
+  | ListIndex of int
+    (** Integer literal as index of a list *)
+
+  | ArrayIntIndex of int
+    (** Integer literal as index of an array *)
+
   | ArrayVarIndex of LustreExpr.expr
-      (** Variable as index of an array of given size *)
+    (** Variable as index of an array of given size *)
+
+  | SetMapIndex of LustreExpr.expr 
+
   | AbstractTypeIndex of string
-(* Index to the representation field of an abstract type *)
+    (* Index to the representation field of an abstract type *)
 
-type index = one_index list
 (** A sequence of indexes *)
+type index = one_index list
 
-val pp_print_one_index : bool -> Format.formatter -> one_index -> unit
 (** Pretty-print a single index *)
+val pp_print_one_index : bool -> Format.formatter -> one_index -> unit
 
-val pp_print_index : bool -> Format.formatter -> index -> unit
 (** Pretty-print an list of indexes *)
+val pp_print_index : bool -> Format.formatter -> index -> unit
 
-val string_of_index : bool -> index -> string
 (** Return a string representation of indexes *)
+val string_of_index : bool -> index -> string
 
-val empty_index : index
 (** The empty index *)
+val empty_index : index
 
-include Trie.S with type key = index
 (** A trie of indexes *)
+include Trie.S with type key = index
 
-val singleton : index -> 'a -> 'a t
 (** Return a trie with a single element for the empty index *)
+val singleton : index -> 'a -> 'a t
 
-val equal_index : index -> index -> bool
 (** Equality of indexes *)
+val equal_index : index -> index -> bool
 
-val compare_indexes : index -> index -> int
 (** Total order of indexes *)
+val compare_indexes : index -> index -> int
 
 (** {1 Helper Functions} *)
 
-val array_bounds_of_index : index -> LustreExpr.expr list
 (** Return the list of bounds of the array indexes in the index *)
+val array_bounds_of_index : index -> LustreExpr.expr list
 
+(** Return the list of array variables of the array indexes in the
+    index *)
 val array_vars_of_index : index -> StateVar.t list
-(** Return the list of array variables of the array indexes in the index *)
 
-val top_max_index : 'a t -> int
-(** If the first index is a list, return the greatest integer in a trie of
-    indexes. Return [(- 1)] if the index is empty and fail with
+(** If the first index is a list, return the greatest integer in a
+    trie of indexes. Return [(- 1)] if the index is empty and fail with
     [Invalid_argument "top_max_index"] if the first index is not a list *)
+val top_max_index : 'a t -> int
 
 val filter_array_indices : index -> index
+
 val compatible_indexes : index -> index -> bool
 
-val pp_print_index_trie :
-  bool -> (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a t -> unit
+
 (** Pretty print a trie of indexes *)
+val pp_print_index_trie :
+  bool -> (Format.formatter -> 'a -> unit) ->
+  Format.formatter -> 'a t -> unit
 
-val pp_print_trie_expr : bool -> Format.formatter -> LustreExpr.t t -> unit
+
 (** Pretty print a trie with expressions *)
+val pp_print_trie_expr : bool -> Format.formatter -> LustreExpr.t t -> unit
 
-val mk_scope_for_index : index -> Scope.t
+val pp_print_trie_ty : bool -> Format.formatter -> Type.t t -> unit
+
+val mk_scope_for_index: index -> Scope.t
+

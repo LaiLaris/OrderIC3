@@ -16,29 +16,31 @@
 
 *)
 
-(** Error and warning Reporting functions *)
+(** 
+    Error and warning Reporting functions 
 
-val internal_error : Lib.position -> string -> unit
-(** Output an error message; [assert false] is assumed to be used after each
-    call as internal errors are only bugs *)
+ *)
 
-val fail_at_position_pt : Lib.position -> string -> unit
-(** Ouput a fail message *)
+val internal_error: Lib.position -> string -> unit
+(** Output an error message; [assert false] is assumed to be used after each call as internal errors are only bugs *)
+
+val fail_at_position_pt: Lib.position -> string -> unit
+(** Ouput a fail message  *)
 
 val fail_at_position : Lib.position -> string -> 'a
 (** Output a fatal error at position and raise an error *)
 
-val warn_at_position_pt : Lib.log_level -> Lib.position -> string -> unit
-(** Output a warning at position at a given level *)
-
-val warn_at_position : Lib.position -> string -> unit
+val warn_at_position_pt: Lib.log_level -> Lib.position -> string -> unit 
+(** Output a warning at position at a given level  *)
+  
+val warn_at_position : Lib.position -> string -> unit 
 (** Output a warning at position *)
 
 val fail_no_position : string -> 'a
 (** Output a fatal error without reporting a position and raise an error *)
 
-val warn_no_position : string -> unit
+val warn_no_position : string -> unit 
 (** Output a warning without a position *)
 
-val note_at_position : Lib.position -> string -> unit
-(** Ouput a note *)
+val note_at_position: Lib.position -> string -> unit
+(**  Ouput a note *)

@@ -15,20 +15,32 @@
    permissions and limitations under the License. 
 *)
 
-(** Removes multiple assignment from an if block by pulling out equations with
-    multiple assignment and using temp variables. Example: if cond then y1, y2 =
-    node(expr1); else y1 = expr2; y2 = expr3; fi --> t1, t2 = node(expr1); if
-    cond then y1 = t1; y2 = t2; else y1 = expr2; y2 = expr3; fi
+(** Removes multiple assignment from an if block by pulling out equations
+   with multiple assignment and using temp variables. 
+  Example: 
+   if cond
+   then 
+      y1, y2 = node(expr1);
+   else
+      y1 = expr2;
+      y2 = expr3;
+   fi
+  -->
+   t1, t2 = node(expr1);
+   if cond
+   then 
+      y1 = t1;
+      y2 = t2;
+   else
+      y1 = expr2;
+      y2 = expr3;
+   fi
 
-    For each temp variable, we also generate a new declaration.
+  For each temp variable, we also generate a new declaration.
 
-    @author Rob Lorch *)
+  @author Rob Lorch
+*)
 
-val remove_mult_assign :
-  TypeCheckerContext.tc_context ->
-  GeneratedIdentifiers.t HString.HStringMap.t ->
-  LustreAst.declaration list ->
-  LustreAst.declaration list
-  * GeneratedIdentifiers.t GeneratedIdentifiers.StringMap.t
-(** Desugars a declaration list to remove multiple assignment from if blocks and
-    frame blocks. *)
+(** Desugars a declaration list to remove multiple assignment from if blocks and frame
+    blocks. *)
+val remove_mult_assign : TypeCheckerContext.tc_context -> GeneratedIdentifiers.t NodeId.Map.t -> LustreAst.declaration list -> LustreAst.declaration list * GeneratedIdentifiers.t NodeId.Map.t

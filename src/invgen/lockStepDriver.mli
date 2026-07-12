@@ -16,103 +16,111 @@
 
 *)
 
+
 (** Lock Step Driver (LSD).
 
-    The LSD is used by invariant generation to split its graph using [base],
-    discover invariants using [step], and prune trivial invariants using
-    [pruning].
+The LSD is used by invariant generation to split its graph using [base],
+discover invariants using [step], and prune trivial invariants using [pruning].
 
-    The workflow is that each invariant generation (graph splitting + invariant
-    discovery at [k]) starts by creating a [base]. Once the graph is stable, the
-    base checker is transformed into a [step] using [to_step].
+The workflow is that each invariant generation (graph splitting + invariant
+discovery at [k]) starts by creating a [base]. Once the graph is stable, the
+base checker is transformed into a [step] using [to_step].
 
-    To query a step checker one gives a list of [Term.t * 'a] where ['a] is some
-    information. Typically, it's used to when checking invariants of candidates
-    coming from equivalence classes. If an equality is invariant, then we can
-    remove the term from the eq class of the corresponding representative. In
-    this case the information has type [Term.t * Term.t] and stores the
-    representative and the term to drop. *)
+To query a step checker one gives a list of [Term.t * 'a] where ['a] is some
+information. Typically, it's used to when checking invariants of candidates
+coming from equivalence classes. If an equality is invariant, then we can
+remove the term from the eq class of the corresponding representative. In this
+case the information has type [Term.t * Term.t] and stores the representative
+and the term to drop. *)
 
+
+
+
+(** The base checker is used to check whether some candidate invariants hold
+[k] steps away from the initial state. *)
 type base
-(** The base checker is used to check whether some candidate invariants hold [k]
-    steps away from the initial state. *)
 
-val kill_base : base -> unit
 (** Kills a base checker. *)
+val kill_base : base -> unit
 
-val mk_base_checker : TransSys.t -> Numeral.t -> base
 (** Creates a base checker for some system at some depth. *)
+val mk_base_checker : 'a InputSystem.t -> TransSys.t -> Numeral.t -> base
 
+(** Adds some invariants to a base checker.
+Second argument is the one-state invariants, third is the two-state ones. *)
 val base_add_invariants : base -> bool -> Term.t list -> unit
-(** Adds some invariants to a base checker. Second argument is the one-state
-    invariants, third is the two-state ones. *)
 
-val query_base : base -> Term.t list -> Model.t option
 (** Checks whether some terms are falsifiable [k] states away from the initial
-    state, where [k] is the internal depth of the base checker.
+state, where [k] is the internal depth of the base checker.
 
-    Returns an option of a model falsifying some of the terms. *)
+Returns an option of a model falsifying some of the terms. *)
+val query_base : 'a InputSystem.t -> base -> Term.t list -> Model.t option
 
-type step
+
+
+
 (** The step checker is used to check whether some candidate invariants hold in
-    the [k]-inductive step instance. *)
+the [k]-inductive step instance. *)
+type step
 
-val kill_step : step -> unit
 (** Kills a step checker. *)
+val kill_step : step -> unit
 
-val to_step : base -> step
 (** Transforms a base checker into a step checker.
 
-    The step checker thus obtained correspond to the [k]-induction step instance
-    the base checker corresponds to. That is, the transition relation is
-    unrolled one step further and the initial state constraint is removed. *)
+The step checker thus obtained correspond to the [k]-induction step instance
+the base checker corresponds to. That is, the transition relation is unrolled
+one step further and the initial state constraint is removed. *)
+val to_step : base -> step
 
-val step_cert : step -> int
 (** Certificate ([k]) of a step checker. *)
+val step_cert : step -> int
 
+(** Adds invariants to a step checker.
+Second argument is the one-state invariants, third is the two-state ones. *)
 val step_add_invariants : step -> bool -> Term.t list -> unit
-(** Adds invariants to a step checker. Second argument is the one-state
-    invariants, third is the two-state ones. *)
 
-val query_step : bool -> step -> (Term.t * 'a) list -> (Term.t * 'a) list
 (** Queries step.
 
-    Takes some [candidates], a list of elements of type [(Term.t, 'a)]. The
-    second element is understood as some information about the candidate.
+Takes some [candidates], a list of elements of type [(Term.t, 'a)]. The second
+element is understood as some information about the candidate.
 
-    The "information" represented by ['a] is used when checking equality
-    candidate invariants coming from equivalence classes from the graph. The
-    info is then a pair representative / eq class member meaning that if the
-    candidate is indeed invariant, we can drop the class member from the
-    equivalence class.
+The "information" represented by ['a] is used when checking equality candidate
+invariants coming from equivalence classes from the graph. The info is then a
+pair representative / eq class member meaning that if the candidate is indeed
+invariant, we can drop the class member from the equivalence class.
 
-    Returns the elements of [candidates] for which the first element of the pair
-    (the term) is an invariant. *)
+Returns the elements of [candidates] for which the first element of the pair
+(the term) is an invariant. *)
+val query_step : bool -> 'a InputSystem.t -> step -> (Term.t * 'b) list -> (Term.t * 'b) list
 
-val nu_query_step : bool -> step -> Term.t list -> Model.t option
 (** Queries step, returns an option of the model. *)
+val nu_query_step : bool -> 'a InputSystem.t -> step -> Term.t list -> Model.t option
 
+
+
+
+(** Used to check whether some invariants are implied by the transition
+relation alone. That is, [T(0,1) and (not inv(1))] is unsat. *)
 type pruning
-(** Used to check whether some invariants are implied by the transition relation
-    alone. That is, [T(0,1) and (not inv(1))] is unsat. *)
 
-val pruning_sys : pruning -> TransSys.t
 (** System associated with a pruning checker. *)
+val pruning_sys : pruning -> TransSys.t
 
-val kill_pruning : pruning -> unit
 (** Kills a pruning checker. *)
+val kill_pruning : pruning -> unit
 
-val mk_pruning_checker : TransSys.t -> bool -> pruning
 (** Creates a pruning checker for a system. *)
+val mk_pruning_checker : 'a InputSystem.t -> TransSys.t -> pruning
 
+(** Adds invariants to a pruning checker.
+Second argument is the one-state invariants, third is the two-state ones. *)
 val pruning_add_invariants : pruning -> bool -> Term.t list -> unit
-(** Adds invariants to a pruning checker. Second argument is the one-state
-    invariants, third is the two-state ones. *)
 
-val query_pruning : pruning -> bool -> Term.t list -> Term.t list * Term.t list
 (** Checks if some terms are trivially implied by the transition relation.
 
-    Returns a pair of the trivial and the non-trivial invariants. *)
+Returns a pair of the trivial and the non-trivial invariants. *)
+val query_pruning : 'a InputSystem.t -> pruning -> Term.t list -> ( Term.t list * Term.t list )
 
 (* 
    Local Variables:

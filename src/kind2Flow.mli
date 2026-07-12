@@ -16,8 +16,8 @@
 
 *)
 
-val run : 'a InputSystem.t -> unit
 (** Runs the analyses produced by the strategy module. *)
+val run : 'a InputSystem.t -> unit
 
 (* 
    Local Variables:

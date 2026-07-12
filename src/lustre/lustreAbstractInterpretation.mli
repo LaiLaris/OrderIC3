@@ -16,31 +16,33 @@
 
  *)
 
-(** @author Andrew Marmaduke *)
+(** 
+    @author Andrew Marmaduke *)
 
 module IMap = HString.HStringMap
 
 type context
-type error_kind = Unknown of string | ConstantOutOfSubrange of HString.t
-type error = [ `LustreAbstractInterpretationError of Lib.position * error_kind ]
 
-val error_message : error_kind -> string
+
+type error_kind = Unknown of string
+  | ConstantOutOfSubrange of HString.t
+
+type error = [
+  | `LustreAbstractInterpretationError of Lib.position * error_kind
+]
+
+val error_message: error_kind -> string
 (** Returns an message describing the error kind *)
 
-val empty_context : context
+val empty_context: context
 
-val get_type :
-  context -> LustreAst.ident -> LustreAst.ident -> LustreAst.lustre_type option
+val get_type: context -> NodeId.t option -> LustreAst.ident -> LustreAst.lustre_type option
 
-val union : context -> context -> context
+val union: context -> context -> context
 
-val interpret_program :
-  TypeCheckerContext.tc_context ->
-  GeneratedIdentifiers.t GeneratedIdentifiers.StringMap.t ->
-  LustreAst.t ->
-  context
+val interpret_program: TypeCheckerContext.tc_context -> GeneratedIdentifiers.t NodeId.Map.t -> LustreAst.t -> context
 
-val interpret_global_consts :
-  TypeCheckerContext.tc_context ->
-  LustreAst.declaration list ->
-  (unit, [> error ]) result
+val interpret_global_consts: TypeCheckerContext.tc_context -> LustreAst.declaration list ->
+  ( unit,
+    [> error] )
+  result

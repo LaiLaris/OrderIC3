@@ -19,101 +19,107 @@
 module MIL : Map.S with type key = int list
 
 (** Term or lambda expression *)
-type value = Term of Term.t | Lambda of Term.lambda | Map of Term.t MIL.t
+type value =
+  | Term of Term.t
+  | Lambda of Term.lambda
+  | Map of Term.t MIL.t
 
-type t = value Var.VarHashtbl.t
 (** A model is a list of variables and assignemnts *)
+type t = value Var.VarHashtbl.t
 
-type path = value list StateVar.StateVarHashtbl.t
 (** A path is a map of state variables to assignments *)
+type path = value list StateVar.StateVarHashtbl.t
 
-val equal_value : value -> value -> bool
 (** Equality over values of model *)
+val equal_value : value -> value -> bool
 
-val path_offset : Numeral.t
 (** Offset of the variables at each step of a path. *)
+val path_offset: Numeral.t
 
-val pp_print_value : ?as_type:Type.t -> Format.formatter -> value -> unit
 (** Pretty-print a value *)
+val pp_print_value : ?as_type:Type.t -> Format.formatter -> value -> unit
 
-val pp_print_value_xml : ?as_type:Type.t -> Format.formatter -> value -> unit
 (** Pretty-print a value in xml format *)
+val pp_print_value_xml : ?as_type:Type.t -> Format.formatter -> value -> unit
 
-val pp_print_value_json : ?as_type:Type.t -> Format.formatter -> value -> unit
 (** Pretty-print a value in json format *)
+val pp_print_value_json : ?as_type:Type.t -> Format.formatter -> value -> unit
 
-val pp_print_model : Format.formatter -> t -> unit
 (** Pretty-print a model *)
+val pp_print_model : Format.formatter -> t -> unit
 
-val pp_print_path : Format.formatter -> path -> unit
 (** Pretty-print a path *)
+val pp_print_path : Format.formatter -> path -> unit
 
-val create : int -> t
 (** Create a model of the given size *)
+val create : int -> t
 
-val create_path : int -> path
 (** Create a path of the given size *)
+val create_path : int -> path
 
-val import_value : value -> value
 (** Import a variable assignment from a different instance *)
+val import_value : value -> value
 
+(** Create a model of an association list *)
 val of_list : (Var.t * value) list -> t
-(** Create a model of an association list *)
 
+(** Return an association list with the assignments in the model *)
 val to_list : t -> (Var.t * value) list
-(** Return an association list with the assignments in the model *)
 
+(** Return an association list with the assignments in the model *)
 val path_to_list : path -> (StateVar.t * value list) list
-(** Return an association list with the assignments in the model *)
 
+(** Create a model of an association list *)
 val path_of_list : (StateVar.t * value list) list -> path
-(** Create a model of an association list *)
 
+(** Create a model of an association list *)
 val path_of_term_list : (StateVar.t * Term.t list) list -> path
-(** Create a model of an association list *)
 
-val path_from_model : StateVar.t list -> t -> Numeral.t -> path
 (** Convert a model to a path
 
-    [path_from_model s m k] extracts from the model [m] a path of values for
-    each of the state variables in [s] from the offset zero up to [k]. The lists
-    of values for each state variable are of equal length. Values that are not
-    defined in the model are filled with {!TermLib.default_of_type}. *)
+    [path_from_model s m k] extracts from the model [m] a path of
+    values for each of the state variables in [s] from the offset zero
+    up to [k]. The lists of values for each state variable are of
+    equal length. Values that are not defined in the model are filled
+    with {!TermLib.default_of_type}. *)
+val path_from_model : StateVar.t list -> t -> Numeral.t -> path
 
-val path_length : path -> int
-(** Return the length of the value paths
+(** Return the length of the value paths 
 
     All value paths are of equal lengths. *)
+val path_length : path -> int
 
-val model_at_k_of_path : path -> Numeral.t -> t
 (** Extract values at instant [k] from the path and return a model *)
+val model_at_k_of_path : path -> Numeral.t -> t
 
-val models_of_path : path -> t list
 (** Return a list of models, one for each step on the path *)
+val models_of_path : path -> t list 
 
-val exists_on_path : (t -> bool) -> path -> bool
 (** Return true if the predicate [p] applies at one step of the path *)
+val exists_on_path : (t -> bool) -> path -> bool
 
-val for_all_on_path : (t -> bool) -> path -> bool
 (** Return true if the predicate [p] applies at each step of the path *)
+val for_all_on_path : (t -> bool) -> path -> bool
 
-val bump_var : Numeral.t -> t -> t
 (** Add [k] to offset of all variables in model *)
+val bump_var : Numeral.t -> t -> t
 
-val set_var_offset : Numeral.t -> t -> t
 (** Set offset of all variables in model to [k] *)
+val set_var_offset : Numeral.t -> t -> t
 
-val merge : t -> t -> t
-(** Combine assignments of two models into one. If a variable has an assignment
-    in both models, it gets the assignment in the second model. *)
+(** Combine assignments of two models into one. If a variable has an
+    assignment in both models, it gets the assignment in the second
+    model. *)
+val merge : t -> t -> t 
 
-val bump_and_merge : Numeral.t -> t -> t -> t
-(** Combine assignments of two models into one as in {!merge}, but bump the
-    variables in the second model by the given offset before merging. *)
+(** Combine assignments of two models into one as in {!merge}, but
+    bump the variables in the second model by the given offset before
+    merging. *)
+val bump_and_merge : Numeral.t -> t -> t -> t 
 
-val dimension_of_map : Term.t MIL.t -> int list
 (** Returns the bounds / dimension of the array value represented by the map in
     the model*)
+val dimension_of_map : Term.t MIL.t -> int list
 
 (* 
    Local Variables:

@@ -16,67 +16,74 @@
 
 *)
 
-let certif = ref false
-let event = ref false
-let extract = ref false
-let fec = ref false
+
+let certif =     ref false
+let event =      ref false
+let extract =    ref false
+let fec =        ref false
 let invgencand = ref false
-let kind2 = ref false
-let ltree = ref false
-let messaging = ref false
-let parse = ref false
-let qe = ref false
+let kind2 =      ref false
+let ltree =      ref false
+let messaging =  ref false
+let parse =      ref false
+let qe =         ref false
 let qedetailed = ref false
-let simplify = ref false
-let smt = ref false
-let smtexpr = ref false
-let transsys = ref false
-let c2i = ref false
-let ic3 = ref false
-let compress = ref false
-let native = ref false
-let realiz = ref false
-let assump = ref false
+let simplify =   ref false
+let smt =        ref false
+let smtexpr =    ref false
+let transsys =   ref false
+let c2i =        ref false
+let ic3 =        ref false
+let compress =   ref false
+let native =     ref false
+let realiz =     ref false
+let assump =     ref false
+
 
 let set_dflags dflags =
-  certif := List.mem "all" dflags || List.mem "certif" dflags;
-  event := List.mem "all" dflags || List.mem "event" dflags;
-  extract := List.mem "all" dflags || List.mem "extract" dflags;
-  fec := List.mem "all" dflags || List.mem "fec" dflags;
-  invgencand := List.mem "all" dflags || List.mem "invgencand" dflags;
-  kind2 := List.mem "all" dflags || List.mem "kind2" dflags;
-  ltree := List.mem "all" dflags || List.mem "ltree" dflags;
-  messaging := List.mem "all" dflags || List.mem "messaging" dflags;
-  parse := List.mem "all" dflags || List.mem "parse" dflags;
-  qe := List.mem "all" dflags || List.mem "qe" dflags;
-  qedetailed := List.mem "all" dflags || List.mem "qedetailed" dflags;
-  simplify := List.mem "all" dflags || List.mem "simplify" dflags;
-  smt := List.mem "all" dflags || List.mem "smt" dflags;
-  smtexpr := List.mem "all" dflags || List.mem "smtexpr" dflags;
-  transsys := List.mem "all" dflags || List.mem "transsys" dflags;
-  c2i := List.mem "all" dflags || List.mem "c2i" dflags;
-  ic3 := List.mem "all" dflags || List.mem "ic3" dflags;
-  compress := List.mem "all" dflags || List.mem "compress" dflags;
-  native := List.mem "all" dflags || List.mem "native" dflags;
-  realiz := List.mem "all" dflags || List.mem "realiz" dflags;
-  assump := List.mem "all" dflags || List.mem "assump" dflags
+   certif :=     List.mem "all" dflags || List.mem "certif" dflags ;
+   event :=      List.mem "all" dflags || List.mem "event" dflags ;
+   extract :=    List.mem "all" dflags || List.mem "extract" dflags ;
+   fec :=        List.mem "all" dflags || List.mem "fec" dflags ;
+   invgencand := List.mem "all" dflags || List.mem "invgencand" dflags ;
+   kind2 :=      List.mem "all" dflags || List.mem "kind2" dflags ;
+   ltree :=      List.mem "all" dflags || List.mem "ltree" dflags ;
+   messaging :=  List.mem "all" dflags || List.mem "messaging" dflags ;
+   parse :=      List.mem "all" dflags || List.mem "parse" dflags ;
+   qe :=         List.mem "all" dflags || List.mem "qe" dflags ;
+   qedetailed := List.mem "all" dflags || List.mem "qedetailed" dflags ;
+   simplify :=   List.mem "all" dflags || List.mem "simplify" dflags ;
+   smt :=        List.mem "all" dflags || List.mem "smt" dflags ;
+   smtexpr :=    List.mem "all" dflags || List.mem "smtexpr" dflags ;
+   transsys :=   List.mem "all" dflags || List.mem "transsys" dflags ;
+   c2i :=        List.mem "all" dflags || List.mem "c2i" dflags ;
+   ic3 :=        List.mem "all" dflags || List.mem "ic3" dflags ;
+   compress :=   List.mem "all" dflags || List.mem "compress" dflags ;
+   native :=     List.mem "all" dflags || List.mem "native" dflags ;
+   realiz :=     List.mem "all" dflags || List.mem "realiz" dflags ;
+   assump :=     List.mem "all" dflags || List.mem "assump" dflags
+
 
 let enabled_time = Unix.gettimeofday ()
+
 let ppf = ref Format.std_formatter
+
 let set_formatter f = ppf := f
+
 
 (* Types of debug functions *)
 type 'a t = ('a, Format.formatter, unit) format -> 'a
 
+
 (* Output a message for an debug section *)
-let printf cond section fmt =
+let printf cond section fmt = 
   let fprintf = if cond then Format.fprintf else Format.ifprintf in
   fprintf !ppf
-    ("@[<hv %i>@{<b>[@}@{<cyan_b>%s@}, @{<cyan>%.3f@}@{<b>]@}@ @[<hv>" ^^ fmt
-   ^^ "@]@]@.")
-    (String.length section + 3)
+    ("@[<hv %i>@{<b>[@}@{<cyan_b>%s@}, @{<cyan>%.3f@}@{<b>]@}@ @[<hv>" ^^fmt^^ "@]@]@.")
+    ((String.length section) + 3)
     section
     (Unix.gettimeofday () -. enabled_time)
+
 
 (* Instantiated debug functions *)
 let certif fmt = printf !certif "certif" fmt
@@ -101,6 +108,7 @@ let native fmt = printf !native "native" fmt
 let realiz fmt = printf !realiz "realiz" fmt
 let assump fmt = printf !assump "assump" fmt
 
+        
 (* 
    Local Variables:
    compile-command: "make -C .. -k"

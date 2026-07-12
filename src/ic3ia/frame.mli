@@ -16,10 +16,16 @@
 
 *)
 
-type t = Ft of Term.t | Fi of Cube.CubeSet.t
+type t =
+  | Ft of Term.t
+  | Fi of Cube.CubeSet.t
 
 val empty : t
+
 val is_empty : t -> bool
+
 val mk_frame : Term.t -> t
+
 val cubes : t -> Cube.CubeSet.t
+
 val to_term : t -> Term.t

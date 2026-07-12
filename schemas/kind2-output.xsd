@@ -94,6 +94,7 @@
       <xs:enumeration value="input"/>
       <xs:enumeration value="output"/>
       <xs:enumeration value="local"/>
+      <xs:enumeration value="ghost"/>
     </xs:restriction>
   </xs:simpleType>
 
@@ -249,12 +250,11 @@
     <xs:attribute name="name" type="xs:string" use="required"/>
   </xs:complexType>
 
-  <xs:complexType name="ActiveModeType">
+  <xs:complexType name="ContractTraceType"> 
     <xs:sequence>
-      <xs:element name="Modes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element name="Contract" type="ContractModesType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="Stream" type="StreamType" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
-    <xs:attribute name="instant" type="NonNegativeInteger" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
   </xs:complexType>
 
   <xs:simpleType name="GenericValue">
@@ -312,27 +312,13 @@
     <xs:attribute name="class" type="StreamClass" use="required"/>
   </xs:complexType>
 
-  <xs:complexType name="AutomatonTraceInfoType">
-    <xs:sequence>
-      <xs:element name="Stream" type="StreamType" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element name="Node" type="ComponentTraceInfoType" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element name="Automaton" type="AutomatonTraceInfoType" minOccurs="0" maxOccurs="unbounded"/>
-    </xs:sequence>
-    <xs:attribute name="name" type="xs:string" use="required"/>
-    <xs:attribute name="file" type="xs:string"/>
-    <xs:attribute name="line" type="NonNegativeInteger"/>
-    <xs:attribute name="column" type="NonNegativeInteger"/>
-  </xs:complexType>
-
   <xs:complexType name="ComponentTraceInfoType">
     <xs:sequence>
-      <xs:element name="ActiveModes" type="ActiveModeType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="Contract" type="ContractTraceType" minOccurs="0" maxOccurs="4"/>
       <xs:element name="Stream" type="StreamType" minOccurs="0" maxOccurs="unbounded"/>
       <xs:choice minOccurs="0" maxOccurs="unbounded">
         <xs:element name="Node" type="ComponentTraceInfoType"/>
         <xs:element name="Function" type="ComponentTraceInfoType"/>
-        <xs:element name="State" type="ComponentTraceInfoType"/>
-        <xs:element name="Automaton" type="AutomatonTraceInfoType" />
       </xs:choice>
     </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="required"/>
@@ -345,7 +331,6 @@
     <xs:choice minOccurs="1" maxOccurs="unbounded">
       <xs:element name="Node" type="ComponentTraceInfoType"/>
       <xs:element name="Function" type="ComponentTraceInfoType"/>
-      <xs:element name="State" type="ComponentTraceInfoType"/>
     </xs:choice>
   </xs:complexType>
 
@@ -402,6 +387,9 @@
     <xs:attribute name="size" type="NonNegativeInteger" use="required"/>
     <xs:attribute name="property" type="xs:string" />
     <xs:attribute name="approximate" type="xs:boolean" use="required"/>
+    <xs:attribute name="file" type="xs:string"/>
+    <xs:attribute name="line" type="NonNegativeInteger"/>
+    <xs:attribute name="column" type="NonNegativeInteger"/>
   </xs:complexType>
 
   <xs:complexType name="NoModelElementSetType">

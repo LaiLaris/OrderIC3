@@ -16,22 +16,20 @@
 
 *)
 
-(** Checking of realizability of contracts and other sanity checks over
-    contracts
+(** Checking of realizability of contracts and other sanity checks over contracts
 
-    @author Daniel Larraz *)
+    @author Daniel Larraz
+*)
 
 open Realizability
 
-val check_contract_realizability :
-  'a InputSystem.t -> TransSys.t -> realizability_result
-(** Checks whether there exists an implementation that satisfies a given
-    specification
+(** Checks whether there exists an implementation that satisfies a given specification
 
-    [check_contract_realizability i s] checks whether the contract represented
-    by transition system [s] is realizable or not. It assumes [s] was generated
-    from the contract of the subsystem in [i] which has the same scope than [s].
+    [check_contract_realizability i s] checks whether the contract represented by
+    transition system [s] is realizable or not. It assumes [s] was generated from
+    the contract of the subsystem in [i] which has the same scope than [s].
 *)
+val check_contract_realizability: 'a InputSystem.t -> TransSys.t -> realizability_result
 
 val compute_unviable_trace_and_core :
   'a analyze_func ->
@@ -39,7 +37,7 @@ val compute_unviable_trace_and_core :
   Analysis.param ->
   TransSys.t ->
   unrealizable_result ->
-  (StateVar.t * Model.value list) list * ModelElement.loc_core
+  ((StateVar.t * Model.value list) list * ModelElement.loc_core)
 
 val pp_print_realizability_result_pt :
   'a analyze_func ->
@@ -69,21 +67,33 @@ val pp_print_realizability_result_xml :
   unit
 
 (** Result of a satisfiability check *)
-type satisfiability_result = Satisfiable | Unsatisfiable | Unknown
+type satisfiability_result =
+  | Satisfiable
+  | Unsatisfiable
+  | Unknown
 
 val satisfiability_result_to_string : satisfiability_result -> string
 
-val check_contract_satisfiability : TransSys.t -> satisfiability_result
 (** Checks whether a given specification is satisfiable
 
-    [check_contract_satisfiability i s] checks whether the contract represented
-    by transition system [s] is satisfiable or not. *)
+    [check_contract_satisfiability i s] checks whether the contract represented by
+    transition system [s] is satisfiable or not.
+*)
+val check_contract_satisfiability: TransSys.t -> satisfiability_result
 
 val pp_print_satisfiability_result_pt :
-  Analysis.param -> Format.formatter -> satisfiability_result -> unit
+ 'a InputSystem.t ->
+  Analysis.param ->
+  Format.formatter ->
+  satisfiability_result ->
+  unit
 
 val pp_print_satisfiability_result_json :
-  Format.formatter -> satisfiability_result -> unit
+  Format.formatter ->
+  satisfiability_result ->
+  unit
 
 val pp_print_satisfiability_result_xml :
-  Format.formatter -> satisfiability_result -> unit
+  Format.formatter ->
+  satisfiability_result ->
+  unit

@@ -16,21 +16,20 @@
 
 *)
 
+
 (** Handles models for the C2I algorithm. *)
 
-val update_colors :
-  int ->
-  Model.t list ->
-  (Model.t * Model.t) list ->
-  Model.t list ->
-  Model.t list ->
-  Model.t list ->
-  Model.t list ->
-  Model.t list * (Model.t * Model.t) list * Model.t list
-(** Updates the white, grey and black model lists.
 
+(** Updates the white, grey and black model lists.
+    
     In theory thanks to the cost function the intersection between the new sets
     and the old ones is empty. *)
+val update_colors : int ->
+  Model.t list -> (Model.t * Model.t) list -> Model.t list ->
+  Model.t list -> Model.t list -> Model.t list -> (
+    Model.t list * (Model.t * Model.t) list * Model.t list
+  )
+
 
 (* 
    Local Variables:

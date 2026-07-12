@@ -21,46 +21,47 @@
     @author Christoph Sticksel
     @author Adrien Champion
     @author Alain Mebsout
-    @author Daniel Larraz *)
+    @author Daniel Larraz
+*)
 
 exception QuantifiedTermFound of Term.t
 
-(** The functions in this module are stafeful. They reuse the same solver
-    instance and initial declarations unless [on_exit] is called in between *)
+(** The functions in this module are stafeful. They reuse
+    the same solver instance and initial declarations unless
+    [on_exit] is called in between
+*)
 
-val set_ubound : Numeral.t -> unit
 (** Set the upper bound used in the initial declaration of the variables *)
+val set_ubound : Numeral.t -> unit
 
-val get_ubound : unit -> Numeral.t
 (** Get the upper bound used in the initial declaration of the variables *)
+val get_ubound : unit -> Numeral.t
 
-val generalize :
-  TransSys.t ->
-  (UfSymbol.t * (Var.t list * Term.t)) list ->
-  Model.t ->
-  Var.t list ->
-  Term.t ->
-  Term.t list
-(** [generalize f m] evaluates the term [f] with the model [m] and returns a
-    term [g] that is implied by the model [m] and that implies the term f with
-    the post-state variables existentially quantified. The returned term [g]
-    contains only pre-state variables.
+(** [generalize f m] evaluates the term [f] with the model [m] and
+    returns a term [g] that is implied by the model [m] and that
+    implies the term f with the post-state variables existentially
+    quantified. The returned term [g] contains only pre-state
+    variables.
 
     [M |= g]
 
-    [g |= exists y f[y]]
+    [g |= exists y f\[y\]]
 
-    with [y] being the vector of post-state variables in f. *)
+    with [y] being the vector of post-state variables in f.
+    
+*)
+val generalize : TransSys.t -> (UfSymbol.t * (Var.t list * Term.t)) list -> Model.t -> Var.t list -> Term.t -> Term.t list
 
 type response = Valid of Term.t | Invalid of Term.t | Unknown
 
-val ae_val : TransSys.t -> Term.t -> Var.t list -> Term.t -> response
 (** [ae_val s p v c] returns [Valid t] if (\forall vars(p). p => \exists v. c)
     is valid, otherwise it returns [Invalid t]. In both cases, [t] is such that
-    (\forall vars(p). p => t <=> \exists v. c) *)
+    (\forall vars(p). p => t <=> \exists v. c)
+*)
+val ae_val : TransSys.t -> Term.t -> Var.t list -> Term.t -> response
 
-val on_exit : unit -> unit
 (** Cleanup before exit *)
+val on_exit : unit -> unit
 
 (* 
    Local Variables:

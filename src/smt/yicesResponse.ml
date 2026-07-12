@@ -25,10 +25,14 @@ type yices_resp_p =
   | YError
   | YRespSat of (HStringSExpr.t * HStringSExpr.t) list
   | YRespUnknown of (HStringSExpr.t * HStringSExpr.t) list
-  | YRespUnsat of yices_id list
+  | YRespUnsat of (yices_id list)
 
 let success = "SUCCESS"
+
 let custom = "CUSTOM"
+
 let yices_id_of_int id = id
-let int_of_yices_id id = id
+
+let int_of_yices_id id = id 
+
 let pp_print_yices_id = Format.pp_print_int

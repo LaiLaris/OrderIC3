@@ -18,7 +18,8 @@
 
 (** Arbitrary precision hexa-decimals
 
-    @author Loïc Correnson *)
+    @author Loïc Correnson
+*)
 
 val to_numeral : string -> Big_int.big_int option
 val to_decimal : string -> Num.num option

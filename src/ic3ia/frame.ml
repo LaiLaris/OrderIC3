@@ -18,16 +18,26 @@
 
 module CS = Cube.CubeSet
 
-type t = Ft of Term.t | Fi of CS.t
+type t =
+  | Ft of Term.t
+  | Fi of CS.t
 
 let empty = Fi CS.empty
-let is_empty = function Fi cubes -> CS.is_empty cubes | _ -> false
+
+let is_empty = function
+  | Fi cubes -> CS.is_empty cubes
+  | _ -> false
+
 let mk_frame t = Ft t
-let cubes = function Fi cubes -> cubes | _ -> assert false
+
+let cubes = function
+  | Fi cubes -> cubes
+  | _ -> assert false
 
 let to_term = function
   | Ft t -> t
-  | Fi cubes ->
-      CS.elements cubes
-      |> List.map (fun c -> Cube.to_term c |> Term.mk_not)
-      |> Term.mk_and
+  | Fi cubes -> (
+    CS.elements cubes
+    |> List.map (fun c -> Cube.to_term c |> Term.mk_not)
+    |> Term.mk_and
+  )

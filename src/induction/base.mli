@@ -16,11 +16,11 @@
 
 *)
 
-val on_exit : TransSys.t option -> unit
 (** Clean up before exit *)
+val on_exit: TransSys.t option -> unit
 
-val main : bool -> 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
 (** Runs the base instance. *)
+val main: bool -> 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
 
 (* 
    Local Variables:
@@ -29,3 +29,4 @@ val main : bool -> 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
    indent-tabs-mode: nil
    End: 
 *)
+

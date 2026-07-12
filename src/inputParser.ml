@@ -24,49 +24,66 @@ exception Type_error of Type.t * string
 
 let decimal_of_string s =
   match String.split_on_char '/' s with
-  | [ s ] -> Term.mk_dec (Decimal.of_string s)
-  | [ s1; s2 ] -> Decimal.(div (of_string s1) (of_string s2)) |> Term.mk_dec
+  | [s] -> Term.mk_dec (Decimal.of_string s)
+  | [s1; s2] ->
+    Decimal.(div (of_string s1) (of_string s2)) |> Term.mk_dec
   | _ -> raise (Type_error (Type.mk_real (), s))
 
 (* Parse one value *)
 let value_of_str ty s =
-  try
+  try (
     match Type.node_of_type ty with
     | Type.Bool -> (
-        match s with
-        | "true" -> Term.t_true
-        | "false" -> Term.t_false
-        | _ -> raise (Type_error (ty, s)))
-    | Type.Int -> Term.mk_num (Numeral.of_string s)
+      match s with
+      | "true" -> Term.t_true
+      | "false" -> Term.t_false
+      | _ -> raise (Type_error (ty, s))
+    )
+    | Type.Int ->
+      Term.mk_num (Numeral.of_string s)
     | Type.Real -> decimal_of_string s
-    | Type.IntRange (Some l, Some u) ->
-        let n = Numeral.of_string s in
-        if Numeral.leq l n && Numeral.leq n u then Term.mk_num n
-        else raise (Type_error (ty, s))
-    | Type.IntRange (Some l, None) ->
-        let n = Numeral.of_string s in
-        if Numeral.leq l n then Term.mk_num n else raise (Type_error (ty, s))
-    | Type.IntRange (None, Some u) ->
-        let n = Numeral.of_string s in
-        if Numeral.leq n u then Term.mk_num n else raise (Type_error (ty, s))
+    | Type.IntRange (Some l, Some u) -> (
+      let n = Numeral.of_string s in
+      if (Numeral.leq l n && Numeral.leq n u) then Term.mk_num n
+      else raise (Type_error (ty, s))
+    )
+    | Type.IntRange (Some l, None) -> (
+      let n = Numeral.of_string s in
+      if (Numeral.leq l n) then Term.mk_num n
+      else raise (Type_error (ty, s))
+    )
+    | Type.IntRange (None, Some u) -> (
+      let n = Numeral.of_string s in
+      if (Numeral.leq n u) then Term.mk_num n
+      else raise (Type_error (ty, s))
+    )
     | Type.IntRange (None, None) -> raise (Type_error (ty, s))
     | Type.Enum (_, _) ->
-        if Type.enum_of_constr s == ty then Term.mk_constr s
-        else raise (Type_error (ty, s))
+      if Type.enum_of_constr s == ty then Term.mk_constr s
+      else raise (Type_error (ty, s))
     | _ -> raise (Type_error (ty, s))
-  with Invalid_argument _ | Not_found -> raise (Type_error (ty, s))
+  )
+  with Invalid_argument _ | Not_found ->
+    raise (Type_error (ty, s))
+
 
 (* Parse list of values *)
-let values_of_strs ty l = List.rev_map (value_of_str ty) l |> List.rev
+let values_of_strs ty l =
+  List.rev_map (value_of_str ty) l |> List.rev 
+
+
 let separator = Str.regexp " *, *"
 
 let parse_identifier scope name =
   match String.split_on_char '.' name with
   | [] -> failwith "split_on_char returned an empty list"
-  | _ :: fields ->
-      let index = fields |> List.map (fun f -> LustreIndex.RecordIndex f) in
-      let index_scope = LustreIndex.mk_scope_for_index index in
-      StateVar.state_var_of_string (name, scope @ index_scope)
+  | _ :: fields -> (
+    let index =
+      fields |> List.map (fun f -> LustreIndex.RecordIndex f)
+    in
+    let index_scope = LustreIndex.mk_scope_for_index index in
+    StateVar.state_var_of_string (name, scope @ index_scope)
+  )
 
 (* Parse a line *)
 let parse_stream scope chan =
@@ -74,18 +91,18 @@ let parse_stream scope chan =
   let l = Str.split separator line in
   match l with
   | [] -> raise Not_found
-  | name :: stream -> (
-      try
-        let sv = parse_identifier scope name in
-        if StateVar.is_input sv then
-          (* Return state variable and its input *)
-          (sv, values_of_strs (StateVar.type_of_state_var sv) stream)
-        else raise Not_found
-      with Not_found ->
-        (* Fail *)
-        KEvent.log L_fatal "State variable %s is not an input state variable"
-          name;
-        raise Parsing.Parse_error)
+  | name :: stream ->
+    try
+      let sv = parse_identifier scope name in
+      if StateVar.is_input sv then 
+        (* Return state variable and its input *)
+        (sv, values_of_strs (StateVar.type_of_state_var sv) stream)
+      else raise Not_found
+    with Not_found ->
+      (* Fail *)
+      KEvent.log L_fatal "State variable %s is not an input state variable" name;
+      raise (Parsing.Parse_error)
+
 
 let rec parse =
   let line_nb = ref 0 in
@@ -95,20 +112,20 @@ let rec parse =
       parse scope chan (parse_stream scope chan :: acc)
     with
     | Not_found -> parse scope chan acc
-    | End_of_file ->
-        close_in chan;
-        acc
+    | End_of_file -> close_in chan; acc
     | Type_error (ty, s) ->
-        Log.log L_fatal
-          "Typing error in input values file at line %d: expected value of \
-           type %a, got value %s"
-          !line_nb Type.pp_print_type ty s;
-        raise Parsing.Parse_error
+      Log.log L_fatal
+        "Typing error in input values file at line %d: \
+         expected value of type %a, got value %s"
+        !line_nb Type.pp_print_type ty s;
+      raise (Parsing.Parse_error)
+
 
 (* Read in a csv file *)
-let read_csv_file top_scope_index filename =
+let read_csv_file top_scope_index filename = 
   let chan = open_in filename in
   parse top_scope_index chan []
+
 
 (* ====================== JSON ======================== *)
 
@@ -116,16 +133,15 @@ open Yojson.Safe.Util
 
 type assignment_lhs = StateVar.t * int list
 
-module LHS = struct
+module LHS =
+struct
   type t = assignment_lhs
-
-  let compare (a, b) (a', b') =
+  let compare (a,b) (a',b') =
     match StateVar.compare_state_vars a a' with
-    | 0 -> Lib.compare_lists Int.compare b b'
+    | 0 -> List.compare Int.compare b b'
     | i -> i
 end
-
-module LHSMap = Map.Make (LHS)
+module LHSMap = Map.Make(LHS)
 
 exception Missing_definition of int * assignment_lhs
 
@@ -135,16 +151,16 @@ exception Missing_definition of int * assignment_lhs
 let group_by_var lst =
   let steps_passed = ref 0 in
   List.fold_right
-    (fun lst acc ->
-      List.fold_left
-        (fun acc (var, term) ->
+    (fun lst acc -> 
+      List.fold_left (fun acc (var, term) ->
           let old = try LHSMap.find var acc with Not_found -> [] in
           let n = List.length old in
-          if n < !steps_passed then raise (Missing_definition (n, var));
-          steps_passed := n;
-          LHSMap.add var (term :: old) acc)
-        acc lst)
-    lst LHSMap.empty
+          if n < !steps_passed then raise (Missing_definition(n, var)) ;
+          steps_passed := n ;
+          LHSMap.add var (term::old) acc
+        )
+        acc lst
+    ) lst LHSMap.empty
   |> LHSMap.bindings
 
 exception Not_an_input of string
@@ -152,133 +168,161 @@ exception Type_mismatch of string
 
 (* Convert a record of the format { "0":elt0 , "1":elt1 ... } into a tuple *)
 let record_to_tuple assoc =
-  try
+  try (
     assoc
     |> List.map (fun (str, elt) -> (int_of_string str, elt))
-    |> List.sort (fun (i, _) (j, _) -> compare i j)
+    |> List.sort (fun (i,_) (j,_) -> compare i j)
     |> List.map snd
-    |> fun x -> Some x
+    |> (fun x -> Some x)
+  )
   with Failure _ -> None
 
 (* Take as input a JSON element representing the value of a variable (at a given step)
    and return the associated assignments.
    It can return multiple variable assignements if the value is an array/record/tuple. *)
-let rec read_val scope name indexes arr_indexes json =
+let rec read_val ?(only_inputs = true) scope name indexes arr_indexes json  =
   match json with
-  | `Assoc lst -> (
-      (* Can represent a record or a tuple *)
-      try
-        lst
-        |> List.map (fun (str, json) ->
-               read_val scope name
-                 (LustreIndex.RecordIndex str :: indexes)
-                 arr_indexes json)
-        |> List.flatten
-      with Not_an_input str -> (
-        (* If it is not a record, it must be a tuple *)
-        match record_to_tuple lst with
-        | None -> raise (Not_an_input str)
-        | Some lst -> read_val scope name indexes arr_indexes (`Tuple lst)))
+  | `Assoc lst ->
+    (* Can represent a record or a tuple *)
+    begin try (
+      lst |>
+      List.map (
+        fun (str, json) ->
+        read_val scope name ((LustreIndex.RecordIndex str)::indexes) arr_indexes json
+      )
+      |> List.flatten
+    )
+    with Not_an_input str -> (* If it is not a record, it must be a tuple *)
+      begin match record_to_tuple lst with
+      | None -> raise (Not_an_input str)
+      | Some lst -> lst |> List.mapi (
+            fun i json ->
+            read_val scope name ((LustreIndex.TupleIndex i)::indexes) arr_indexes json
+          )
+          |> List.flatten 
+      end
+    end
   | `List lst ->
-      lst
-      |> List.mapi (fun i json ->
-             let new_index =
-               LustreIndex.ArrayVarIndex (LustreExpr.mk_int_expr Numeral.one)
-             in
-             read_val scope name (new_index :: indexes) (i :: arr_indexes) json)
-      |> List.flatten
-  | `Tuple lst ->
-      lst
-      |> List.mapi (fun i json ->
-             read_val scope name
-               (LustreIndex.TupleIndex i :: indexes)
-               arr_indexes json)
-      |> List.flatten
-  | json -> (
-      let indexes = List.rev indexes in
-      let arr_indexes = List.rev arr_indexes in
-      let full_scope = scope @ LustreIndex.mk_scope_for_index indexes in
-      (* See LustreContext.mk_state_var for more information
-       about how variable names are choosen *)
-      let full_name =
-        indexes
-        |> List.filter (function
-             | LustreIndex.ArrayVarIndex _ | LustreIndex.ArrayIntIndex _ ->
-                 false
-             | LustreIndex.RecordIndex _ | LustreIndex.TupleIndex _
-             | LustreIndex.ListIndex _ | LustreIndex.AbstractTypeIndex _ ->
-                 true)
-        |> Format.asprintf "%s%a" name (LustreIndex.pp_print_index true)
-      in
+    (* Can represent an array or a tuple *)
+    begin try (
+      lst |>
+      List.mapi (
+      fun i json ->
+      let new_index = LustreIndex.ArrayVarIndex (LustreExpr.mk_int_expr Numeral.one) in
+      read_val scope name (new_index::indexes) (i::arr_indexes) json
+    )
+    |> List.flatten
+    )
+    with Not_an_input _ -> (* If it is not an array, it must be a tuple *)
+      lst |> List.mapi (
+            fun i json ->
+            read_val scope name ((LustreIndex.TupleIndex i)::indexes) arr_indexes  json
+          )
+          |> List.flatten 
+      end
+    
+  | json ->
+    let indexes = List.rev indexes in
+    let arr_indexes = List.rev arr_indexes in
+    let full_scope = scope @ (LustreIndex.mk_scope_for_index indexes) in
+    let full_name =
+      indexes
+      |>
+      List.filter
+        (function 
+          | LustreIndex.ArrayVarIndex _ 
+          | LustreIndex.ArrayIntIndex _
+          | LustreIndex.SetMapIndex _ -> false
+          | LustreIndex.RecordIndex _
+          | LustreIndex.TupleIndex _
+          | LustreIndex.ListIndex _
+          | LustreIndex.AbstractTypeIndex _ -> true)
+      |>
+      Format.asprintf "%s%a" name (LustreIndex.pp_print_index true) 
+    in
 
-      let sv =
-        try StateVar.state_var_of_string (full_name, full_scope)
-        with Not_found -> raise (Not_an_input full_name)
-      in
-      if not (StateVar.is_input sv) then raise (Not_an_input full_name);
-      let typ = StateVar.type_of_state_var sv in
-      let sv = (sv, arr_indexes) in
+    let sv =
+      try (StateVar.state_var_of_string (full_name, full_scope))
+      with Not_found -> raise (Not_an_input full_name) in
+    if (not (StateVar.is_input sv)) && only_inputs then raise (Not_an_input full_name) ;
+    let typ = StateVar.type_of_state_var sv in
+    let sv = (sv, arr_indexes) in
 
-      (* Is a numeral in the range of a type? *)
-      let is_in_range n t =
-        match Type.node_of_type t with
-        | Int -> true
-        | IntRange (Some l, Some u) -> Numeral.leq l n && Numeral.leq n u
-        | IntRange (Some l, None) -> Numeral.leq l n
-        | IntRange (None, Some u) -> Numeral.leq n u
-        | _ -> false
-      in
-      (* Is an integer in the range of a type? *)
-      let is_in_range_i i = is_in_range (Numeral.of_int i) in
+    (* Is a numeral in the range of a type? *)
+    let is_in_range n t =
+      match Type.node_of_type t with
+      | Int -> true
+      | IntRange (Some l, Some u) ->
+        Numeral.leq l n && Numeral.leq n u
+      | IntRange (Some l, None) ->
+        Numeral.leq l n
+      | IntRange (None, Some u) ->
+        Numeral.leq n u
+      | _ -> false
+    in
+    (* Is an integer in the range of a type? *)
+    let is_in_range_i i = is_in_range (Numeral.of_int i) in
 
-      (* Extract the type of an element of an array (and check the ranges) *)
-      let rec extract_element_type arr_indexes typ =
-        match (arr_indexes, Type.node_of_type typ) with
-        | [], _ -> typ
-        | i :: arr_indexes, Array (elt, t) when is_in_range_i i t ->
-            extract_element_type arr_indexes elt
-        | _, _ -> raise (Type_mismatch full_name)
-      in
-      let typ = extract_element_type arr_indexes typ in
+    (* Extract the type of an element of an array (and check the ranges) *)
+    let rec extract_element_type arr_indexes typ =
+      match arr_indexes, Type.node_of_type typ with
+      | [], _ -> typ
+      | i::arr_indexes, Array (elt, t) when is_in_range_i i t  ->
+        extract_element_type arr_indexes elt
+      | _, _ -> raise (Type_mismatch full_name)
+    in
+    let typ = extract_element_type arr_indexes typ in
 
-      try
-        let open Type in
-        match (Type.node_of_type typ, json) with
-        | Bool, `Bool b -> [ (sv, Term.mk_bool b) ]
-        | Enum _, `String str when equal_types (enum_of_constr str) typ ->
-            [ (sv, Term.mk_constr str) ]
-        | Real, `Float f ->
-            [ (sv, string_of_float f |> Decimal.of_string |> Term.mk_dec) ]
-        | Real, `Int i -> [ (sv, Decimal.of_int i |> Term.mk_dec) ]
-        | Real, `String str -> [ (sv, decimal_of_string str) ]
-        | Real, `Intlit str -> [ (sv, Decimal.of_string str |> Term.mk_dec) ]
-        | _, `Int i when is_in_range_i i typ -> [ (sv, Term.mk_num_of_int i) ]
-        | (_, `Intlit str | _, `String str)
-          when is_in_range (Numeral.of_string str) typ ->
-            [ (sv, Numeral.of_string str |> Term.mk_num) ]
-        | _ -> raise (Type_mismatch full_name)
-      with Invalid_argument _ -> raise (Type_mismatch full_name))
+    try (
+      let open Type in
+      match Type.node_of_type typ, json with
+
+      | Bool, `Bool b -> [sv, Term.mk_bool b]
+
+      | Enum _, `String str when equal_types (enum_of_constr str) typ ->
+        [sv, Term.mk_constr str]
+
+      | Real, `Float f -> [sv, string_of_float f |> Decimal.of_string |> Term.mk_dec]
+      | Real, `Int i -> [sv, Decimal.of_int i |> Term.mk_dec]
+      | Real, `String str -> [sv, decimal_of_string str]
+      | Real, `Intlit str -> [sv, Decimal.of_string str |> Term.mk_dec]
+      | _, `Int i when is_in_range_i i typ ->
+        [sv, Term.mk_num_of_int i]
+      | _, `Intlit str | _, `String str when is_in_range (Numeral.of_string str) typ ->
+        [sv, Numeral.of_string str |> Term.mk_num]
+
+      | _ -> raise (Type_mismatch full_name)
+    )
+    with Invalid_argument _ -> raise (Type_mismatch full_name)
 
 (* Parse the assignments of a JSON object representing a step *)
-let read_vars scope json =
-  to_assoc json |> List.map (fun (name, json) -> read_val scope name [] [] json)
+let read_vars ?(only_inputs=true) scope json =
+  to_assoc json |> List.map (fun (name, json) -> read_val ~only_inputs:only_inputs scope name [] [] json)
 
 (* Parse a JSON input file *)
-let read_json_file top_scope_index filename =
-  Yojson.Safe.from_file filename
-  |> to_list
-  |> List.map (read_vars top_scope_index)
-  |> List.flatten |> group_by_var
+let read_json_file ?(only_inputs=true) top_scope_index filename =
+  let json =
+    try Yojson.Safe.from_file filename with
+    | Yojson.Json_error msg ->
+        failwith
+          (Format.asprintf
+             "Error reading %s: the file is not valid JSON.\n\n%s"
+             filename msg)
+  in
+  json |> to_list
+  |> List.map (read_vars ~only_inputs:only_inputs top_scope_index) |> List.flatten |> group_by_var
+
 
 (* ====================== GENERAL ======================== *)
 
 (* Parse a JSON or CSV input file. The format is determined from the extension. *)
-let read_file top_scope_index filename =
-  if Filename.check_suffix filename ".json" then
-    read_json_file top_scope_index filename
+let read_file ?(only_inputs=true) top_scope_index filename =
+  if Filename.check_suffix filename ".json"
+  then
+    read_json_file ~only_inputs:only_inputs top_scope_index filename
   else
     read_csv_file top_scope_index filename
-    |> List.map (fun (sv, vs) -> ((sv, []), vs))
+    |> List.map (fun (sv,vs) -> ((sv,[]),vs))
 
 (* 
    Local Variables:

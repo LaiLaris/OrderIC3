@@ -17,18 +17,23 @@
 *)
 
 open Lib
+
 module VS = Var.VarSet
 
 exception QuantifiedTermFound of Term.t
 
 (* The current solver instance in use *)
-let solver_qe = ref None
+let solver_qe = ref None 
 
 (* The current solver instance in use *)
 let solver_check = ref None
+
 let initial_ubound = Numeral.zero
+
 let ubound = ref initial_ubound
+
 let get_ubound () = !ubound
+
 let set_ubound bound = ubound := bound
 
 let get_qe_solver () =
@@ -38,31 +43,37 @@ let get_qe_solver () =
   | _ -> failwith "No QE solver found"
 
 (* Get the current solver instance or create a new instance *)
-let get_solver_instance trans_sys =
+let get_solver_instance trans_sys = 
+
   (* Solver instance created before? *)
-  match !solver_qe with
-  (* Need to create a new instance *)
-  | None ->
+  match !solver_qe with 
+
+    (* Need to create a new instance *)
+    | None -> 
+ 
       (* Create solver instance *)
-      let solver =
-        SMTSolver.create_instance ~produce_models:true
+      let solver = SMTSolver.create_instance
+          ~produce_models:true
           (TermLib.add_quantifiers (TransSys.get_logic trans_sys))
           (get_qe_solver ())
       in
 
-      SMTSolver.trace_comment solver
-        (Format.sprintf "Declaring state variables: %s@."
-           (string_of_t
-              (pp_print_list Var.pp_print_var ",@ ")
+      SMTSolver.trace_comment 
+        solver
+        (Format.sprintf 
+           "Declaring state variables: %s@."
+           (string_of_t 
+              (pp_print_list Var.pp_print_var ",@ ") 
               (TransSys.vars_of_bounds trans_sys Numeral.zero !ubound)));
-
+      
       (* Defining uf's and declaring variables. *)
-      TransSys.define_and_declare_of_bounds trans_sys
+      TransSys.define_and_declare_of_bounds
+        trans_sys
         (SMTSolver.define_fun solver)
         (SMTSolver.declare_fun solver)
         (SMTSolver.declare_sort solver)
         Numeral.zero !ubound;
-
+      
       SMTSolver.trace_comment solver "Defining predicates";
 
       (*
@@ -71,11 +82,11 @@ let get_solver_instance trans_sys =
         trans_sys
         (SMTSolver.define_fun solver); 
       *)
-
+      
       (* Save instance *)
       solver_qe := Some solver;
 
-      (*
+(*
       (* Z3 needs this option, default is 5 and we get let definitions
          for deeper terms *)
       ignore
@@ -89,8 +100,11 @@ let get_solver_instance trans_sys =
 
       (* Return instance *)
       solver
-  (* Return existing instance *)
-  | Some s -> s
+
+    (* Return existing instance *)
+    | Some s -> s 
+  
+
 
 (*
 (* Get the current solver instance or create a new instance *)
@@ -139,31 +153,39 @@ let get_checking_solver_instance trans_sys =
 
     (* Return existing instance *)
     | Some s -> s 
-*)
+*)  
 
 (* Kill created solver instances and reset ubound *)
-let on_exit () =
-  ubound := initial_ubound;
+let on_exit () = 
+
+  ubound := initial_ubound ;
 
   (* Delete solver instance if created *)
-  (try
-     match !solver_qe with
-     | Some s ->
-         SMTSolver.delete_instance s;
+  (try 
+     match !solver_qe with 
+       | Some s -> 
+         SMTSolver.delete_instance s; 
          solver_qe := None
-     | None -> ()
-   with e ->
-     KEvent.log L_error "Error deleting solver_qe: %s" (Printexc.to_string e));
+       | None -> ()
+   with 
+     | e -> 
+       KEvent.log L_error 
+         "Error deleting solver_qe: %s" 
+         (Printexc.to_string e));
+
 
   (* Delete solver instance if created *)
-  try
-    match !solver_check with
-    | Some s ->
-        SMTSolver.delete_instance s;
-        solver_check := None
-    | None -> ()
-  with e ->
-    KEvent.log L_error "Error deleting solver_check: %s" (Printexc.to_string e)
+  (try 
+     match !solver_check with 
+       | Some s -> 
+         SMTSolver.delete_instance s; 
+         solver_check := None
+       | None -> ()
+   with 
+     | e -> 
+       KEvent.log L_error
+         "Error deleting solver_check: %s" 
+         (Printexc.to_string e))
 
 (*
 (* Create a formula from the assignments in a model *)
@@ -173,6 +195,7 @@ let formula_of_model model =
   Term.mk_and 
     (List.map (function (v, e) -> Term.mk_eq [Term.mk_var v; e]) model)
 *)
+
 
 (*
 let check_implication trans_sys prem_str conc_str prem conc = 
@@ -238,10 +261,11 @@ let check_generalize trans_sys model elim term term' =
 
 (* From a conjunction of Boolean state variables return a conjunction
    only containing the state variables not to be eliminated *)
-let qe_bool elim terms =
+let qe_bool elim terms = 
+
   let elim_as_term = List.map Term.mk_var elim in
 
-  List.filter
+  List.filter 
     (function t -> not (List.memq (Term.unnegate t) elim_as_term))
     terms
 
@@ -316,178 +340,223 @@ let qe_bool elim terms =
     
 *)
 
+
 (* Split a list of terms into a list of equational definitions of
    given variables and a list of the remaining terms *)
-let rec collect_eqs vars (eqs, terms) = function
+let rec collect_eqs vars (eqs, terms) = function 
+
   (* All elements processed *)
   | [] -> (eqs, terms)
+
   (* Head element of list *)
-  | term :: tl -> (
-      match Term.destruct term with
-      (* FIXME: Do this on both sides, and be careful to not produce cycles *)
+  | term :: tl -> match Term.destruct term with
 
-      (* Term is an equation with a variable in [vars] on left-hand side *)
-      | Term.T.App (s, [ v; e ])
-        when Symbol.equal_symbols s Symbol.s_eq
-             && Term.is_free_var v
-             && List.exists (Var.equal_vars (Term.free_var_of_term v)) vars -> (
-          (* Variable on left- or right-hand side *)
-          let v = Term.free_var_of_term v in
+    (* FIXME: Do this on both sides, and be careful to not produce cycles *)
 
-          try
-            (* Find previous equation for variable 
+    (* Term is an equation with a variable in [vars] on left-hand side *)
+    | Term.T.App (s, [v; e]) when
+        (Symbol.equal_symbols s Symbol.s_eq)
+        && (Term.is_free_var v)
+        && (List.exists (Var.equal_vars (Term.free_var_of_term v)) vars) -> 
+
+      (* Variable on left- or right-hand side *)
+      let v = Term.free_var_of_term v in
+
+      (try 
+
+         (* Find previous equation for variable 
 
             If there are two equations for one variable, v = e1 and 
             v = e2, rewrite v to e1 in v = e2 to e1 = e2 *)
-            let _, e' = List.find (fun (u, _) -> Var.equal_vars v u) eqs in
+         let _, e' = 
+           List.find
+             (fun (u, _) -> Var.equal_vars v u)
+             eqs
+         in
 
-            (* Rewrite second equation to e = e' *)
-            let term' = Term.mk_eq [ e; e' ] in
+         (* Rewrite second equation to e = e' *)
+         let term' = Term.mk_eq [e; e'] in
 
-            (* Add rewritten equation to list of equations *)
-            collect_eqs vars (eqs, term' :: terms) tl
-            (* No previous equation for variable *)
-          with Not_found ->
-            (* Left-hand side must not be equal to right-hand side *)
-            if Term.equal (Term.mk_var v) e then
-              (* Remove reflexive equation *)
-              collect_eqs vars (eqs, terms) tl
-            else
-              (* Add equation as rewrite rule *)
-              collect_eqs vars ((v, e) :: eqs, terms) tl)
-      | _ ->
-          (* Add term to constraints *)
-          collect_eqs vars (eqs, term :: terms) tl)
+         (* Add rewritten equation to list of equations *)
+         collect_eqs vars (eqs, (term' :: terms)) tl
+
+       (* No previous equation for variable *)
+       with Not_found ->
+
+         (* Left-hand side must not be equal to right-hand side *)
+         if Term.equal (Term.mk_var v) e then
+
+           (* Remove reflexive equation *)
+           collect_eqs vars (eqs, terms) tl
+
+         else
+
+           (* Add equation as rewrite rule *)
+           collect_eqs vars ((v, e) :: eqs, terms) tl)
+
+    | _ -> 
+
+      (* Add term to constraints *)
+      collect_eqs vars (eqs, term :: terms) tl
+
 
 (* 
 
    TODO: Check for cyclic definitions. Lustre input should be safe. *)
-let rec order_defs accum = function
-  | [] -> accum
-  | (v, e) :: tl ->
-      if
-        (* Definition is already in the accumulator? *)
-        List.exists (fun (u, _) -> Var.equal_vars u v) accum
-      then
-        (* Drop duplicate definition and continue *)
-        (* order_defs accum tl *)
-        assert false
-      else
-        (* Get all variables of term whose definitions are on the stack
-         below *)
-        let dep =
-          VS.filter
-            (fun v -> List.exists (fun (u, _) -> Var.equal_vars v u) tl)
-            (Term.vars_of_term e)
-        in
+let rec order_defs accum = function 
 
-        (* No definitions is on the stack below *)
-        if VS.is_empty dep then
-          (* Add definition to accumulator and continue *)
-          order_defs ((v, e) :: accum) tl
-        else
+  | [] -> accum
+
+  | (v, e) :: tl -> 
+
+    if 
+
+      (* Definition is already in the accumulator? *)
+      List.exists (fun (u, _) -> Var.equal_vars u v) accum
+
+    then
+
+      (* Drop duplicate definition and continue *)
+      (* order_defs accum tl *)
+      assert false 
+
+    else
+      
+      (* Get all variables of term whose definitions are on the stack
+         below *)
+      let dep =
+        VS.filter
+          (fun v -> 
+             List.exists (fun (u, _) -> Var.equal_vars v u) tl)
+          (Term.vars_of_term e)
+      in
+
+      (* No definitions is on the stack below *)
+      if VS.is_empty dep then 
+
+        (* Add definition to accumulator and continue *)
+        order_defs ((v, e) :: accum) tl
+            
+      else
+          
           (* Filter out all definitions *)
-          let defs_hd, defs_tl =
-            List.partition (fun (u, _) -> VS.exists (Var.equal_vars u) dep) tl
+          let defs_hd, defs_tl = 
+            List.partition
+              (fun (u, _) -> VS.exists (Var.equal_vars u) dep) 
+              tl
           in
 
           (* Continue with definitions the variable depends on top of
              the stack *)
-          order_defs accum (defs_hd @ ((v, e) :: defs_tl))
+          order_defs 
+            accum
+            (defs_hd @ (v, e) :: defs_tl)
 
-let solve_eqs vars terms =
+
+let solve_eqs vars terms = 
+
   (* Split list of definitions from list of terms *)
-  let eqs, terms' = collect_eqs vars ([], []) terms in
+  let eqs, terms' = collect_eqs vars ([], []) terms in 
 
   (* Order list of definitions by dependency *)
   let eqs' = order_defs [] eqs in
 
-  Debug.qe "@[<v>@[<hv>Equations:@ @[<hv>%a@]@]@,@[<hv>Terms:@ @[<hv>%a@]@]@]"
-    (pp_print_list
-       (fun ppf (v, t) ->
-         Format.fprintf ppf "%a = %a" Var.pp_print_var v Term.pp_print_term t)
+  Debug.qe
+    "@[<v>@[<hv>Equations:@ @[<hv>%a@]@]@,@[<hv>Terms:@ @[<hv>%a@]@]@]"
+    (pp_print_list 
+       (fun ppf (v, t) -> Format.fprintf ppf "%a = %a" Var.pp_print_var v Term.pp_print_term t)
        ",@ ")
     eqs'
     (pp_print_list Term.pp_print_term ",@ ")
     terms';
 
-  let rec subst_defs term =
+  let rec subst_defs term = 
+
     (* Variables of term *)
     let vars = Term.vars_of_term term in
-
-    match
+    
+    match 
+      
       (* Get definitions for variables of term *)
-      List.filter (fun (v, _) -> VS.exists (Var.equal_vars v) vars) eqs'
+      List.filter
+        (fun (v, _) -> VS.exists (Var.equal_vars v) vars) 
+        eqs' 
+
     with
-    (* Return term if no variable can be substituted *)
-    | [] -> term
-    | defs ->
+
+      (* Return term if no variable can be substituted *)
+      | [] -> term
+
+      | defs -> 
+
         (* Let-bind variables to definitions *)
         let term' = Term.mk_let defs term in
 
         (* Recurse to substitute introduced variables *)
         subst_defs term'
-  in
 
+  in
+    
   List.map subst_defs terms'
+         
+
+
+
+
+
 
 let generalize trans_sys uf_defs model elim term =
-  let canonicalize_literals literals =
-    let literals =
-      if Flags.QE.generalize_eq_canonicalize () then
-        List.map Clause.canonicalize_eq_literal literals
-      else
-        literals
-    in
-    if Flags.QE.generalize_ineq_canonicalize () then
-      List.map Clause.canonicalize_ineq_literal literals
-    else
-      literals
-  in
-  let should_canonicalize =
-    Flags.QE.generalize_canonicalize ()
-    || Flags.QE.generalize_eq_canonicalize ()
-    || Flags.QE.generalize_ineq_canonicalize ()
-  in
+
   let qe_method = Flags.QE.qe_method () in
 
   (* Partition list of state variables into Boolean and integer variables *)
   let elim_bool, elim_rest =
     match qe_method with
-    | `Cooper ->
-        List.partition
-          (fun v ->
-            match Type.node_of_type (Var.type_of_var v) with
-            | Type.Bool -> true
-            | Type.IntRange _ | Type.Int -> false
-            | _ -> raise Presburger.Not_in_LIA)
-          elim
-    | _ ->
-        List.partition
-          (fun v ->
-            match Type.node_of_type (Var.type_of_var v) with
-            | Type.Bool -> true
-            | _ -> false)
-          elim
+    | `Cooper -> (
+      List.partition
+        (fun v ->
+          match Type.node_of_type (Var.type_of_var v) with
+          | Type.Bool -> true
+          | Type.IntRange _
+          | Type.Int -> false
+          | _ -> raise Presburger.Not_in_LIA
+        )
+        elim
+    )
+    | _ -> (
+      List.partition
+        (fun v ->
+          match Type.node_of_type (Var.type_of_var v) with
+          | Type.Bool -> true
+          | _ -> false
+        )
+        elim
+    )
   in
 
-  Debug.qe "@[<hv>Generalizing@ @[<hv>%a@]@]@ for variables@ @[<hv>%a@]@."
+  Debug.qe
+    "@[<hv>Generalizing@ @[<hv>%a@]@]@ for variables@ @[<hv>%a@]@."
     Term.pp_print_term term
-    (pp_print_list Var.pp_print_var ",@ ")
-    elim;
+    (pp_print_list Var.pp_print_var ",@ ") elim;
 
-  Debug.qe "@[<hv>with the model@ @[<hv>%a@]@]@." Model.pp_print_model model;
+  Debug.qe
+    "@[<hv>with the model@ @[<hv>%a@]@]@."
+    Model.pp_print_model model;
 
-  if Term.has_quantifier term then raise (QuantifiedTermFound term);
+  if Term.has_quantifier term then begin
+    raise (QuantifiedTermFound term)
+  end;
 
   (* Extract active path from term and model *)
   let extract_bool, extract_rest = Extract.extract uf_defs model term in
 
-  Debug.qe "@[<hv>Extracted term:@ @[<hv>%a@]@]@."
+  Debug.qe
+    "@[<hv>Extracted term:@ @[<hv>%a@]@]@."
     (pp_print_list Term.pp_print_term "@ ")
     extract_rest;
 
-  Debug.qe "@[<hv>Extracted term Booleans:@ @[<hv>%a@]@]@."
+  Debug.qe
+    "@[<hv>Extracted term Booleans:@ @[<hv>%a@]@]@."
     (pp_print_list Term.pp_print_term "@ ")
     extract_bool;
 
@@ -496,9 +565,11 @@ let generalize trans_sys uf_defs model elim term =
 
   let extract_rest = Term.mk_and (solve_eqs elim_rest extract_rest) in
 
-  Debug.qe "@[<hv>Extracted term simplified:@ @[<hv>%a@]@]@." Term.pp_print_term
+  Debug.qe
+    "@[<hv>Extracted term simplified:@ @[<hv>%a@]@]@."
+    Term.pp_print_term
     extract_rest;
-  (*
+(*
   check_implication 
     trans_sys
     "extract"
@@ -507,12 +578,18 @@ let generalize trans_sys uf_defs model elim term =
        (Term.mk_and [Term.mk_and extract_bool; extract_rest]))
     (SMTExpr.smtexpr_of_term term);
 *)
-  Debug.qe "@[<hv>QE for Booleans:@ @[<hv>%a@]@]@." Term.pp_print_term
+  Debug.qe
+    "@[<hv>QE for Booleans:@ @[<hv>%a@]@]@."
+    Term.pp_print_term 
     (Term.mk_and term'_bool);
 
-  let term' =
-    match qe_method with
-    | `Precise | `Impl | `Impl2 -> (
+  let term' = match qe_method with
+    
+    | `Precise
+    | `Impl
+    | `Impl2 ->
+      
+      (
         let solver_qe = get_solver_instance trans_sys in
 
         (* Substitute fresh variables for terms to be eliminated and
@@ -520,14 +597,16 @@ let generalize trans_sys uf_defs model elim term =
         let qe_term =
           let module Conv = (val SMTSolver.converter solver_qe) in
           match qe_method with
-          | `Cooper -> assert false
-          | `Precise -> Conv.quantified_smtexpr_of_term true elim term
-          | `Impl | `Impl2 ->
+            | `Cooper -> assert false
+            | `Precise -> 
+              Conv.quantified_smtexpr_of_term true elim term
+            | `Impl
+            | `Impl2 -> 
               Conv.quantified_smtexpr_of_term true elim extract_rest
         in
 
         let term'_rest = SMTSolver.get_qe_expr solver_qe qe_term in
-        (*
+(*
         (* Check generalizations *)
         check_generalize 
           trans_sys
@@ -541,29 +620,43 @@ let generalize trans_sys uf_defs model elim term =
           (Term.mk_and [Term.mk_and term'_bool; Term.mk_and term'_rest]);
 *)
         (* Return quantifier eliminated term *)
-        match qe_method with
-        | `Cooper -> assert false
-        | `Precise -> term'_rest
-        | `Impl -> term'_bool @ term'_rest
-        | `Impl2 ->
+        (match qe_method with
+          | `Cooper -> assert false
+          | `Precise -> term'_rest
+          | `Impl -> term'_bool @ term'_rest
+          | `Impl2 -> 
+
             (* Extract again from result *)
-            let term''_rest, term''_bool =
-              Extract.extract uf_defs model (Term.mk_and term'_rest)
+            let term''_rest, term''_bool = 
+                Extract.extract uf_defs model (Term.mk_and term'_rest) 
             in
+            
+            term'_bool @ [Term.mk_and term''_rest; Term.mk_and term''_bool])
+        
+      )
 
-            term'_bool @ [ Term.mk_and term''_rest; Term.mk_and term''_bool ])
     | `Cooper ->
-        let elim_int = elim_rest in
-        let extract_int = extract_rest in
 
-        if extract_int = Term.t_true then term'_bool
-        else
-          (* Convert term to Presburger formula *)
-          let cf = Presburger.to_presburger elim_int extract_int in
+      let elim_int = elim_rest in
+      let extract_int = extract_rest in
 
-          Debug.qe "@[<hv>In Presburger:@ @[<v>%a@]@]@." Poly.pp_print_cformula
-            cf;
-          (*
+      if extract_int = Term.t_true then (
+
+        term'_bool
+
+      )
+
+      else
+
+      (
+        (* Convert term to Presburger formula *)
+        let cf = Presburger.to_presburger elim_int extract_int in
+        
+        Debug.qe
+          "@[<hv>In Presburger:@ @[<v>%a@]@]@."
+          Poly.pp_print_cformula
+          cf;
+(*
         check_implication 
           trans_sys
           "presburger normalization"
@@ -579,15 +672,19 @@ let generalize trans_sys uf_defs model elim term =
           (SMTExpr.smtexpr_of_term extract_int)
           (SMTExpr.smtexpr_of_term (Presburger.term_of_cformula cf));
 *)
-          (* Eliminate quantifiers *)
-          let elim_pformula = CooperQE.eliminate model elim_int cf in
+        (* Eliminate quantifiers *)
+        let elim_pformula = 
+          CooperQE.eliminate model elim_int cf  
+        in
+        
+        Debug.qe
+          "@[<hv>Cooper QE:@ @[<v>%a@]@]"
+          Poly.pp_print_cformula
+          elim_pformula;
 
-          Debug.qe "@[<hv>Cooper QE:@ @[<v>%a@]@]" Poly.pp_print_cformula
-            elim_pformula;
-
-          (* Convert quantifier eliminated Presburger formula to term *)
-          let term'_int = Presburger.term_of_cformula elim_pformula in
-          (*
+        (* Convert quantifier eliminated Presburger formula to term *)
+        let term'_int = Presburger.term_of_cformula elim_pformula in
+(*
         (* Check generalizations *)
         check_generalize 
           trans_sys
@@ -596,79 +693,101 @@ let generalize trans_sys uf_defs model elim term =
           term 
           (Term.mk_and [Term.mk_and term'_bool; Term.mk_and term'_int]);
 *)
-          (* Return quantifier eliminated term *)
-          term'_bool @ term'_int
+        (* Return quantifier eliminated term *)
+        term'_bool @ term'_int
+
+      )
+
+
   in
-  let term' =
-    if should_canonicalize then (
-      Debug.qe "@[<hv>Before QE canonicalization:@ @[<hv>%a@]@]@."
-        (pp_print_list Term.pp_print_term ";@ ")
-        term';
-      let term' = canonicalize_literals term' in
-      Debug.qe "@[<hv>After QE canonicalization:@ @[<hv>%a@]@]@."
-        (pp_print_list Term.pp_print_term ";@ ")
-        term';
-      term')
-    else (
-      Debug.qe "@[<hv>QE generalized literals:@ @[<hv>%a@]@]@."
-        (pp_print_list Term.pp_print_term ";@ ")
-        term';
-      term')
-  in
+
+  Debug.qe "QE term %a" Term.pp_print_term (Term.mk_and term');
 
   (* Return quantifier eliminated term *)
   term'
 
+
 type response = Valid of Term.t | Invalid of Term.t | Unknown
 
 let ae_val_gen trans_sys premise elim conclusion =
+
   (* Create new solver instance *)
   let solver =
-    SMTSolver.create_instance ~produce_models:true
+    SMTSolver.create_instance
+      ~produce_models:true
       (TransSys.get_logic trans_sys)
       (Flags.Smt.solver ())
   in
 
-  TransSys.define_and_declare_of_bounds trans_sys
+  TransSys.define_and_declare_of_bounds
+    trans_sys
     (SMTSolver.define_fun solver)
     (SMTSolver.declare_fun solver)
     (SMTSolver.declare_sort solver)
     Numeral.zero Numeral.one;
 
-  SMTSolver.assert_term solver premise;
+  SMTSolver.assert_term solver premise ;
 
   let rec loop valid_region =
-    if not (SMTSolver.check_sat solver) then Valid (Term.mk_or valid_region)
+
+    if not (SMTSolver.check_sat solver) then (
+
+      Valid (Term.mk_or valid_region)
+
+    )
+
     else (
       SMTSolver.push solver;
 
       SMTSolver.assert_term solver conclusion;
 
-      if not (SMTSolver.check_sat solver) then Invalid (Term.mk_or valid_region)
-      else
+      if not (SMTSolver.check_sat solver) then
+
+        Invalid (Term.mk_or valid_region)
+
+      else (
+
         let m = SMTSolver.get_model solver in
 
         let gen_term =
           try
-            generalize trans_sys (TransSys.uf_defs trans_sys) m elim conclusion
-          with Presburger.Not_in_LIA ->
-            KEvent.log L_info
-              "Problem contains real valued variables, switching off \
-               approximate QE";
+            generalize
+              trans_sys
+              (TransSys.uf_defs trans_sys)
+              m
+              elim
+              conclusion
+          with Presburger.Not_in_LIA -> (
+
+            KEvent.log
+              L_info
+              "Problem contains real valued variables, \
+               switching off approximate QE";
 
             Flags.QE.set_qe_method `Impl;
 
-            generalize trans_sys (TransSys.uf_defs trans_sys) m elim conclusion
+            generalize
+              trans_sys
+              (TransSys.uf_defs trans_sys)
+              m
+              elim
+              conclusion
+          )
         in
 
         let projection = Term.mk_and gen_term in
 
         (* Format.printf "MBP: %a@." Term.pp_print_term projection; *)
+
         SMTSolver.pop solver;
 
-        SMTSolver.assert_term solver (Term.negate projection);
+        SMTSolver.assert_term solver (Term.negate projection) ;
 
-        loop (projection :: valid_region))
+        loop (projection :: valid_region)
+      )
+
+    )
+
   in
 
   let res = loop [] in
@@ -677,7 +796,9 @@ let ae_val_gen trans_sys premise elim conclusion =
 
   res
 
+
 let ae_val_prec trans_sys premise elim conclusion =
+
   (* Create new solver instance *)
   let solver =
     SMTSolver.create_instance
@@ -685,9 +806,10 @@ let ae_val_prec trans_sys premise elim conclusion =
       (Flags.Smt.solver ())
   in
 
-  SMTSolver.trace_comment solver "AE-VAL query (precise)";
+  SMTSolver.trace_comment solver "AE-VAL query (precise)" ;
 
-  TransSys.define_and_declare_of_bounds trans_sys
+  TransSys.define_and_declare_of_bounds
+    trans_sys
     (SMTSolver.define_fun solver)
     (SMTSolver.declare_fun solver)
     (SMTSolver.declare_sort solver)
@@ -695,41 +817,66 @@ let ae_val_prec trans_sys premise elim conclusion =
 
   SMTSolver.push solver;
 
-  SMTSolver.assert_term solver premise;
+  SMTSolver.assert_term solver premise ;
 
   let res =
-    if not (SMTSolver.check_sat solver) then Valid Term.t_false
+
+    if not (SMTSolver.check_sat solver) then (
+
+      Valid (Term.t_false)
+
+    )
+
     else (
+
       SMTSolver.assert_term solver conclusion;
 
-      if not (SMTSolver.check_sat solver) then Invalid Term.t_false
+      if not (SMTSolver.check_sat solver) then
+
+        Invalid (Term.t_false)
+
       else (
+
         SMTSolver.pop solver;
 
-        let impl = Term.mk_implies [ premise; conclusion ] in
+        let impl = Term.mk_implies [premise; conclusion] in
 
         let ex_term = Term.mk_exists elim impl in
 
-        let term = SMTSolver.get_qe_term solver ex_term |> Term.mk_and in
+        let term =
+          SMTSolver.get_qe_term solver ex_term
+          |> Term.mk_and
+        in
 
         let neg_term =
-          try Term.negate term
+          try
+
+            Term.negate term
+
           with Invalid_argument _ as e ->
+
             if Term.has_quantifier term then
               (* QE did not eliminate all quantifiers *)
               raise (QuantifiedTermFound term)
-            else raise e
+            else
+              raise e
         in
 
         let simpl_term =
-          SMTSolver.simplify_term solver (Term.mk_and [ premise; term ])
+          SMTSolver.simplify_term solver (Term.mk_and [premise; term])
         in
 
         (* Assert only after simplifying term since it modifies context *)
-        SMTSolver.assert_term solver neg_term;
+        SMTSolver.assert_term solver neg_term ;
 
-        if not (SMTSolver.check_sat solver) then Valid simpl_term
-        else Invalid simpl_term))
+        if not (SMTSolver.check_sat solver) then
+          Valid simpl_term
+        else
+          Invalid simpl_term
+
+      )
+
+    )
   in
 
   SMTSolver.delete_instance solver;
@@ -740,8 +887,10 @@ let ae_val trans_sys premise elim conclusion =
   try
     if Flags.QE.ae_val_use_ctx () then
       ae_val_prec trans_sys premise elim conclusion
-    else ae_val_gen trans_sys premise elim conclusion
-  with QuantifiedTermFound _ -> Unknown
+    else
+      ae_val_gen trans_sys premise elim conclusion
+  with QuantifiedTermFound _ ->
+    Unknown
 
 (* 
    Local Variables:

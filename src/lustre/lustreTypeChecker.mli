@@ -16,14 +16,13 @@
 
  *)
 (** Functions for type checking surface syntax [LustreAst]
-
+    
     @author Apoorv Ingle *)
 
 module LA = LustreAst
 open TypeCheckerContext
 
-type error_kind =
-  | Unknown of string
+type error_kind = Unknown of string
   | Impossible of string
   | MergeCaseExtraneous of HString.t * tc_type
   | MergeCaseMissing of HString.t
@@ -37,6 +36,7 @@ type error_kind =
   | IlltypedRecordProjection of tc_type
   | TupleIndexOutOfBounds of int * tc_type
   | IlltypedTupleProjection of tc_type
+  | NonConcreteTupleProjection of LA.expr 
   | UnequalIteBranchTypes of tc_type * tc_type
   | ExpectedBooleanExpression of tc_type
   | ExpectedIntegerExpression of tc_type
@@ -45,11 +45,13 @@ type error_kind =
   | TypeMismatchOfRecordLabel of HString.t * tc_type * tc_type
   | IlltypedUpdateWithLabel of tc_type
   | IlltypedUpdateWithIndex of tc_type
+  | IlltypedUpdate of tc_type
   | ExpectedLabel of LA.expr
   | ExpectedIntegerLiteral of LA.expr
   | IlltypedArraySlice of tc_type
   | ExpectedIntegerTypeForSlice
-  | IlltypedArrayIndex of tc_type
+  | IlltypedIndexAccess of tc_type
+  | IlltypedMapIndex of tc_type * tc_type
   | ExpectedIntegerTypeForArrayIndex of tc_type
   | IlltypedArrayConcat of bool * tc_type * tc_type option
   | IlltypedDefaults
@@ -57,6 +59,7 @@ type error_kind =
   | IlltypedFby of tc_type * tc_type
   | IlltypedArrow of tc_type * tc_type
   | IlltypedCall of tc_type * tc_type
+  | IlltypedRecord of tc_type * tc_type
   | ExpectedFunctionType of tc_type
   | IlltypedIdentifier of HString.t * tc_type * tc_type
   | UnificationFailed of tc_type * tc_type
@@ -67,8 +70,10 @@ type error_kind =
   | IlltypedBitNot of tc_type
   | IlltypedUnaryMinus of tc_type
   | ExpectedIntegerTypes of tc_type * tc_type
-  | ExpectedNumberTypes of tc_type * tc_type
+  | ExpectedNumberOrSetTypes of tc_type * tc_type
   | ExpectedMachineIntegerTypes of tc_type * tc_type
+  | ExpectedUnsignedMachineIntegerTypes of tc_type * tc_type
+  | ExpectedMachineIntegerType of tc_type
   | ExpectedBitShiftConstantOfSameWidth of tc_type
   | ExpectedBitShiftMachineIntegerType of tc_type
   | InvalidConversion of tc_type * tc_type
@@ -83,127 +88,147 @@ type error_kind =
   | SubrangeArgumentMustBeConstantInteger of LA.expr
   | IntervalMustHaveBound
   | ExpectedRecordType of tc_type
-  | GlobalConstRefType of HString.t
-  | QuantifiedAbstractType of HString.t
-  | UnsupportedQuantifiedArray of HString.t
+  | UnsupportedQuantifiedVariable of HString.t
   | InvalidPolymorphicCall of HString.t
   | InvalidNumberOfIndices of HString.t
+  | InvalidExtractUpperBound of int * int
+  | InvalidExtractLowerBound of int * int
+  | UnsupportedMapType of tc_type
+  | ExpectedMapSetType of tc_type
+  | ClockMismatchInMerge
+  | IllegalClockExprInActivate of LustreAst.expr
+  | CallRequiresExplicitAnnotation of HString.t
+  | TempOperatorInFuncInterface of NodeId.t 
+  | TempOperatorInFuncTypeAscription 
+  | NoIndexAccessInArrayLength of tc_type
+  | NestedTypeTemporal of LustreAst.lustre_type 
+  | NestedTypeNodeCall of LustreAst.lustre_type 
 
-type error =
-  [ `LustreTypeCheckerError of Lib.position * error_kind
-  | `LustreSyntaxChecksError of Lib.position * LustreSyntaxChecks.error_kind
-  | `LustreAstInlineConstantsError of
-    Lib.position * LustreAstInlineConstants.error_kind ]
+type error = [
+  | `LustreTypeCheckerError of Lib.position * error_kind
+  | `LustreAstInlineConstantsError of Lib.position * LustreAstInlineConstants.error_kind
+]
 
-type warning_kind = UnusedBoundVariableWarning of HString.t
-type warning = [ `LustreTypeCheckerWarning of Lib.position * warning_kind ]
+type warning_kind =
+  | UnusedBoundVariableWarning of HString.t
+
+type warning = [
+  | `LustreTypeCheckerWarning of Lib.position * warning_kind
+]
 
 val warning_message : warning_kind -> string
-val error_message : error_kind -> string
 
-val type_error : Lib.position -> error_kind -> ('a, [> error ]) result
+val error_if_lus_strict: warning_kind -> bool
+
+val error_message: error_kind -> string
+
+val type_error: Lib.position -> error_kind -> ('a, [> error]) result 
 (** [type_error] returns an [Error] of [tc_result] *)
+     
+val type_check_infer_globals: tc_context -> LA.t -> (LA.t * tc_context * [> warning] list, [> error]) result  
+(** Typechecks the toplevel globals i.e. constant decls and type decls. It returns 
+    a [Ok (tc_context)] if it succeeds or and [Error of String] if the typechecker fails *)
 
-val type_check_infer_globals :
-  tc_context -> LA.t -> (tc_context * [> warning ] list, [> error ]) result
-(** Typechecks the toplevel globals i.e. constant decls and type decls. It
-    returns a [Ok (tc_context)] if it succeeds or and [Error of String] if the
-    typechecker fails *)
+val type_check_infer_nodes_and_contracts: tc_context -> LA.t -> (tc_context * LA.t * [> warning] list, [> error]) result
+(** Typechecks and infers type for the nodes and contracts. It returns
+    a [Ok (tc_context)] if it succeeds or and [Error of String] if the typechecker fails *)
 
-val type_check_infer_nodes_and_contracts :
-  tc_context -> LA.t -> (tc_context * [> warning ] list, [> error ]) result
-(** Typechecks and infers type for the nodes and contracts. It returns a
-    [Ok (tc_context)] if it succeeds or and [Error of String] if the typechecker
-    fails *)
+val tc_ctx_of_contract: ?ignore_modes:bool -> tc_context -> source -> NI.t -> LA.contract -> (LA.contract * tc_context * [> warning ] list, [> error ]) result 
 
-val tc_ctx_of_contract :
-  ?ignore_modes:bool ->
-  tc_context ->
-  source ->
-  HString.t ->
-  LA.contract ->
-  (tc_context * [> warning ] list, [> error ]) result
-
-val extract_exports :
-  HString.t ->
+val extract_exports: NI.t ->
   tc_context ->
   LA.contract ->
-  (tc_context * [> warning ] list, [> error ]) result
+  (tc_context * [> warning] list, [> error ]) result
 
 val add_ty_params_node_ctx :
-  tc_context -> HString.t -> HString.t list -> tc_context
+  tc_context ->
+  NI.t ->
+  HString.t list ->
+  tc_context
 
 val add_io_node_ctx :
   tc_context ->
-  HString.t ->
+  NI.t ->
   HString.t list ->
   LA.const_clocked_typed_decl list ->
   LA.clocked_typed_decl list ->
   tc_context
 
-val add_local_node_ctx : tc_context -> LA.node_local_decl list -> tc_context
+val add_local_node_ctx :
+  tc_context ->
+  LA.node_local_decl list ->
+  tc_context
 
 val add_full_node_ctx :
   tc_context ->
-  HString.t ->
+  NI.t ->
   HString.t list ->
   LA.const_clocked_typed_decl list ->
   LA.clocked_typed_decl list ->
   LA.node_local_decl list ->
   tc_context
 
-val instantiate_type_variables :
-  tc_context ->
-  Lib.position ->
-  HString.t ->
-  tc_type ->
-  tc_type list ->
+val instantiate_type_variables : 
+  tc_context -> 
+  Lib.position -> 
+  NI.t -> 
+  tc_type -> 
+  tc_type list -> 
   (tc_type, [> error ]) result
 
-val instantiate_type_variables_expr :
-  tc_context ->
-  HString.t ->
-  tc_type list ->
-  LA.expr ->
+val instantiate_type_variables_expr: 
+  tc_context -> 
+  NI.t -> 
+  tc_type list -> 
+  LA.expr -> 
   (LA.expr, [> error ]) result
-
-val build_node_fun_ty :
-  Lib.position ->
+  
+val build_node_fun_ty : Lib.position ->
   tc_context ->
-  HString.t ->
+  NI.t ->
   HString.t list ->
   LA.const_clocked_typed_decl list ->
-  LA.clocked_typed_decl list ->
-  (tc_type * [> warning ] list, [> error ]) result
+  LA.clocked_typed_decl list -> (tc_type * [> warning ] list, [> error ]) result
 
-val expand_type_syn_reftype_history :
-  ?expand_subrange:bool -> tc_context -> tc_type -> (tc_type, [> error ]) result
-
-val expand_type_syn_reftype_history_subrange :
-  tc_context -> tc_type -> (tc_type, [> error ]) result
-
-val infer_type_expr :
+val expand_type_syn_reftype : ?expand_subrange:bool -> ?expand_history:bool ->
   tc_context ->
-  HString.t option ->
-  LA.expr ->
-  (tc_type * [> warning ] list, [> error ]) result
+  tc_type ->
+  ( tc_type,
+    [> error] )
+  result
+
+val expand_type_syn_reftype_history : 
+  tc_context ->
+  tc_type ->
+  ( tc_type,
+    [> error] )
+  result
+
+val expand_type_syn_reftype_history_subrange : 
+  tc_context ->
+  tc_type ->
+  ( tc_type,
+    [> error] )
+  result
+  
+val infer_type_expr: tc_context -> NI.t option -> LA.expr -> (tc_type * LA.expr * [> warning] list, [> error]) result
 (** Infer type of Lustre expression given a typing context *)
 
-val eq_lustre_type :
-  tc_context -> LA.lustre_type -> LA.lustre_type -> (bool, [> error ]) result
+val desugar_generic_index: tc_context -> NI.t option -> LA.expr -> LA.label_or_index -> (LA.label_or_index, [> error]) result
+(** Convert the GenericIndex to one of the other indices based on type information *)
+
+val eq_lustre_type : tc_context -> LA.lustre_type -> LA.lustre_type -> (bool, [> error]) result
 (** Check if two lustre types are equal *)
 
-val tc_ctx_of_contract_node_decl :
-  Lib.position ->
-  tc_context ->
-  LA.contract_node_decl ->
-  (tc_context * [> warning ] list, [> error ]) result
+val tc_ctx_of_contract_node_decl: Lib.position -> tc_context
+  -> LA.contract_node_decl
+  -> (tc_context * [> warning] list, [> error]) result
 
-val tc_ctx_of_node_decl :
-  Lib.position ->
-  tc_context ->
-  LA.node_decl ->
-  (tc_context * [> warning ] list, [> error ]) result
+val tc_ctx_of_node_decl: Lib.position -> tc_context -> LA.node_decl -> bool -> (tc_context * [> warning] list, [> error]) result
+
+
+val expr_contains_set_binop: tc_context -> NI.t option -> LA.expr -> bool 
+(** `expr_contains_set_binop e` returns true iff `e` contains set equality, set union or set intersection *)
 
 (* 
    Local Variables:
@@ -211,3 +236,4 @@ val tc_ctx_of_node_decl :
    indent-tabs-mode: nil
    End: 
 *)
+                                

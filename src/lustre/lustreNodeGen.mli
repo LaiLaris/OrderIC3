@@ -16,11 +16,11 @@
 
  *)
 (** Translation of type checked AST to intermediate node model
+  
+  @author Andrew Marmaduke *)
 
-    @author Andrew Marmaduke *)
-
-val compile :
-  TypeCheckerContext.tc_context ->
-  GeneratedIdentifiers.t GeneratedIdentifiers.StringMap.t ->
-  LustreAst.declaration list ->
-  LustreNode.t list * LustreGlobals.t
+val compile : TypeCheckerContext.tc_context
+-> GeneratedIdentifiers.t NodeId.Map.t
+-> LustreAst.declaration list
+-> LustreNode.t list * LustreGlobals.t
+ 

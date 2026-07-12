@@ -9,12 +9,20 @@ LOCAL_USRDOCDIR=$(CURDIR)/doc/usr
 all: build
 
 build:
-	@dune build src @install
-	@dune install --sections=bin --prefix . 2> /dev/null
+	@dune build -p kind2 @install
+	@dune install -p kind2 --sections=bin --prefix . 2> /dev/null
+
+check:
+	@dune build -p kind2 --profile strict @check @install
+	@dune install -p kind2 --sections=bin --prefix . 2> /dev/null
+
+kmoxi:
+	@dune build -p kmoxi @install
+	@dune install -p kmoxi --sections=bin --prefix . 2> /dev/null
 
 static:
-	@LINKING_MODE=static dune build src @install
-	@dune install --sections=bin --prefix . 2> /dev/null
+	@LINKING_MODE=static dune build -p kind2 @install
+	@dune install -p kind2 --sections=bin --prefix . 2> /dev/null
 
 clean:
 	@dune clean
@@ -37,23 +45,8 @@ kind2-doc:
 
 test: build
 	@dune build @runtest
-	@$(CURDIR)/tests/run.sh $(CURDIR)/tests/regression $(CURDIR)/bin/kind2 --timeout 42
+	@cd $(CURDIR)/tests/ && ./run
 
 uninstall:
 	@opam remove -y kind2
 	@opam unpin kind2
-
-.PHONY: lustre-update lustre-complete
-
-# How to use the following commands is documented in
-# ./src/lustre/Makefile.messages.maintenance
-# Quick tip: run `make lustre-complete` after changing
-# Lustre grammar to repair lustreParser.messages
-lustre-update:
-	@ make -f Makefile.messages.maintenance -C $(CURDIR)/src/lustre/ update
-
-lustre-strip:
-	@ make -f Makefile.messages.maintenance -C $(CURDIR)/src/lustre/ strip
-
-lustre-complete:
-	@ make -f Makefile.messages.maintenance -C $(CURDIR)/src/lustre/ complete

@@ -16,12 +16,12 @@
 
 *)
 
-type 'a res = ('a, Format.formatter -> unit) result
 (** A result for some computation. [Ok] or [Error] of [Format.formatter]*)
+type 'a res = ('a, Format.formatter -> unit) result
 
-(** The following functions have been taken from (future) 4.09 Stdlib.Result. *
-    These 5 functions, [ok], [error], [bind], [join] and [map] should be removed
-    * after the Stdlib upgrade. *)
+(** The following functions have been taken from  (future) 4.09 Stdlib.Result. 
+ * These 5 functions, [ok], [error], [bind], [join] and [map] should be removed 
+ * after the Stdlib upgrade. *)
 
 val ok : 'a -> ('a, 'e) result
 (** [ok v] is [Ok v]. *)
@@ -38,79 +38,67 @@ val join : (('a, 'e) result, 'e) result -> ('a, 'e) result
 val map : ('a -> 'b) -> ('a, 'e) result -> ('b, 'e) result
 (** [map f r] is [Ok (f v)] if [r] is [Ok v] and [r] if [r] is [Error _]. *)
 
-val ( >>= ) : ('a, 'e) result -> ('a -> ('b, 'e) result) -> ('b, 'e) result
+val (>>=): ('a, 'e) result -> ('a -> ('b, 'e) result) -> ('b, 'e) result
 (** Infix version of [bind] *)
 
-val ( >> ) : ('a, 'e) result -> ('c, 'e) result -> ('c, 'e) result
+val (>>): ('a, 'e) result -> ('c, 'e) result -> ('c, 'e) result
 (** Disregards the output of the first computation*)
 
-val seq : ('a, 'e) result list -> ('a list, 'e) result
-(** sequences a [list] of [result] into a [result] of [list] * basically errors
-    out on first error or returns the whole value list *)
+val seq: ('a, 'e) result list -> ('a list, 'e) result  
+(** sequences a [list] of [result] into a [result] of [list] 
+ * basically errors out on first error or returns the whole value list *)
 
-val seq_chain :
-  ('a -> 'b -> ('a, 'e) result) -> 'a -> 'b list -> ('a, 'e) result
-(** Chains the output of the head computation into the following tail
-    computation while folding*)
+val seq_chain: ('a -> 'b -> ('a, 'e) result) -> 'a -> 'b list -> ('a, 'e) result
+(** Chains the output of the head computation into the following tail computation while folding*)
 
-val foldM : ('a -> 'b -> 'a) -> 'a -> ('b list, 'e) result -> ('a, 'e) result
+val foldM: ('a -> 'b -> 'a) -> 'a -> ('b list, 'e) result -> ('a, 'e) result
 (** Folds a list under a [result] type *)
 
-val seqM : ('a -> 'b -> 'a) -> 'a -> ('b, 'e) result list -> ('a, 'e) result
+val seqM: ('a -> 'b -> 'a) -> 'a -> ('b, 'e) result list -> ('a, 'e) result
 (** general case of [seq_] *)
 
-val seq_ : (unit, 'e) result list -> (unit, 'e) result
-(** sequences a [list] of [unit] into a [result] of [unit] * errors out on first
-    error or returns a unit *)
+val seq_: (unit, 'e) result list -> (unit, 'e) result  
+(** sequences a [list] of [unit] into a [result] of [unit] 
+ * errors out on first error or returns a unit *)
 
-val ifM :
-  (bool, 'e) result -> ('a, 'e) result -> ('a, 'e) result -> ('a, 'e) result
+val ifM: (bool, 'e) result -> ('a, 'e) result -> ('a, 'e) result -> ('a, 'e) result  
 (** This is an if .. then .. else lifted in monadic world *)
 
-val guard_with : (bool, 'e) result -> (unit, 'e) result -> (unit, 'e) result
+val guard_with: (bool, 'e) result -> (unit, 'e) result -> (unit, 'e) result
 (** converts a monadic boolean condition into a guard *)
-
-val safe_unwrap : 'a -> ('a, 'e) result -> 'a
+  
 (** Unwrap the result value and return the default value if it is an error*)
+val  safe_unwrap: 'a -> ('a, 'e) result -> 'a
 
-val unwrap : 'a res -> 'a
 (** Unwraps a result. *)
+val unwrap : 'a res -> 'a
 
-val map_res : ('a -> 'b) -> ('c -> 'd) -> ('a, 'c) result -> ('b, 'd) result
 (** Maps functions to [Ok] or [Err]. *)
+val map_res: ('a -> 'b) -> ('c -> 'd) -> ('a, 'c) result -> ('b, 'd) result
 
-val map_err : ('a -> 'b) -> ('c, 'a) result -> ('c, 'b) result
 (** Maps a function to a result if it's [Err]. *)
+val map_err: ('a -> 'b) -> ('c, 'a) result -> ('c, 'b) result
 
-val chain :
-  ?fmt:((Format.formatter -> unit) -> Format.formatter -> unit) ->
-  ('a -> 'b res) ->
-  'a res ->
-  'b res
-(** Feeds a result to a function returning a result, propagates if argument's an
-    error. *)
+(** Feeds a result to a function returning a result, propagates if argument's
+an error. *)
+val chain: ?fmt:(
+  (Format.formatter -> unit) -> Format.formatter -> unit
+) -> ('a -> 'b res) -> 'a res -> 'b res
 
-val l_fold :
-  ?fmt:((Format.formatter -> unit) -> Format.formatter -> unit) ->
-  ('acc -> 'a -> 'acc res) ->
-  'acc ->
-  'a list ->
-  'acc res
 (** Fold over a list of results. *)
+val l_fold: ?fmt:(
+  (Format.formatter -> unit) -> Format.formatter -> unit
+) -> ('acc -> 'a -> 'acc res) -> 'acc -> 'a list -> 'acc res
 
-val l_map :
-  ?fmt:((Format.formatter -> unit) -> Format.formatter -> unit) ->
-  ('a -> 'b res) ->
-  'a list ->
-  'b list res
 (** Map over a list with a result-producing function. *)
+val l_map: ?fmt:(
+  (Format.formatter -> unit) -> Format.formatter -> unit
+) -> ('a -> 'b res) -> 'a list -> 'b list res
 
-val l_iter :
-  ?fmt:((Format.formatter -> unit) -> Format.formatter -> unit) ->
-  ('a -> unit res) ->
-  'a list ->
-  unit res
 (** Iterate over a list with a result-producing function. *)
+val l_iter: ?fmt:(
+  (Format.formatter -> unit) -> Format.formatter -> unit
+) -> ('a -> unit res) -> 'a list -> unit res
 
 (* 
    Local Variables:

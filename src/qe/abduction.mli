@@ -18,7 +18,8 @@
 
 (** Procedure for logical abduction
 
-    @author Daniel Larraz *)
+    @author Daniel Larraz
+*)
 
 (* Computes a maximal solution for the logical abduction problem.
 
@@ -26,7 +27,8 @@
    SMT solver [s]. This function assumes all variables included in [p] and [c]
    have been declared in current context of SMT solver [s].
 *)
-val abduce : SMTSolver.t -> Var.t list -> Term.t -> Term.t -> Term.t
+val abduce: SMTSolver.t -> Var.t list -> Term.t -> Term.t -> Term.t  
+
 
 (* Computes a maximal solution for the logical abduction problem.
 
@@ -35,4 +37,5 @@ val abduce : SMTSolver.t -> Var.t list -> Term.t -> Term.t -> Term.t
    [p] holds. This function assumes all variables included in [p] and [c] have 
    been declared in current context of SMT solver [s].
 *)
-val abduce_simpl : SMTSolver.t -> Var.t list -> Term.t -> Term.t -> Term.t
+val abduce_simpl: SMTSolver.t -> Var.t list -> Term.t -> Term.t -> Term.t  
+

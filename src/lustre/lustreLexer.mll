@@ -224,6 +224,8 @@ let keyword_table = mk_hashtbl [
   (* Types *)
   "type", TYPE ;
   "int", INT ;
+  "uint", UINT ; 
+  "sint", SINT ;
   "uint8", UINT8 ;
   "uint16", UINT16 ;
   "uint32", UINT32 ;
@@ -241,6 +243,8 @@ let keyword_table = mk_hashtbl [
   "struct", STRUCT ;
   "enum", ENUM ;
   "history", HISTORY ;
+  "map", MAP ;
+  "set", SET ;
 
   (* Constant/parameter declaration *)
   "const", CONST ;
@@ -256,6 +260,8 @@ let keyword_table = mk_hashtbl [
   "var", VAR ;
   "let", LET ;
   "tel", TEL ;
+  "con", CON ; 
+  "noc", NOC ;
   
   (* Assertion *)
   "assert", ASSERT ;
@@ -282,22 +288,29 @@ let keyword_table = mk_hashtbl [
   "forall", FORALL ;
   "exists", EXISTS ;
   "or", OR ;
+  "in", IN ;
+
+  (* Blocks/Conditionals *)
   "if", IF ;
-  "fi", FI ;
-  "frame", FRAME ; 
   "then", THEN ;
   "else", ELSE ;
   "elsif", ELSIF ;
-  "with", WITH ;
+  "fi", FI ;
+  "when", WHEN ; (* Also clock operator *)
+  "cond", COND ;
+  "otherwise", OTHERWISE;
+  "end", END ;
+  "frame", FRAME ;
+
+  (* Arithmetic operators *)
   "div", INTDIV ;
   "mod", MOD ;
 
-  (* 'Any' operator *)
+  (* `any` and `choose` operators *)
   "any", ANY ;
-  "assuming", ASSUMING ;
+  "choose", CHOOSE ;
   
   (* Clock operators *)
-  "when", WHEN ;
   "current", CURRENT ;
   "condact", CONDACT ;
   "activate", ACTIVATE ;
@@ -311,7 +324,7 @@ let keyword_table = mk_hashtbl [
   "pre", PRE ;
   "fby", FBY ;
 
-  (* |===| Block annotation contract stuff. *)
+  (* Block annotation contract stuff. *)
   "mode", MODE;
   "assume", ASSUME;
   "guarantee", GUARANTEE;
@@ -319,7 +332,8 @@ let keyword_table = mk_hashtbl [
   "ensure", ENSURE;
   "weakly", WEAKLY;
   "assumption_vars", ASSUMP_VARS;
-      
+
+  "with", WITH ;
   ]
 
     
@@ -395,6 +409,7 @@ rule token = parse
     Need to have the '-'* here, otherwise "---" would be matched 
     as operator *)
   | "--" '-'* { skip_to_eol lexbuf }
+  | "//" '/'* { skip_to_eol lexbuf }
 
   (* Multi-line. *)
   | "/*" { skip_commented_slashstar lexbuf }
@@ -447,23 +462,22 @@ rule token = parse
   }
 
   (* Operators that are not identifiers *)
+  | '@' { ATSIGN }
   | ';' { SEMICOLON }
   | '=' { EQUALS }
+  | "::" { DOUBLE_COLON }
   | ':' { COLON }
   | ',' { COMMA }
   | '[' { LSQBRACKET }
   | ']' { RSQBRACKET }
   | '(' { LPAREN }
   | ')' { RPAREN }
-  | ')' { RPAREN }
   | '.' { DOT }
   | ".." { DOTDOT }
   | '^' { CARET }
   | '{' { LCURLYBRACKET }
   | '}' { RCURLYBRACKET }
-  | ".%" { DOTPERCENT }
-  | "<<" { LPARAMBRACKET }
-  | ">>" { RPARAMBRACKET }
+  | "==>" { LAZY_IMPL }
   | "=>" { IMPL }
   | '#' { HASH }
   | "<=" { LTE }
@@ -482,6 +496,10 @@ rule token = parse
   | "!" { BVNOT }
   | "lsh" { LSH } 
   | "rsh" { RSH }
+  | "++" { CONCAT }
+  | ":=" { ASSIGN }
+  | "'" { TICK }
+      
 
   (* Decimal or numeral *)
   | decimal as p { DECIMAL (HString.mk_hstring p) }
@@ -491,6 +509,18 @@ rule token = parse
   | hex_num as p { NUMERAL (HString.mk_hstring p) }
   | hex_dec1 as p { DECIMAL (HString.mk_hstring p) }
   | hex_dec2 as p { DECIMAL (HString.mk_hstring p) }
+
+  | "and" ((whitespace | newline) as gap)+ "then" {
+    (* update line counter for every newline in the gap *)
+    String.iter (fun c -> if c = '\n' then Lexing.new_line lexbuf) gap;
+    AND_THEN
+  }
+
+  | "or" ((whitespace | newline) as gap)+ "else" {
+    (* update line counter for every newline in the gap *)
+    String.iter (fun c -> if c = '\n' then Lexing.new_line lexbuf) gap;
+    OR_ELSE
+  }
 
   (* Keyword *)
   | id as p {
@@ -505,7 +535,7 @@ rule token = parse
 
   (* String *)
   | "\"" { Buffer.clear string_buf; string lexbuf }
-      
+
   (* End of file *)
   | eof {
     (* Pop previous lexing buffer form stack if at end of included file *)

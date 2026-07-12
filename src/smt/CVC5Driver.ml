@@ -19,21 +19,25 @@
 include GenericSMTLIBDriver
 
 (* Configuration for cvc5 *)
-let cmd_line logic timeout _ (* produce_models *) _ (* produce_proofs *) _
-    (* produce_unsat_cores *) _ (* produce_unsat_assumptions *) _
-    (* minimize_cores *) _ (* produce_interpolants *) =
+let cmd_line
+    logic
+    timeout
+    _ (* produce_models *) 
+    _ (* produce_proofs *)
+    _ (* produce_unsat_cores *)
+    _ (* produce_unsat_assumptions *)
+    _ (* minimize_cores *) 
+    _ (* produce_interpolants *) =
+
   (* Path and name of cvc5 executable *)
   let cvc5_bin = Flags.Smt.cvc5_bin () in
 
   let common_flags =
     [|
       "--incremental";
-      "--ext-rew-prep=use";
-      (* After cvc5 PR #9248 (247ecf1), 'use' is the best rewriting strategy for us *)
-      "--mbqi";
-      (* Use model-based quantifier instantiation (best for sat) *)
-      "--full-saturate-quant";
-      (* Resort to full effort techniques instead of answering
+      "--ext-rew-prep=use";    (* After cvc5 PR #9248 (247ecf1), 'use' is the best rewriting strategy for us *)
+      "--mbqi";                (* Use model-based quantifier instantiation (best for sat) *)
+      "--full-saturate-quant"; (* Resort to full effort techniques instead of answering
                                   unknown due to limited quantifier reasoning (best for unsat) *)
     |]
   in
@@ -42,9 +46,8 @@ let cmd_line logic timeout _ (* produce_models *) _ (* produce_proofs *) _
 
   (* Timeout based on Flags.timeout_wall has been disabled because
      it seems to cause performance regressions on some models... *)
-  let timeout_global =
-    None
-    (*  if Flags.timeout_wall () > 0.
+  let timeout_global = None
+  (*  if Flags.timeout_wall () > 0.
     then Some (Stat.remaining_timeout () +. 1.0)
     else None*)
   in
@@ -68,8 +71,9 @@ let cmd_line logic timeout _ (* produce_models *) _ (* produce_proofs *) _
   let cmd =
     match logic with
     | `SMTLogic "QF_BV" -> Array.append cmd [| "--bitblast=eager" |]
-    | `Inferred fs when equal fs (of_list [ BV ]) ->
-        Array.append cmd [| "--bitblast=eager" |]
+    | `Inferred fs when (equal fs (of_list [ BV ])) -> (
+      Array.append cmd [| "--bitblast=eager" |]
+    )
     | _ -> cmd
   in
 

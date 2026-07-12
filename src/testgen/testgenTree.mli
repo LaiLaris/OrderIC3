@@ -20,63 +20,91 @@ type model = Model.t
 type term = Term.t
 type num = Numeral.t
 
-type depth = num
 (** A depth is just a numeral. *)
+type depth = num
 
-type mode = Scope.t
 (** A [mode] is just its name. *)
+type mode = Scope.t
 
-type mode_conj = mode list * mode list
-(** A conjunction of modes. First are the modes activated, then come the mode
-    deactivated. *)
+(**
+  A conjunction of modes. First are the modes activated, then come the mode
+  deactivated.
+*)
+type mode_conj = (mode list) * (mode list)
 
+(**
+  A [mode_path] stores the modes activated by the path in reverse order.
+*)
 type mode_path = mode_conj list
-(** A [mode_path] stores the modes activated by the path in reverse order. *)
 
+(**
+  Stores the witnesses and the reversed tree.
+  Also stores a mode to term function to construct constraints to activate or
+  block mode paths / conjunctions of modes.
+*)
 type t
-(** Stores the witnesses and the reversed tree. Also stores a mode to term
-    function to construct constraints to activate or block mode paths /
-    conjunctions of modes. *)
 
+(**
+  Exception raised when [Top] is reached.
+*)
 exception TopReached
-(** Exception raised when [Top] is reached. *)
 
-val mk : (mode -> term) -> mode_conj -> t
-(** Creates a reversed partial tree. [mode_conj] is a conjunction of modes
-    activable in the initial state. [mode_to_term] is the function mapping mode
-    names to their term at offset zero. Originally there are no witnesses, some
-    initial state mode, and no modes explored. *)
+(**
+  Creates a reversed partial tree. [mode_conj] is a conjunction of modes
+  activable in the initial state. [mode_to_term] is the function mapping mode
+  names to their term at offset zero.
+  Originally there are no witnesses, some initial state mode, and no modes
+  explored.
+*)
+val mk: (mode -> term) -> mode_conj -> t
 
-val mode_path_of : t -> mode_path
-(** Returns the list of mode conjunctions corresponding to a partial tree. *)
+(**
+  Returns the list of mode conjunctions corresponding to a partial tree.
+*)
+val mode_path_of: t -> mode_path
 
-val path_of : t -> Term.t
-(** Returns the term encoding the path of modes represented by a tree.
+(**
+  Returns the term encoding the path of modes represented by a tree.
 
-    Used to check which modes can be activated to extend the path being
-    currently explored. *)
+  Used to check which modes can be activated to extend the path being currently
+  explored.
+*)
+val path_of: t -> Term.t
 
-val blocking_path_of : t -> Term.t
-(** Returns the term encoding the path of modes leading to the current node but
-    blocking its mode conjunction and explored modes.
+(**
+  Returns the term encoding the path of modes leading to the current node but
+  blocking its mode conjunction and explored modes.
 
-    Used when backtracking, to see if different modes can be activated at the
-    current depth. *)
+  Used when backtracking, to see if different modes can be activated at the
+  current depth.
+*)
+val blocking_path_of: t -> Term.t
 
-val depth_of : t -> num
-(** Depth of the current node of a tree. *)
+(**
+  Depth of the current node of a tree.
+*)
+val depth_of: t -> num
 
-val push : t -> mode_conj -> unit
-(** Pushes a node on top of the current one, activating a mode conjunction. *)
+(**
+  Pushes a node on top of the current one, activating a mode conjunction.
+*)
+val push: t -> mode_conj -> unit
 
-val pop : t -> unit
-(** Pops the current node. *)
+(**
+  Pops the current node.
+*)
+val pop: t -> unit
 
-val update : t -> mode_conj -> unit
-(** Updates the current mode. *)
+(**
+  Updates the current mode.
+*)
+val update: t -> mode_conj -> unit
 
-val pp_print_tree : Format.formatter -> t -> unit
-(** Quiet tree pretty printer. *)
+(**
+  Quiet tree pretty printer.
+*)
+val pp_print_tree: 'a InputSystem.t -> Format.formatter -> t -> unit
+
 
 (* 
    Local Variables:

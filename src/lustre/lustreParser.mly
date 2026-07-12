@@ -22,6 +22,7 @@ open Lib
 open LustreReporting
    
 module A = LustreAst
+module NI = NodeId
           
 let mk_pos = position_of_lexing 
 
@@ -32,15 +33,18 @@ let mk_span start_pos end_pos =
 %}
 
 (* Special characters *)
+%token ATSIGN
+%token TICK
 %token SEMICOLON 
 %token EQUALS 
-%token COLON 
+%token COLON
+%token DOUBLE_COLON
 %token COMMA 
 %token LSQBRACKET 
 %token RSQBRACKET 
 %token LPAREN 
 %token RPAREN 
-%token DOTPERCENT
+%token ASSIGN
 
 (* Tokens for enumerated types *)
 %token ENUM
@@ -63,6 +67,8 @@ let mk_span start_pos end_pos =
 (* Tokens for types *)
 %token TYPE
 %token INT
+%token UINT
+%token SINT
 %token UINT8;
 %token UINT16;
 %token UINT32;
@@ -77,6 +83,8 @@ let mk_span start_pos end_pos =
 %token OF
 %token SUBTYPE
 %token HISTORY
+%token MAP
+%token SET
     
 (* Tokens for arrays *)
 (* %token ARRAY *)
@@ -93,13 +101,13 @@ let mk_span start_pos end_pos =
 %token TRANSPARENT
 %token IMPORTED
 %token NODE
-%token LPARAMBRACKET
-%token RPARAMBRACKET
 %token FUNCTION
 %token RETURNS
 %token VAR
 %token LET
 %token TEL
+%token CON 
+%token NOC
     
 (* Tokens for annotations *)
 
@@ -136,7 +144,6 @@ let mk_span start_pos end_pos =
 %token CHECK
 %token REACHABLE
 %token PROVIDED
-%token ASSUMING
 %token INVARIANT
 %token FROM
 %token AT
@@ -146,22 +153,26 @@ let mk_span start_pos end_pos =
 %token TRUE
 %token FALSE
 %token NOT
-%token AND
+%token AND AND_THEN
 %token XOR
-%token OR
+%token OR OR_ELSE
+%token IMPL LAZY_IMPL
+%token FORALL
+%token EXISTS
+%token IN
+
+(* Tokens for conditionals and blocks *)
 %token IF
-%token FI
-%token FRAME
-%token WITH
 %token THEN
 %token ELSE
 %token ELSIF
-%token IMPL
-%token HASH
-%token FORALL
-%token EXISTS
-%token ANY
-    
+%token FI
+%token WHEN
+%token COND
+%token OTHERWISE
+%token END
+%token FRAME
+
 (* Tokens for relations *)
 %token LTE
 %token GTE
@@ -183,9 +194,9 @@ let mk_span start_pos end_pos =
 %token BVNOT
 %token LSH
 %token RSH
+%token CONCAT
 
 (* Tokens for clocks *)
-%token WHEN
 %token CURRENT
 %token CONDACT
 %token ACTIVATE
@@ -199,22 +210,30 @@ let mk_span start_pos end_pos =
 %token PRE
 %token FBY
 %token ARROW
-    
+
+(* Other tokens *)
+%token ANY
+%token CHOOSE 
+%token WITH
+%token HASH
+
 (* Token for end of file marker *)
 %token EOF
     
 (* Priorities and associativity of operators, lowest first *)
 %nonassoc UINT8 UINT16 UINT32 UINT64 INT8 INT16 INT32 INT64 
-%nonassoc WHEN CURRENT ASSUMING BAR
+%nonassoc WHEN CURRENT BAR
 %nonassoc ELSE
 %right ARROW
 %nonassoc prec_forall prec_exists
-%right IMPL
-%left OR XOR
-%left AND
+%right IMPL LAZY_IMPL
+%left OR OR_ELSE XOR
+%left AND AND_THEN
+%left IN
 %left LT LTE EQUALS NEQ GTE GT
 %left PLUS MINUS
 %left MULT INTDIV MOD DIV
+%left CONCAT
 %left BVOR
 %left BVAND
 %nonassoc LSH RSH
@@ -222,9 +241,8 @@ let mk_span start_pos end_pos =
 %nonassoc INT REAL 
 %nonassoc NOT
 %nonassoc BVNOT 
-%nonassoc ANY
 %left CARET 
-%left LSQBRACKET DOT DOTPERCENT
+%left LSQBRACKET DOT 
 
 (* Start token *)
 %start <LustreAst.t> main
@@ -279,6 +297,9 @@ decl:
 
 (* ********************************************************************** *)
 
+comma_or_semicolon:
+  | COMMA {}
+  | SEMICOLON {}
 
 (* A constant declaration *)
 const_decl: CONST; l = nonempty_list(const_decl_body) { List.flatten l }
@@ -338,7 +359,7 @@ type_decl:
 
   (* A type alias with static parameters 
     (must be a separate rule from previous to avoid shift-reduce conflicts) *)
-  | TYPE; l = ident_list; p = static_params; EQUALS; t = lustre_type; SEMICOLON
+  | TYPE; l = ident_list; p = decl_static_params; EQUALS; t = lustre_type; SEMICOLON
      { List.map (fun e -> 
                  A.AliasType (mk_pos $startpos, e, p, t)) l }
 
@@ -358,7 +379,7 @@ type_decl:
                         A.RecordType (mk_pos $startpos, e, t))) 
          l }
 
-  | TYPE; l = ident_list; p = static_params; EQUALS; t = record_type; SEMICOLON
+  | TYPE; l = ident_list; p = decl_static_params; EQUALS; t = record_type; SEMICOLON
      { List.map
          (function e ->
            A.AliasType (mk_pos $startpos,
@@ -379,14 +400,16 @@ lustre_type:
   | BOOL { A.Bool (mk_pos $startpos) }
   | INT { A.Int (mk_pos $startpos) }
   | REAL { A.Real (mk_pos $startpos) }
-  | UINT8 { A.UInt8 (mk_pos $startpos) }
-  | UINT16 { A.UInt16 (mk_pos $startpos) }
-  | UINT32 { A.UInt32 (mk_pos $startpos) }
-  | UINT64 { A.UInt64 (mk_pos $startpos) }
-  | INT8 { A.Int8 (mk_pos $startpos) }
-  | INT16 { A.Int16 (mk_pos $startpos) }
-  | INT32 { A.Int32 (mk_pos $startpos) }
-  | INT64 { A.Int64 (mk_pos $startpos) }
+  | UINT8 { A.UBitVector (mk_pos $startpos, 8) }
+  | UINT16 { A.UBitVector (mk_pos $startpos, 16) }
+  | UINT32 { A.UBitVector (mk_pos $startpos, 32) }
+  | UINT64 { A.UBitVector (mk_pos $startpos, 64) }
+  | INT8 { A.SBitVector (mk_pos $startpos, 8) }
+  | INT16 { A.SBitVector (mk_pos $startpos, 16) }
+  | INT32 { A.SBitVector (mk_pos $startpos, 32) }
+  | INT64 { A.SBitVector (mk_pos $startpos, 64) }
+  | SINT; LT; i = NUMERAL; GT; { A.SBitVector (mk_pos $startpos, int_of_string (HString.string_of_hstring i)) }
+  | UINT; LT; i = NUMERAL; GT; { A.UBitVector (mk_pos $startpos, int_of_string (HString.string_of_hstring i)) }
   | SUBRANGE;
     LSQBRACKET;
     l = expr_opt; 
@@ -396,9 +419,13 @@ lustre_type:
     OF
     INT 
     { A.IntRange (mk_pos $startpos, l, u) }
+  | SET; LT; ty = lustre_type; GT; 
+    { A.Set (mk_pos $startpos, ty) }
+  | MAP; LT; ty1 = lustre_type; comma_or_semicolon; ty2 = lustre_type; GT
+    { A.Map (mk_pos $startpos, ty1, ty2) }
 
   (* User-defined type *)
-  | s = ident; ps = call_static_params { A.UserType (mk_pos $startpos, ps, s) }
+  | s = ident; ps = type_static_params { A.UserType (mk_pos $startpos, ps, s) }
 
   (* Tuple type *)
   | t = tuple_type { A.TupleType (mk_pos $startpos, t) } 
@@ -436,7 +463,7 @@ array_type:
   | t = lustre_type; CARET; s = expr { t, s }
 
 refinement_type_base:
-  | LCURLYBRACKET; id = typed_ident; BAR; e = expr; RCURLYBRACKET
+  | LCURLYBRACKET; id = typed_ident; BAR; e = qexpr; RCURLYBRACKET
   { id, e }
 
 (* Refinement type *)
@@ -459,14 +486,14 @@ enum_type: ENUM LCURLYBRACKET; l = ident_list; RCURLYBRACKET { l }
 (* A node declaration and contract. *)
 node_decl:
 | n = ident;
-  p = loption(static_params);
+  p = loption(decl_static_params);
   i = tlist(LPAREN, SEMICOLON, RPAREN, const_clocked_typed_idents);
   RETURNS;
   o = tlist(LPAREN, SEMICOLON, RPAREN, clocked_typed_idents);
   option(SEMICOLON);
-  r = option(contract_spec)
+  r = option(contract_spec); 
   {
-    (n, p, List.flatten i, List.flatten o, r)
+    (NI.mk_node_id n, p, List.flatten i, List.flatten o, r)
   }
 
 (* A node definition (locals + body). *)
@@ -484,6 +511,8 @@ contract_ghost_vars:
     { A.GhostVars (mk_pos $startpos, GhostVarDec (mk_pos $startpos, l), e) }
 
 contract_ghost_const:
+  | CONST; i = ident; COLON; t = lustre_type; SEMICOLON
+    { A.GhostConst (A.FreeConst (mk_pos $startpos, i, t)) }
   | CONST; i = ident; COLON; t = lustre_type; EQUALS; e = qexpr; SEMICOLON 
     { A.GhostConst (A.TypedConst (mk_pos $startpos, i, e, t)) }
   | CONST; i = ident; EQUALS; e = qexpr; SEMICOLON 
@@ -522,13 +551,15 @@ contract_import:
     ty_args = call_static_params;
     LPAREN ; in_params = separated_list(COMMA, qexpr) ; RPAREN ; RETURNS ;
     LPAREN ; out_params = separated_list(COMMA, ident) ; RPAREN ; SEMICOLON ; 
-    { A.ContractCall (mk_pos $startpos, n, ty_args, in_params, out_params) }
+    { A.ContractCall (mk_pos $startpos, NI.mk_node_id n, ty_args, in_params, out_params) }
 
 call_static_params: 
   | { [] }
-  | ty_args = tlist (LPARAMBRACKET, SEMICOLON, RPARAMBRACKET, lustre_type); { ty_args }
+  | ATSIGN; ty_args = tlist (LT, comma_or_semicolon, GT, lustre_type); { ty_args }
 
-   
+type_static_params:
+  | { [] }
+  | ty_args = tlist (LT, comma_or_semicolon, GT, lustre_type); { ty_args }
 
 assumption_vars:
   ASSUMP_VARS ; ids = ident_list_pos; SEMICOLON
@@ -548,12 +579,11 @@ contract_item:
 contract_in_block:
   | c = nonempty_list(contract_item) { c }
 
-
 (* A contract node declaration. *)
 contract_decl:
   | CONTRACT;
     n = ident; 
-    p = loption(static_params);
+    p = loption(decl_static_params);
     i = tlist(LPAREN, SEMICOLON, RPAREN, const_clocked_typed_idents); 
     RETURNS; 
     o = tlist(LPAREN, SEMICOLON, RPAREN, clocked_typed_idents); 
@@ -563,14 +593,19 @@ contract_decl:
     TEL
     option(node_sep) 
 
-    { (n,
+    { (NI.mk_node_id n,
        p,
        List.flatten i,
        List.flatten o,
        (mk_pos $startpos, e)) }
 
-
 contract_spec:
+  (* Block contract, `con` and `noc`. *)
+  | CON ;
+    eqs = contract_in_block
+    NOC ; 
+    { (mk_pos $startpos, eqs) }
+  (* DEPRECATED contract syntax, but still here to support tools like VERDICT *)
   (* Block contract, parenthesis star (PS). *)
   | CONTRACT_PSATBLOCK ;
     eqs = contract_in_block
@@ -590,7 +625,7 @@ node_param_inst:
     EQUALS;
     s = ident; 
     p = tlist 
-         (LPARAMBRACKET, SEMICOLON, RPARAMBRACKET, lustre_type); 
+         (LT, comma_or_semicolon, GT, lustre_type); 
     SEMICOLON
     { (n, s, p) } 
 
@@ -605,8 +640,8 @@ static_param:
 
 
 (* The static parameters of a node *)
-static_params:
-  | l = tlist (LPARAMBRACKET, SEMICOLON, RPARAMBRACKET, static_param)
+decl_static_params:
+  | l = tlist (LT, comma_or_semicolon, GT, static_param)
     
     { l }  
 
@@ -711,6 +746,7 @@ check:
 
 node_item:
   | i = node_if_block { i }
+  | i = node_when_block { i }
   | f = node_frame_block { f }
   | e = node_equation { A.Body e }
   | a = main_annot { a }
@@ -750,7 +786,40 @@ node_if_block:
     { A.IfBlock(mk_pos $startpos, e, l, block) }
 
 
+node_when_block:
+  | WHEN; e = expr; THEN; 
+      l1 = nonempty_list(node_item);
+    ELSE; 
+      l2 = nonempty_list(node_item);
+    END;
+    { A.WhenBlock (mk_pos $startpos, e, l1, l2) }
+  | COND;
+      BAR; c1 = node_cond_case_colon;
+      cs = list(bar_node_cond_case_colon);
+      OTHERWISE; COLON;
+      l_else = nonempty_list(node_item);
+    END;
+    {
+      let cases = c1 :: cs in
+      let nested = List.fold_right
+        (fun (cond, l_then) l_otherwise ->
+          [A.WhenBlock (mk_pos $startpos, cond, l_then, l_otherwise)])
+        cases
+        l_else
+      in
+      match nested with
+      | [A.WhenBlock _ as wb] -> wb
+      | _ -> assert false
+    }
 
+
+bar_node_cond_case_colon:
+  | BAR; c = node_cond_case_colon { c }
+
+
+node_cond_case_colon:
+  | e = expr; COLON; l = nonempty_list(node_item)
+    { (e, l) }
 
 
 node_frame_block:
@@ -774,6 +843,7 @@ node_equation:
   | l = left_side; EQUALS; e = expr; SEMICOLON
     { A.Equation (mk_pos $startpos, l, e) }
 
+
 left_side:
 
   (* List without parentheses *)
@@ -781,9 +851,6 @@ left_side:
 
   (* Parenthesized list *)
   | LPAREN; l = struct_item_list; RPAREN { A.StructDef (mk_pos $startpos, l) }
-
-  (* Empty list *)
-  | LPAREN; RPAREN { A.StructDef (mk_pos $startpos, []) }
 
 
 (* Item in a structured equation *)
@@ -795,7 +862,7 @@ struct_item:
           
   (* Recursive array definition *)
   | s = ident; l = nonempty_list(index_var)
-     { A.ArrayDef (mk_pos $startpos, s, l)}
+     { A.ArrayDef (mk_pos $startpos, s, l) }
 
 (*
   (* Filter array values *)
@@ -822,9 +889,6 @@ struct_item_list:
 index_var:
   | LSQBRACKET; s = ident; RSQBRACKET { s }
 
-(* Two colons (for mode reference). *)
-two_colons:
-  | COLON ; COLON {}
 
 (* ********************************************************************** *)
 
@@ -835,15 +899,57 @@ two_colons:
 (* dummy rule for parameter of pexpr to signal we do not allow quantifiers *)
 %inline nonquantified:
   | { false }
-  
+
+choose_expr:
+  (* `choose` operation *)
+  | CHOOSE; r = refinement_type_base;
+    { let (id, e) = r in A.ChooseOp (mk_pos $startpos, id, e) }
+  | CHOOSE; ATSIGN; LT; ty = lustre_type; GT
+    {
+      match ty with
+        | A.RefinementType (_, id, e) ->
+          A.ChooseOp(mk_pos $startpos, id, e)
+        | _ ->
+          A.ChooseOp (mk_pos $startpos, (mk_pos $startpos, HString.mk_hstring "_", ty),
+                      Const(mk_pos $startpos, True))
+    }
+
+any_expr:
+  (* 'Any' operation *)
+  | ANY; r = refinement_type_base;
+    { let (id, e) = r in A.AnyOp (mk_pos $startpos, id, e) }
+  | ANY; ATSIGN; LT; ty = lustre_type; GT
+    {
+      match ty with
+        | A.RefinementType (_, id, e) ->
+          A.AnyOp(mk_pos $startpos, id, e)
+        | _ ->
+          A.AnyOp (mk_pos $startpos, (mk_pos $startpos, HString.mk_hstring "_", ty),
+                      Const(mk_pos $startpos, True))
+    }
+
+assign:
+  | e2 = expr; ASSIGN; e3 = expr { e2, e3 }
+
+map_type_annotation: 
+  | ATSIGN; LT key_ty=lustre_type; comma_or_semicolon; value_ty=lustre_type; GT
+  { key_ty, value_ty } 
+
+type_annotation: 
+  | ATSIGN; LT ty=lustre_type; GT
+  { ty }
+
 (* An possibly quantified expression *)
 pexpr(Q): 
   
+  | e = any_expr { e }
+  | e = choose_expr { e }
+
   (* An identifier *)
   | s = ident { A.Ident (mk_pos $startpos, s) } 
 
   (* A mode reference. *)
-  | two_colons ; mode_ref = separated_nonempty_list(two_colons, ident) {
+  | DOUBLE_COLON ; mode_ref = separated_nonempty_list(DOUBLE_COLON, ident) {
     A.ModeRef (mk_pos $startpos, mode_ref)
   }
 
@@ -858,14 +964,16 @@ pexpr(Q):
   (* Conversions *)
   | INT; e = expr { A.ConvOp (mk_pos $startpos, A.ToInt, e) }
   | REAL; e = expr { A.ConvOp (mk_pos $startpos, A.ToReal, e) }
-  | UINT8; e = expr { A.ConvOp (mk_pos $startpos, A.ToUInt8, e) }
-  | UINT16; e = expr { A.ConvOp (mk_pos $startpos, A.ToUInt16, e) }
-  | UINT32; e = expr { A.ConvOp (mk_pos $startpos, A.ToUInt32, e) }
-  | UINT64; e = expr { A.ConvOp (mk_pos $startpos, A.ToUInt64, e) }
-  | INT8; e = expr { A.ConvOp (mk_pos $startpos, A.ToInt8, e) }
-  | INT16; e = expr { A.ConvOp (mk_pos $startpos, A.ToInt16, e) }
-  | INT32; e = expr { A.ConvOp (mk_pos $startpos, A.ToInt32, e) }
-  | INT64; e = expr { A.ConvOp (mk_pos $startpos, A.ToInt64, e) }
+  | UINT8; e = expr { A.ConvOp (mk_pos $startpos, A.ToUBV 8, e) }
+  | UINT16; e = expr { A.ConvOp (mk_pos $startpos, A.ToUBV 16, e) }
+  | UINT32; e = expr { A.ConvOp (mk_pos $startpos, A.ToUBV 32, e) }
+  | UINT64; e = expr { A.ConvOp (mk_pos $startpos, A.ToUBV 64, e) }
+  | INT8; e = expr { A.ConvOp (mk_pos $startpos, A.ToBV 8, e) }
+  | INT16; e = expr { A.ConvOp (mk_pos $startpos, A.ToBV 16, e) }
+  | INT32; e = expr { A.ConvOp (mk_pos $startpos, A.ToBV 32, e) }
+  | INT64; e = expr { A.ConvOp (mk_pos $startpos, A.ToBV 64, e) }
+  | UINT; ATSIGN; LT; n = NUMERAL; GT; e = expr { A.ConvOp (mk_pos $startpos, A.ToUBV (int_of_string (HString.string_of_hstring n)), e) }
+  | SINT; ATSIGN; LT; n = NUMERAL; GT; e = expr { A.ConvOp (mk_pos $startpos, A.ToBV (int_of_string (HString.string_of_hstring n)), e) }
 
   (* A parenthesized single expression *)
   | LPAREN; e = pexpr(Q); RPAREN { e } 
@@ -877,8 +985,7 @@ pexpr(Q):
     { A.GroupExpr (mk_pos $startpos, A.ExprList, h :: l) } 
 
   (* A tuple expression (not quantified) *)
-  (* | LSQBRACKET; l = qexpr_list; RSQBRACKET { A.TupleExpr (mk_pos $startpos, l) } *)
-  | LCURLYBRACKET; l = pexpr_list(Q); RCURLYBRACKET { A.GroupExpr (mk_pos $startpos, A.TupleExpr, l) }
+  | TICK; LPAREN; l = pexpr_list(Q); RPAREN { A.GroupExpr (mk_pos $startpos, A.TupleExpr, l) }
 
   (* An array expression (not quantified) *)
   | LSQBRACKET; l = pexpr_list(Q); RSQBRACKET { A.GroupExpr (mk_pos $startpos, A.ArrayExpr, l) }
@@ -886,20 +993,56 @@ pexpr(Q):
   (* An array constructor (not quantified) *)
   | e1 = pexpr(Q); CARET; e2 = expr { A.ArrayConstr (mk_pos $startpos, e1, e2) }
 
-  (* Tuple projection (not quantified) *)
-  | e = pexpr(Q); DOTPERCENT; i = NUMERAL 
-  { let idx = try (int_of_string (HString.string_of_hstring i)) with
-              | _ -> fail_at_position (mk_pos $startpos(i)) "Tuple projection index exceeds int range" in
-    A.TupleProject (mk_pos $startpos, e, idx) }
+  (* Empty map *)
+  | MAP; LSQBRACKET; RSQBRACKET;
+    ta = map_type_annotation
+  { A.EmptyMap (mk_pos $startpos, Some ta) }
+
+  (* Map literals *)
+  | MAP LSQBRACKET 
+    updates = separated_nonempty_list(SEMICOLON, assign); 
+    RSQBRACKET 
+  {
+    List.fold_left (fun acc (e2, e3) -> 
+      A.StructUpdate (mk_pos $startpos, acc, [A.MapIndex (mk_pos $startpos, e2)], Some e3) 
+    )  (A.EmptyMap (mk_pos $startpos, None)) updates 
+  }
+
+  (* Empty set *)
+  | LCURLYBRACKET 
+    RCURLYBRACKET 
+    ta = type_annotation; 
+  { A.EmptySet (mk_pos $startpos, Some ta) }
+
+  (* Set literals *)
+  | LCURLYBRACKET 
+    elements = separated_nonempty_list(COMMA, expr);
+    RCURLYBRACKET 
+  {
+    List.fold_left (fun acc e -> 
+      A.StructUpdate (mk_pos $startpos, acc, [A.SetIndex (mk_pos $startpos, e)], None) 
+    ) (A.EmptySet (mk_pos $startpos, None)) elements
+  }
+
+  (* Map element updates *)
+  | e1 = pexpr(Q); 
+    LSQBRACKET; 
+    updates = separated_nonempty_list(SEMICOLON, assign); 
+    RSQBRACKET;
+    { 
+      List.fold_left (fun acc (e2, e3) -> 
+        A.StructUpdate (mk_pos $startpos, acc, [A.GenericIndex (mk_pos $startpos, e2)], Some e3) 
+      ) e1 updates 
+    }
 
   (* An array slice (not quantified) *)
   | pexpr(Q); LSQBRACKET; array_slice; RSQBRACKET
     { let pos = mk_pos $startpos in
       fail_at_position pos "Unsupported operator: array slice" }
 
-  (* An array index (not quantified) *)
+  (* An index access (not quantified) *)
   | e = pexpr(Q); LSQBRACKET; i = expr; RSQBRACKET
-    { A.ArrayIndex (mk_pos $startpos, e, i) }
+    { A.IndexAccess (mk_pos $startpos, e, i, Unknown) }
     
   (* A record field projection (not quantified) *)
   | s = pexpr(Q); DOT; t = ident 
@@ -915,21 +1058,11 @@ pexpr(Q):
     let pos = mk_pos $startpos in
     fail_at_position pos "Unsupported operator: array concatenation" } 
 
-  (* with operator for updating fields of a structure (not quantified) *)
-  | LPAREN; 
-    e1 = pexpr(Q); 
-    WITH; 
-    i = nonempty_list(label_or_index); 
-    EQUALS; 
-    e2 = pexpr(Q); 
-    RPAREN
-
-    { A.StructUpdate (mk_pos $startpos, e1, i, e2) } 
-
   (* An arithmetic operation *)
   | e1 = pexpr(Q); MINUS; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.Minus, e1, e2) }
   | MINUS; e = expr { A.UnaryOp (mk_pos $startpos, A.Uminus, e) } 
   | e1 = pexpr(Q); PLUS; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.Plus, e1, e2) }
+  | e1 = pexpr(Q); CONCAT; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.BVConcat, e1, e2) }
   | e1 = pexpr(Q); MULT; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.Times, e1, e2) }
   | e1 = pexpr(Q); DIV; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.Div, e1, e2) }
   | e1 = pexpr(Q); INTDIV; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.IntDiv, e1, e2) }
@@ -938,9 +1071,13 @@ pexpr(Q):
   (* A Boolean operation *)
   | NOT; e = pexpr(Q) { A.UnaryOp (mk_pos $startpos, A.Not, e) } 
   | e1 = pexpr(Q); AND; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.And, e1, e2) }
+  | e1 = pexpr(Q); AND_THEN; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.AndThen, e1, e2) }
   | e1 = pexpr(Q); OR; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.Or, e1, e2) }
+  | e1 = pexpr(Q); OR_ELSE; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.OrElse, e1, e2) }
   | e1 = pexpr(Q); XOR; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.Xor, e1, e2) }
   | e1 = pexpr(Q); IMPL; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.Impl, e1, e2) }
+  | e1 = pexpr(Q); LAZY_IMPL; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.LazyImpl, e1, e2) }
+  | e1 = pexpr(Q); IN; e2 = pexpr(Q) { A.BinaryOp (mk_pos $startpos, A.In Unknown, e1, e2) }
   | HASH; LPAREN; pexpr_list(Q); RPAREN { 
     let pos = mk_pos $startpos in
     fail_at_position pos "Unsupported operator: #" }
@@ -982,20 +1119,8 @@ pexpr(Q):
   | IF; e1 = pexpr(Q); THEN; e2 = pexpr(Q); ELSE; e3 = pexpr(Q) 
     { A.TernaryOp (mk_pos $startpos, A.Ite, e1, e2, e3) }
 
-  (* 'Any' operation *)
-  | ANY; r = refinement_type_base
-    { let (id, e) = r in A.AnyOp (mk_pos $startpos, id, e, None) } 
-  | ANY; r = refinement_type_base ASSUMING; e2 = pexpr(Q)
-    { let (id, e1) = r in A.AnyOp (mk_pos $startpos, id, e1, Some e2) } 
-  | ANY; ty = lustre_type;
-    { 
-      match ty with 
-        | RefinementType (_, id, e) -> 
-          A.AnyOp(mk_pos $startpos, id, e, None)
-        | _ ->
-          A.AnyOp (mk_pos $startpos, (mk_pos $startpos, HString.mk_hstring "_", ty), 
-                      Const(mk_pos $startpos, True), None)
-    }
+  | WHEN; e1 = pexpr(Q); THEN; e2 = pexpr(Q); ELSE; e3 = pexpr(Q)
+    { A.TernaryOp (mk_pos $startpos, A.LazyIte, e1, e2, e3) }
 
   (* Recursive node call *)
   | WITH; pexpr(Q); THEN; pexpr(Q); ELSE; pexpr(Q) 
@@ -1021,7 +1146,7 @@ pexpr(Q):
     d = pexpr_list(Q)
     RPAREN
     { let pos = mk_pos $startpos in
-      A.Condact (pos, e1, A.Const (pos, A.False), s, a, d) } 
+      A.Condact (pos, e1, A.Const (pos, A.False), NodeId.mk_node_id s, a, d) } 
 
   (* condact call may have no return values and therefore no defaults *)
   | CONDACT 
@@ -1032,7 +1157,7 @@ pexpr(Q):
     RPAREN
 
     { let pos = mk_pos $startpos in
-      A.Condact (pos, c, A.Const (pos, A.False), s, a, []) } 
+      A.Condact (pos, c, A.Const (pos, A.False), NodeId.mk_node_id s, a, []) } 
 
   (* condact call with defaults and restart *)
   | CONDACT LPAREN;
@@ -1044,7 +1169,7 @@ pexpr(Q):
     d = pexpr_list(Q);
     RPAREN
     { let pos = mk_pos $startpos in
-      A.Condact (pos, c, r, s, a, d) } 
+      A.Condact (pos, c, r, NodeId.mk_node_id s, a, d) } 
 
   (* condact call with no return values and restart *)
   | CONDACT ; LPAREN;
@@ -1054,7 +1179,7 @@ pexpr(Q):
     LPAREN; a = separated_list(COMMA, pexpr(Q)); RPAREN; 
     RPAREN
     { let pos = mk_pos $startpos in
-      A.Condact (pos, c, r, s, a, []) } 
+      A.Condact (pos, c, r, NodeId.mk_node_id s, a, []) } 
 
   (* [(activate N every h initial default (d1, ..., dn)) (e1, ..., en)] 
      is an alias for [condact(h, N(e1, ..., en), d1, ,..., dn) ]*)
@@ -1063,7 +1188,7 @@ pexpr(Q):
     LPAREN; a = separated_list(COMMA, pexpr(Q)); RPAREN
 
     { let pos = mk_pos $startpos in
-      A.Condact (pos, c, A.Const (pos, A.False), s, a, d) }
+      A.Condact (pos, c, A.Const (pos, A.False), NodeId.mk_node_id s, a, d) }
     
   (* activate operator without initial defaults
 
@@ -1072,7 +1197,7 @@ pexpr(Q):
     LPAREN; a = separated_list(COMMA, pexpr(Q)); RPAREN
 
     { let pos = mk_pos $startpos in
-      A.Activate (pos, s, c, A.Const (pos, A.False), a) }
+      A.Activate (pos, NodeId.mk_node_id s, c, A.Const (pos, A.False), a) }
 
   (* activate restart *)
   | LPAREN; ACTIVATE;
@@ -1082,7 +1207,7 @@ pexpr(Q):
     LPAREN; a = separated_list(COMMA, pexpr(Q)); RPAREN
 
     { let pos = mk_pos $startpos in
-      A.Condact (pos, c, r, s, a, d) }
+      A.Condact (pos, c, r, NodeId.mk_node_id s, a, d) }
     
   (* alternative syntax for activate restart *)
   | LPAREN; ACTIVATE; s = ident; EVERY; c = pexpr(Q); 
@@ -1091,7 +1216,7 @@ pexpr(Q):
     LPAREN; a = separated_list(COMMA, pexpr(Q)); RPAREN
 
     { let pos = mk_pos $startpos in
-      A.Condact (pos, c, r, s, a, d) }
+      A.Condact (pos, c, r, NodeId.mk_node_id s, a, d) }
     
   (* activate operator without initial defaults and restart
 
@@ -1102,7 +1227,7 @@ pexpr(Q):
     LPAREN; a = separated_list(COMMA, pexpr(Q)); RPAREN
 
     { let pos = mk_pos $startpos in
-      A.Activate (pos, s, c, r, a) }
+      A.Activate (pos, NodeId.mk_node_id s, c, r, a) }
     
   (* alternative syntax of previous construct  *)
   | LPAREN; ACTIVATE; s = ident; EVERY; c = pexpr(Q);
@@ -1110,7 +1235,7 @@ pexpr(Q):
     LPAREN; a = separated_list(COMMA, pexpr(Q)); RPAREN
 
     { let pos = mk_pos $startpos in
-      A.Activate (pos, s, c, r, a) }
+      A.Activate (pos, NodeId.mk_node_id s, c, r, a) }
 
     
   (* restart node call *)
@@ -1125,7 +1250,7 @@ pexpr(Q):
   | LPAREN; RESTART; s = ident; EVERY; c = pexpr(Q); RPAREN; 
     LPAREN; a = separated_list(COMMA, pexpr(Q)); RPAREN
 
-    { A.RestartEvery (mk_pos $startpos, s, a, c) }
+    { A.RestartEvery (mk_pos $startpos, NodeId.mk_node_id s, a, c) }
     
         
   (* Binary merge operator *)
@@ -1140,6 +1265,9 @@ pexpr(Q):
     c = ident;
     l = nonempty_list(merge_case);
     { A.Merge (mk_pos $startpos, c, l) }
+
+  (* Type ascription *) 
+  | LPAREN; e = pexpr(Q); COLON; ty = lustre_type; RPAREN; { A.TypeAscription (mk_pos $startpos, e, ty) }
     
   (* A temporal operation *)
   | PRE; e = pexpr(Q) { A.Pre (mk_pos $startpos, e) }
@@ -1150,7 +1278,10 @@ pexpr(Q):
   | e1 = pexpr(Q); ARROW; e2 = pexpr(Q) { A.Arrow (mk_pos $startpos, e1, e2) }
 
   (* A node or function call *)
-  | e = node_call { e } 
+  | e = node_call { e }
+
+  | e = pexpr(Q); LSQBRACKET; n1 = NUMERAL; COLON; n2 = NUMERAL; RSQBRACKET 
+    { A.Extract (mk_pos $startpos, e, int_of_string (HString.string_of_hstring n1), int_of_string (HString.string_of_hstring n2)) }
 
 
 %inline qexpr:
@@ -1171,7 +1302,7 @@ node_call:
     a = separated_list(COMMA, expr); 
     RPAREN 
     { 
-      A.Call (mk_pos $startpos, ty_args, s, a) 
+      A.Call (mk_pos $startpos, ty_args, NI.mk_node_id s, a) 
     }
 
 
@@ -1244,7 +1375,7 @@ typed_idents:
     (* Pair each identifier with the type *)
     { List.map (function (pos, e) -> (pos, e, t)) l }
   | l = ident_list_pos; COLON; t = lustre_type; BAR; expr = expr;
-    (* Pair each identifier with the type *)
+    (* Concise refinement type syntax *)
     { 
       match l with 
         | (pos, e) :: [] -> [(pos, e, A.RefinementType (mk_pos $startpos, (mk_pos $startpos, e, t), expr))]
@@ -1261,6 +1392,13 @@ quantified_typed_idents:
   | l = ident_list_pos; COLON; t = lustre_type_or_history
     (* Pair each identifier with the type *)
     { List.map (function (pos, e) -> (pos, e, t)) l }
+  | l = ident_list_pos; COLON; t = lustre_type; BAR; expr = expr
+    (* Concise refinement type syntax *)
+    {
+      match l with
+        | (pos, e) :: [] -> [(pos, e, A.RefinementType (mk_pos $startpos, (mk_pos $startpos, e, t), expr))]
+        | _ -> fail_at_position (mk_pos $startpos) "Refinement type concise syntax can only be applied to a single (lone) variable."
+    }
 
 (* A list of lists of typed identifiers *)
 typed_idents_list:
@@ -1376,25 +1514,6 @@ tlist_tail(separator, closing, X):
 tlist(opening, separator, closing, X):
   | opening; l = tlist_tail(separator, closing, X) { l }
   | opening; closing { [ ] }
-
-(* ********************************************************************** *)
-
-
-(* An index *)
-label_or_index: 
-
-  (* An index into a record *)
-  | DOT; i = ident
-     { A.Label (mk_pos $startpos, i) } 
-
-  (* An index into an array with a variable or constant *)
-  | LSQBRACKET; e = expr; RSQBRACKET
-     { A.Index (mk_pos $startpos, e) }
-
-  (* An index into a tuple with a variable or constant *)
-  | DOTPERCENT; e = expr; 
-     { A.Index (mk_pos $startpos, e) }
-
 
 
 (* 

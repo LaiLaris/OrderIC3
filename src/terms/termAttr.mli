@@ -24,69 +24,71 @@
 
 (** {1 Types and hash-consing} *)
 
-type t
 (** Hashconsed attribute *)
+type t
+
 
 (** {1 Hashtables, maps and sets} *)
 
-val compare_attrs : t -> t -> int
 (** Comparison function on attributes *)
+val compare_attrs : t -> t -> int
 
-val equal_attrs : t -> t -> bool
 (** Equality function on attributes *)
+val equal_attrs : t -> t -> bool
 
-val hash_attr : t -> int
 (** Hashing function on attribute *)
+val hash_attr : t -> int
 
-module AttrHashtbl : Hashtbl.S with type key = t
 (** Hash table over attributes *)
+module AttrHashtbl : Hashtbl.S with type key = t
 
-module AttrSet : Set.S with type elt = t
 (** Set over attributes *)
+module AttrSet : Set.S with type elt = t
 
-module AttrMap : Map.S with type key = t
 (** Map over attributes *)
+module AttrMap : Map.S with type key = t
+
 
 (** {1 Constructor} *)
 
-val mk_named : string -> int -> t
 (** Return a name attribute *)
+val mk_named : string -> int -> t
 
-val mk_interp_group : string -> t
 (** Return an interpolation group attribute *)
+val mk_interp_group : string -> t
 
-val fundef : t
 (** Return a fun-def attribute *)
+val fundef : t
 
 (** {1 Accessor functions} *)
 
-val is_named : t -> bool
 (** Return true if the attribute is a name *)
+val is_named : t -> bool
 
-val is_fundef : t -> bool
 (** Return true if the attribute is fundef *)
+val is_fundef : t -> bool
 
-val is_interp_group : t -> bool
 (** Return true if the attribute is an interpolation group *)
+val is_interp_group : t -> bool
 
+(** Return the name in a name attribute, raises [Invalid_argument] for
+    other attributes *)
 val named_of_attr : t -> string * int
-(** Return the name in a name attribute, raises [Invalid_argument] for other
-    attributes *)
 
+(** Return the name in an interpolation group attribute,
+    raises [Invalid_argument] for other attributes *)
 val interp_group_of_attr : t -> string
-(** Return the name in an interpolation group attribute, raises
-    [Invalid_argument] for other attributes *)
 
 (** {1 Pretty-printing} *)
 
-val pp_print_attr : Format.formatter -> t -> unit
 (** Pretty-print a hashconsed attribute *)
+val pp_print_attr : Format.formatter -> t -> unit
 
-val print_attr : t -> unit
 (** Pretty-print a hashconsed attribute to the standard formatter *)
+val print_attr : t -> unit
 
-val string_of_attr : t -> string
 (** Return a string representation of a hashconsed attribute *)
+val string_of_attr : t -> string 
 
 (* 
    Local Variables:

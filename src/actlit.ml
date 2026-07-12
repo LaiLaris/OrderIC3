@@ -21,7 +21,8 @@
 
 (* Returns an actlit built from a string. Beware of name
    collisions. *)
-let actlit_of_string string = UfSymbol.mk_uf_symbol string [] (Type.mk_bool ())
+let actlit_of_string string =
+  UfSymbol.mk_uf_symbol string [] (Type.mk_bool ())
 
 (*
 (* Creates a positive actlit as a UF. *)
@@ -41,8 +42,11 @@ let i = ref 0
 
 (* Creates a fresh actlit as a bool UF constant. *)
 let fresh_actlit () =
-  let string = String.concat "_" [ "%fresh"; "actlit"; string_of_int !i ] in
-  i := !i + 1;
+  let string =
+    String.concat
+      "_" [ "%fresh" ; "actlit"; string_of_int !i ]
+  in
+  i := !i + 1 ;
   actlit_of_string string
 
 (** Returns the number of fresh actlits created this far. *)
@@ -50,8 +54,8 @@ let fresh_actlit_count () = !i
 
 (** Resets the internal counter for fresh actlits.
 
-    /!\ Dangerous, use only if all solvers do use any of the old actlits or will
-    not use any of the new ones. *)
+    /!\ Dangerous, use only if all solvers do use any of the old actlits or
+        will not use any of the new ones. *)
 let reset_fresh_actlit_count () = i := 0
 
 (* Returns the term corresponding to the input actlit. *)
@@ -64,3 +68,4 @@ let term_of_actlit actlit = Term.mk_uf actlit []
    indent-tabs-mode: nil
    End: 
 *)
+

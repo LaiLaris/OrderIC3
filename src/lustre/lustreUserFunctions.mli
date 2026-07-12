@@ -17,4 +17,6 @@
 *)
 
 val inlinable_functions :
-  TypeCheckerContext.tc_context -> LustreAst.declaration list -> LustreAst.SI.t
+  TypeCheckerContext.tc_context ->
+  LustreAst.declaration list ->
+  NodeId.Set.t

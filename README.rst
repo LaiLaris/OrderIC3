@@ -293,7 +293,7 @@ Direct Installation Using Dune
 To build directly from sources you will also need the following software 
 first:
 
-* OCaml 4.09 or later,
+* OCaml 4.14 or later,
 * `Dune 2.7 or later <https://github.com/ocaml/dune>`_\,
 * dune-build-info,
 * `OCaml bindings for ZMQ <https://github.com/issuu/ocaml-zmq>`_\,
@@ -343,6 +343,19 @@ To run the ounit tests, you can use the following dune command:
 .. code-block:: bash
 
    dune test
+
+
+To run regression tests, you need a Python interpreter and
+the `pytest <https://pypi.org/project/pytest/>`_ module. The simplest way to do
+this is to install `uv <https://docs.astral.sh/uv/>`_. The test-running script
+will try to use ``uv`` to set up its own isolated python environment with ``pytest``,
+so the rest of your system will not be impacted. If it fails to find ``uv``, it will
+fallback to trying to use ``pytest`` in your system's Python interpreter.
+
+.. code-block:: bash
+
+   make test
+
 
 Documentation
 -------------

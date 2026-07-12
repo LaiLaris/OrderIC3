@@ -19,21 +19,28 @@
 include GenericSMTLIBDriver
 
 (* Configuration for MathSAT *)
-let cmd_line logic timeout _ (* produce_models *) _ (* produce_proofs *) _
-    (* produce_unsat_cores *) _ (* produce_unsat_assumptions *) _
-    (* minimize_cores *) _ (* produce_interpolants *) =
+let cmd_line 
+    logic timeout 
+    _ (* produce_models *)
+    _ (* produce_proofs *)
+    _ (* produce_unsat_cores *)
+    _ (* produce_unsat_assumptions *)
+    _ (* minimize_cores *)
+    _ (* produce_interpolants *) =
+
   (let open TermLib in
-   let open TermLib.FeatureSet in
-   match logic with
-   | `Inferred l when mem BV l && (mem IA l || mem RA l) ->
-       let msg =
-         Format.asprintf
-           "In %a: MathSAT does not support programs with both integers/reals \
-            and machine integers"
+    let open TermLib.FeatureSet in
+    match logic with
+    | `Inferred l when mem BV l && (mem IA l || mem RA l) -> (
+     let msg =
+       Format.asprintf
+         "In %a: MathSAT does not support programs with both integers/reals and machine integers"
            Lib.pp_print_kind_module (KEvent.get_module ())
-       in
-       failwith msg
-   | _ -> ());
+     in
+     failwith msg
+   )
+   | _ -> ()
+  );
 
   (* Path and name of MathSAT executable *)
   let mathsat_bin = Flags.Smt.mathsat_bin () in
@@ -58,22 +65,24 @@ let cmd_line logic timeout _ (* produce_models *) _ (* produce_proofs *) _
     preprocessor.simplification=2
     theory.bv.eager=true
    *)
+
   let cmd =
     [|
       mathsat_bin;
       (* Workaround for a bug in MathSAT (last checked version: 5.6.10) *)
       "-preprocessor.interpolation_ite_elimination=true";
       (* Required for interpolation *)
-      "-theory.bv.eager=false";
+      "-theory.bv.eager=false"
     |]
   in
-  match timeout with
-  | None -> cmd
-  | Some timeout ->
+    match timeout with
+    | None -> cmd
+    | Some timeout ->
       let timeout =
-        Format.sprintf "-timeout=%.0f" (1000.0 *. timeout |> ceil)
+        Format.sprintf "-timeout=%.0f" ((1000.0 *. timeout) |> ceil)
       in
-      Array.append cmd [| timeout |]
+      Array.append cmd [|timeout|]
+
 
 let pp_print_symbol ?arity ppf s =
   (* Workaround for a bug in MathSAT (last checked version: 5.6.10):
@@ -81,7 +90,7 @@ let pp_print_symbol ?arity ppf s =
      (get-value (= x (_ bv0 4))) works fine
   *)
   match Symbol.node_of_symbol s with
-  | `UBV b -> Bitvector.pp_smtlib_print_bitvector_d ppf b
+  | `UBV b -> Bitvector.pp_smtlib_print_bitvector_d ppf b 
   | `BV b -> Bitvector.pp_smtlib_print_bitvector_d ppf b
   | n -> GenericSMTLIBDriver.pp_print_symbol_node ?arity ppf n
 

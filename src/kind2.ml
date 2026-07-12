@@ -19,17 +19,20 @@
 (** Top level of the Kind 2 model-checker. *)
 
 open Lib
+
 module Signals = TermLib.Signals
 
 (* Hide existential type parameter of to construct values of 'a InputSystem.t
    at runtime *)
-type any_input = Input : 'a InputSystem.t -> any_input
+type any_input =
+| Input : 'a InputSystem.t -> any_input
 
-let classify_input_stream : string -> string =
- fun in_file ->
+
+let classify_input_stream: string -> string = fun in_file -> 
   match in_file with
-  | "" -> "standard input"
-  | _ -> "input file '" ^ in_file ^ "'"
+   | "" -> "standard input"
+   | _  -> "input file '" ^ in_file ^ "'"
+
 
 (* Setup everything and returns the input system. Setup includes:
    - flag parsing,
@@ -41,38 +44,42 @@ let classify_input_stream : string -> string =
    - starting global timer,
    - parsing input file,
    - building input system. *)
-let setup : unit -> any_input =
- fun () ->
-  (* Parse command-line flags. *)
-  (try Flags.parse_argv () with
-  | Flags.Error ->
-      KEvent.terminate_log ();
-      exit ExitCodes.usage_error
-  | Flags.UnsupportedSolver ->
-      KEvent.terminate_log ();
-      exit ExitCodes.unsupported_solver
-  | Flags.SolverNotFound ->
-      KEvent.terminate_log ();
-      exit ExitCodes.not_found_error);
+let setup : unit -> any_input = fun () ->
 
-  Debug.set_dflags (Flags.debug ());
+  (* Parse command-line flags. *)
+  (try
+    Flags.parse_argv ()
+   with
+   | Flags.Error -> (
+      KEvent.terminate_log () ; exit ExitCodes.usage_error
+   )
+   | Flags.UnsupportedSolver -> (
+      KEvent.terminate_log () ; exit ExitCodes.unsupported_solver
+   )
+   | Flags.SolverNotFound -> (
+      KEvent.terminate_log () ; exit ExitCodes.not_found_error
+   )
+  );
+
+  Debug.set_dflags (Flags.debug ()) ;
 
   (* Formatter to write debug output to. *)
   (match Flags.debug_log () with
-  (* Write to stdout by default. *)
-  | None -> ()
-  (* Open channel to given file and create formatter on channel. *)
-  | Some f ->
-      let oc =
-        try open_out f
-        with Sys_error msg ->
-          Format.sprintf "Could not open debug logfile '%s': '%s'" f msg
-          |> failwith
+    (* Write to stdout by default. *)
+    | None -> ()
+    (* Open channel to given file and create formatter on channel. *)
+    | Some f ->
+      let oc = try open_out f with Sys_error msg ->
+        Format.sprintf
+          "Could not open debug logfile '%s': '%s'" f msg
+        |> failwith
       in
-      Debug.set_formatter (Format.formatter_of_out_channel oc));
+      Debug.set_formatter (Format.formatter_of_out_channel oc)
+  ) ;
+
 
   (* Record backtraces on log levels debug and higher. *)
-  if output_on_level L_debug then Printexc.record_backtrace true;
+  if output_on_level L_debug then Printexc.record_backtrace true ;
 
   (*
     /!\ ================================================================== /!\
@@ -82,95 +89,97 @@ let setup : unit -> any_input =
   *)
 
   (* Raise exception on CTRL+C. *)
-  Sys.catch_break true;
+  Sys.catch_break true ;
 
   (* Set sigalrm handler. *)
-  Signals.set_sigalrm_timeout_from_flag ();
+  Signals.set_sigalrm_timeout_from_flag () ;
 
   (* Install generic signal handlers for other signals. *)
-  Signals.set_sigint ();
-  Signals.set_sigpipe ();
-  Signals.set_sigterm ();
-  Signals.set_sigquit ();
+  Signals.set_sigint () ;
+  Signals.set_sigpipe () ;
+  Signals.set_sigterm () ;
+  Signals.set_sigquit () ;
 
   (* Starting global timer. *)
-  Stat.start_timer Stat.total_time;
+  Stat.start_timer Stat.total_time ;
 
   let in_file = Flags.input_file () in
 
-  KEvent.log L_info "Creating Input system from  %s."
-    (classify_input_stream in_file);
+  KEvent.log L_info "Creating Input system from  %s." (classify_input_stream in_file);
 
   try
-    let input_system =
+    let input_system = 
       match Flags.input_format () with
       | `Lustre -> (
-          KEvent.log L_debug "Lustre input detected";
-          match InputSystem.read_input_lustre (Flags.only_parse ()) in_file with
-          | Some in_sys -> Input in_sys
-          | None ->
-              KEvent.log L_note "No parse errors found!";
-              KEvent.terminate_log ();
-              exit ExitCodes.success)
-      | `Native ->
-          KEvent.log L_debug "Native input detected";
-          Input (InputSystem.read_input_native in_file)
-      | `Horn ->
-          KEvent.log L_fatal "Horn clauses are not supported.";
-          KEvent.terminate_log ();
-          exit ExitCodes.error
+        KEvent.log L_debug "Lustre input detected";
+        match InputSystem.read_input_lustre (Flags.only_parse ()) in_file with
+        | Some in_sys -> Input in_sys
+        | None -> (
+            KEvent.log L_note "No parse errors found!";
+            KEvent.terminate_log ();
+            exit ExitCodes.success
+        )
+      )
+                   
+      | `Native -> KEvent.log L_debug "Native input detected";
+                   Input (InputSystem.read_input_native in_file)
+                   
+      | `Horn   -> KEvent.log L_fatal "Horn clauses are not supported." ;
+                   KEvent.terminate_log () ;
+                   exit ExitCodes.error
     in
     KEvent.log L_debug "Input System built";
     input_system
   with
   (* Could not create input system. *)
-  | LustreAst.Parser_error ->
-      (* We should have printed the appropriate message so just 'gracefully' exit *)
-      KEvent.terminate_log ();
-      exit ExitCodes.parse_error
-  | LustreInput.NoMainNode msg | LustreInput.MainTypeWithoutRealizability msg ->
-      KEvent.log L_fatal "Error reading input file '%s': %s" in_file msg;
-      KEvent.terminate_log ();
-      exit ExitCodes.error
+  | LustreAst.Parser_error  ->
+     (* We should have printed the appropriate message so just 'gracefully' exit *)
+     KEvent.terminate_log () ; exit ExitCodes.parse_error
+  | LustreInput.NoMainNode msg
+  | LustreInput.MainTypeWithoutRealizability msg ->
+     KEvent.log L_fatal "Error reading input file '%s': %s" in_file msg ;
+     KEvent.terminate_log () ; exit ExitCodes.error
   | Sys_error msg ->
-      KEvent.log L_fatal "Error opening input file '%s': %s" in_file msg;
-      KEvent.terminate_log ();
-      exit ExitCodes.error
+     KEvent.log L_fatal "Error opening input file '%s': %s" in_file msg ;
+     KEvent.terminate_log () ; exit ExitCodes.error
   | e ->
-      let backtrace = Printexc.get_raw_backtrace () in
-      KEvent.log L_fatal "Error opening input file '%s':@ %s%a" in_file
-        (Printexc.to_string e)
-        (if Printexc.backtrace_status () then fun fmt ->
-           Format.fprintf fmt "@\nBacktrace:@ %a" print_backtrace
-         else fun _ _ -> ())
-        backtrace;
-      (* Terminating log and exiting with error. *)
-      KEvent.terminate_log ();
-      exit ExitCodes.error
+     let backtrace = Printexc.get_raw_backtrace () in
+     KEvent.log L_fatal "Error opening input file '%s':@ %s%a"
+       (in_file) (Printexc.to_string e)
+       (if Printexc.backtrace_status ()
+        then fun fmt -> Format.fprintf fmt "@\nBacktrace:@ %a" print_backtrace
+        else fun _ _ -> ()) backtrace;
+     (* Terminating log and exiting with error. *)
+     KEvent.terminate_log () ;
+     exit ExitCodes.error  
 
 (* Entry point *)
 let main () =
+
   (* Set everything up and produce input system. *)
-  let (Input input_sys) = setup () in
+  let Input input_sys = setup () in
 
   (* Not launching if we're just translating contracts. *)
   match Flags.Contracts.translate_contracts () with
   | Some target -> (
-      let src = Flags.input_file () in
-      KEvent.log_uncond "Translating contracts to file '%s'" target;
-      try
-        InputSystem.translate_contracts_lustre src target;
-        KEvent.log_uncond "Success"
-      with e ->
-        KEvent.log L_error "Could not translate contracts from file '%s':@ %s"
-          src (Printexc.to_string e))
-  | None -> (
-      try Kind2Flow.run input_sys
-      with e ->
-        KEvent.log L_fatal "Caught unexpected exception: %s"
-          (Printexc.to_string e);
-        KEvent.terminate_log ();
-        exit ExitCodes.error)
+    let src = Flags.input_file () in
+    KEvent.log_uncond "Translating contracts to file '%s'" target ;
+    try (
+      InputSystem.translate_contracts_lustre src target ;
+      KEvent.log_uncond "Success"
+    ) with e ->
+      KEvent.log L_error
+        "Could not translate contracts from file '%s':@ %s"
+        src (Printexc.to_string e)
+  )
+  | None ->
+    try
+      Kind2Flow.run input_sys
+    with e -> (
+      KEvent.log L_fatal "Caught unexpected exception: %s" (Printexc.to_string e) ;
+      KEvent.terminate_log () ;
+      exit ExitCodes.error
+    )
 ;;
 
 main ()
@@ -182,3 +191,4 @@ main ()
    indent-tabs-mode: nil
    End: 
 *)
+  

@@ -16,7 +16,11 @@
 (*s Hash tables for hash-consing. (Some code is borrowed from the ocaml
     standard library, which is copyright 1996 INRIA.) *)
 
-type ('a, 'b) hash_consed = { hkey : int; tag : int; node : 'a; prop : 'b }
+type ('a, 'b) hash_consed =  { 
+  hkey : int;
+  tag : int;
+  node : 'a;
+  prop : 'b }
 
 (* Comparison based on tags *)
 let compare { tag = t1 } { tag = t2 } = Int.compare t1 t2
@@ -27,152 +31,159 @@ let equal { tag = t1 } { tag = t2 } = t1 = t2
 (* Hashing based on stored hash *)
 let hash { hkey = h } = h
 
+
 let gentag =
   let r = ref 0 in
-  fun () ->
-    incr r;
-    !r
+  fun () -> incr r; !r
 
 type ('a, 'b) t = {
   mutable table : ('a, 'b) hash_consed Weak.t array;
-  mutable totsize : int; (* sum of the bucket sizes *)
-  mutable limit : int; (* max ratio totsize/table length *)
+  mutable totsize : int;             (* sum of the bucket sizes *)
+  mutable limit : int;               (* max ratio totsize/table length *)
 }
 
 let create sz =
   let sz = if sz < 7 then 7 else sz in
   let sz = if sz > Sys.max_array_length then Sys.max_array_length else sz in
   let emptybucket = Weak.create 0 in
-  { table = Array.make sz emptybucket; totsize = 0; limit = 3 }
+  { table = Array.make sz emptybucket;
+    totsize = 0;
+    limit = 3; }
 
 let clear t =
   let emptybucket = Weak.create 0 in
-  for i = 0 to Array.length t.table - 1 do
-    t.table.(i) <- emptybucket
-  done;
+  for i = 0 to Array.length t.table - 1 do t.table.(i) <- emptybucket done;
   t.totsize <- 0;
   t.limit <- 3
-
+  
 let fold f t init =
   let rec fold_bucket i b accu =
-    if i >= Weak.length b then accu
-    else
+    if i >= Weak.length b then accu else
       match Weak.get b i with
-      | Some v -> fold_bucket (i + 1) b (f v accu)
-      | None -> fold_bucket (i + 1) b accu
+	| Some v -> fold_bucket (i+1) b (f v accu)
+	| None -> fold_bucket (i+1) b accu
   in
   Array.fold_right (fold_bucket 0) t.table init
 
 let iter f t =
   let rec iter_bucket i b =
-    if i >= Weak.length b then ()
-    else
+    if i >= Weak.length b then () else
       match Weak.get b i with
-      | Some v ->
-          f v;
-          iter_bucket (i + 1) b
-      | None -> iter_bucket (i + 1) b
+	| Some v -> f v; iter_bucket (i+1) b
+	| None -> iter_bucket (i+1) b
   in
   Array.iter (iter_bucket 0) t.table
 
 let count t =
   let rec count_bucket i b accu =
-    if i >= Weak.length b then accu
-    else count_bucket (i + 1) b (accu + if Weak.check b i then 1 else 0)
+    if i >= Weak.length b then accu else
+      count_bucket (i+1) b (accu + (if Weak.check b i then 1 else 0))
   in
   Array.fold_right (count_bucket 0) t.table 0
 
-let next_sz n = min ((3 * n / 2) + 3) (Sys.max_array_length - 1)
+let next_sz n = min (3*n/2 + 3) (Sys.max_array_length - 1)
 
 let rec resize t =
   let oldlen = Array.length t.table in
   let newlen = next_sz oldlen in
-  if newlen > oldlen then (
+  if newlen > oldlen then begin
     let newt = create newlen in
-    newt.limit <- t.limit + 100;
-    (* prevent resizing of newt *)
+    newt.limit <- t.limit + 100;          (* prevent resizing of newt *)
     fold (fun d () -> add newt d) t ();
     t.table <- newt.table;
-    t.limit <- t.limit + 2)
+    t.limit <- t.limit + 2;
+  end
 
 and add t d =
-  let index = d.hkey mod Array.length t.table in
+  let index = d.hkey mod (Array.length t.table) in
   let bucket = t.table.(index) in
   let sz = Weak.length bucket in
   let rec loop i =
-    if i >= sz then (
+    if i >= sz then begin
       let newsz = min (sz + 3) (Sys.max_array_length - 1) in
-      if newsz <= sz then failwith "Hashcons.Make: hash bucket cannot grow more";
+      if newsz <= sz then 
+	failwith "Hashcons.Make: hash bucket cannot grow more";
       let newbucket = Weak.create newsz in
       Weak.blit bucket 0 newbucket 0 sz;
       Weak.set newbucket i (Some d);
       t.table.(index) <- newbucket;
       t.totsize <- t.totsize + (newsz - sz);
-      if t.totsize > t.limit * Array.length t.table then resize t)
-    else if Weak.check bucket i then loop (i + 1)
-    else Weak.set bucket i (Some d)
+      if t.totsize > t.limit * Array.length t.table then resize t;
+    end else begin
+      if Weak.check bucket i
+      then loop (i+1)
+      else Weak.set bucket i (Some d)
+    end
   in
   loop 0
 
 let hashcons t d p =
   let hkey = Hashtbl.hash d land max_int in
-  let index = hkey mod Array.length t.table in
+  let index = hkey mod (Array.length t.table) in
   let bucket = t.table.(index) in
   let sz = Weak.length bucket in
   let rec loop i =
-    if i >= sz then (
-      let hnode = { hkey; tag = gentag (); node = d; prop = p } in
+    if i >= sz then begin
+      let hnode = { hkey = hkey; tag = gentag (); node = d; prop = p } in
       add t hnode;
-      hnode)
-    else
+      hnode
+    end else begin
       match Weak.get_copy bucket i with
-      | Some v when v.node = d -> (
-          match Weak.get bucket i with Some v -> v | None -> loop (i + 1))
-      | _ -> loop (i + 1)
+        | Some v when v.node = d -> 
+	    begin match Weak.get bucket i with
+              | Some v -> v
+              | None -> loop (i+1)
+            end
+        | _ -> loop (i+1)
+    end
   in
   loop 0
-
+  
 let stats t =
   let len = Array.length t.table in
   let lens = Array.map Weak.length t.table in
   Array.sort Int.compare lens;
   let totlen = Array.fold_left ( + ) 0 lens in
-  (len, count t, totlen, lens.(0), lens.(len / 2), lens.(len - 1))
+  (len, count t, totlen, lens.(0), lens.(len/2), lens.(len-1))
+
 
 (* Functorial interface *)
 
-module type HashedType = sig
-  type t
-  type prop
+module type HashedType =
+  sig
+    type t
+    type prop
+    val equal : t -> t -> bool
+    val hash : t -> int
+  end
 
-  val equal : t -> t -> bool
-  val hash : t -> int
-end
+module type S =
+  sig
+    type key
+    type prop
+    type t
+    val create : int -> t
+    val clear : t -> unit
+    val hashcons : t -> key -> prop -> (key, prop) hash_consed
+    val find : t -> key -> (key, prop) hash_consed
+    val iter : ((key, prop) hash_consed -> unit) -> t -> unit
+    val fold : ((key, prop) hash_consed -> 'a -> 'a) -> t -> 'a -> 'a
+    val stats : t -> int * int * int * int * int * int
+  end
 
-module type S = sig
-  type key
-  type prop
-  type t
-
-  val create : int -> t
-  val clear : t -> unit
-  val hashcons : t -> key -> prop -> (key, prop) hash_consed
-  val find : t -> key -> (key, prop) hash_consed
-  val iter : ((key, prop) hash_consed -> unit) -> t -> unit
-  val fold : ((key, prop) hash_consed -> 'a -> 'a) -> t -> 'a -> 'a
-  val stats : t -> int * int * int * int * int * int
-end
-
-module Make (H : HashedType) : S with type key = H.t and type prop = H.prop =
+module Make(H : HashedType) : (S with type key = H.t and type prop = H.prop) = 
 struct
+
   type key = H.t
+
   type prop = H.prop
+
   type data = (H.t, H.prop) hash_consed
 
   type t = {
     mutable table : data Weak.t array;
-    mutable totsize : int; (* sum of the bucket sizes *)
-    mutable limit : int; (* max ratio totsize/table length *)
+    mutable totsize : int;             (* sum of the bucket sizes *)
+    mutable limit : int;               (* max ratio totsize/table length *)
   }
 
   let emptybucket = Weak.create 0
@@ -180,7 +191,11 @@ struct
   let create sz =
     let sz = if sz < 7 then 7 else sz in
     let sz = if sz > Sys.max_array_length then Sys.max_array_length else sz in
-    { table = Array.make sz emptybucket; totsize = 0; limit = 3 }
+    {
+      table = Array.make sz emptybucket;
+      totsize = 0;
+      limit = 3;
+    }
 
   let clear t =
     for i = 0 to Array.length t.table - 1 do
@@ -188,113 +203,121 @@ struct
     done;
     t.totsize <- 0;
     t.limit <- 3
-
+  
   let fold f t init =
     let rec fold_bucket i b accu =
-      if i >= Weak.length b then accu
-      else
-        match Weak.get b i with
-        | Some v -> fold_bucket (i + 1) b (f v accu)
-        | None -> fold_bucket (i + 1) b accu
+      if i >= Weak.length b then accu else
+      match Weak.get b i with
+      | Some v -> fold_bucket (i+1) b (f v accu)
+      | None -> fold_bucket (i+1) b accu
     in
     Array.fold_right (fold_bucket 0) t.table init
 
   let iter f t =
     let rec iter_bucket i b =
-      if i >= Weak.length b then ()
-      else
-        match Weak.get b i with
-        | Some v ->
-            f v;
-            iter_bucket (i + 1) b
-        | None -> iter_bucket (i + 1) b
+      if i >= Weak.length b then () else
+      match Weak.get b i with
+      | Some v -> f v; iter_bucket (i+1) b
+      | None -> iter_bucket (i+1) b
     in
     Array.iter (iter_bucket 0) t.table
 
   let count t =
     let rec count_bucket i b accu =
-      if i >= Weak.length b then accu
-      else count_bucket (i + 1) b (accu + if Weak.check b i then 1 else 0)
+      if i >= Weak.length b then accu else
+      count_bucket (i+1) b (accu + (if Weak.check b i then 1 else 0))
     in
     Array.fold_right (count_bucket 0) t.table 0
 
-  let next_sz n = min ((3 * n / 2) + 3) (Sys.max_array_length - 1)
+  let next_sz n = min (3*n/2 + 3) (Sys.max_array_length - 1)
 
   let rec resize t =
     let oldlen = Array.length t.table in
     let newlen = next_sz oldlen in
-    if newlen > oldlen then (
+    if newlen > oldlen then begin
       let newt = create newlen in
-      newt.limit <- t.limit + 100;
-      (* prevent resizing of newt *)
+      newt.limit <- t.limit + 100;          (* prevent resizing of newt *)
       fold (fun d () -> add newt d) t ();
       t.table <- newt.table;
-      t.limit <- t.limit + 2)
+      t.limit <- t.limit + 2;
+    end
 
   and add t d =
-    let index = d.hkey mod Array.length t.table in
+    let index = d.hkey mod (Array.length t.table) in
     let bucket = t.table.(index) in
     let sz = Weak.length bucket in
     let rec loop i =
-      if i >= sz then (
+      if i >= sz then begin
         let newsz = min (sz + 3) (Sys.max_array_length - 1) in
-        if newsz <= sz then
-          failwith "Hashcons.Make: hash bucket cannot grow more";
+        if newsz <= sz then 
+	  failwith "Hashcons.Make: hash bucket cannot grow more";
         let newbucket = Weak.create newsz in
         Weak.blit bucket 0 newbucket 0 sz;
         Weak.set newbucket i (Some d);
         t.table.(index) <- newbucket;
         t.totsize <- t.totsize + (newsz - sz);
-        if t.totsize > t.limit * Array.length t.table then resize t)
-      else if Weak.check bucket i then loop (i + 1)
-      else Weak.set bucket i (Some d)
+        if t.totsize > t.limit * Array.length t.table then resize t;
+      end else begin
+        if Weak.check bucket i
+        then loop (i+1)
+        else Weak.set bucket i (Some d)
+      end
     in
     loop 0
 
   let hashcons t d p =
     let hkey = H.hash d land max_int in
-    let index = hkey mod Array.length t.table in
+    let index = hkey mod (Array.length t.table) in
     let bucket = t.table.(index) in
     let sz = Weak.length bucket in
     let rec loop i =
-      if i >= sz then (
-        let hnode = { hkey; tag = gentag (); node = d; prop = p } in
-        add t hnode;
-        hnode)
-      else
+      if i >= sz then begin
+	let hnode = { hkey = hkey; tag = gentag (); node = d; prop = p } in
+	add t hnode;
+	hnode
+      end else begin
         match Weak.get_copy bucket i with
-        | Some v when H.equal v.node d -> (
-            match Weak.get bucket i with Some v -> v | None -> loop (i + 1))
-        | _ -> loop (i + 1)
+        | Some v when H.equal v.node d -> 
+	    begin match Weak.get bucket i with
+              | Some v -> v
+              | None -> loop (i+1)
+            end
+        | _ -> loop (i+1)
+      end
     in
     loop 0
-
+  
   (* A version of hashcons that returns existing values, but does not
      insert the value into the table *)
   let find t d =
     let hkey = H.hash d land max_int in
-    let index = hkey mod Array.length t.table in
+    let index = hkey mod (Array.length t.table) in
     let bucket = t.table.(index) in
     let sz = Weak.length bucket in
     let rec loop i =
-      if i >= sz then
+      if i >= sz then begin
         (* [hashcons] inserts the value into the table here, but we
            raise and exception *)
-        raise Not_found
-      else
+	raise (Not_found)
+      end else begin
         match Weak.get_copy bucket i with
-        | Some v when H.equal v.node d -> (
-            match Weak.get bucket i with Some v -> v | None -> loop (i + 1))
-        | _ -> loop (i + 1)
+          | Some v when H.equal v.node d -> 
+	    begin match Weak.get bucket i with
+              | Some v -> v
+              | None -> loop (i+1)
+            end
+          | _ -> loop (i+1)
+      end
     in
     loop 0
-
+      
   let stats t =
     let len = Array.length t.table in
     let lens = Array.map Weak.length t.table in
     Array.sort Int.compare lens;
     let totlen = Array.fold_left ( + ) 0 lens in
-    (len, count t, totlen, lens.(0), lens.(len / 2), lens.(len - 1))
+    (len, count t, totlen, lens.(0), lens.(len/2), lens.(len-1))
+      
 end
 
 (* 

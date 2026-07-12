@@ -16,23 +16,28 @@
 
 *)
 
-(** Error and warning Reporting functions *)
+(** 
+    Error and warning Reporting functions 
 
-let internal_error pos msg =
-  Log.log L_error "Internal error at %a: @[<v>%s@]" Lib.pp_print_position pos
-    msg
+ *)
+
+let internal_error pos msg = 
+  Log.log L_error "Internal error at %a: @[<v>%s@]" Lib.pp_print_position pos msg
 
 (* Raise parsing exception *)
 let fail_at_position_pt pos msg =
-  Log.log L_error "Parser error at %a: @[<v>%s@]" Lib.pp_print_position pos msg
+  Log.log L_error "Parser error at %a: @[<v>%s@]"
+    Lib.pp_print_position pos msg
 
 let fail_at_position pos msg =
   (match Log.get_log_format () with
-  | Log.F_pt -> fail_at_position_pt pos msg
-  | Log.F_xml -> Log.parse_log_xml L_error pos msg
-  | Log.F_json -> Log.parse_log_json L_error pos msg
-  | Log.F_relay -> ());
+   | Log.F_pt -> fail_at_position_pt pos msg
+   | Log.F_xml -> Log.parse_log_xml L_error pos msg
+   | Log.F_json -> Log.parse_log_json L_error pos msg
+   | Log.F_relay -> ()
+  );
   raise LustreAst.Parser_error
+
 
 let warn_at_position_pt level pos msg =
   Log.log level "Parser warning at %a: @[<v>%s@]" Lib.pp_print_position pos msg
@@ -44,17 +49,20 @@ let warn_at_position pos msg =
   | Log.F_json -> Log.parse_log_json L_warn pos msg
   | Log.F_relay -> ()
 
-let note_at_position pos msg =
+
+let note_at_position pos msg = 
   match Log.get_log_format () with
   | Log.F_pt -> warn_at_position_pt L_note pos msg
   | Log.F_xml -> Log.parse_log_xml L_note pos msg
   | Log.F_json -> Log.parse_log_json L_note pos msg
   | Log.F_relay -> ()
 
+
 (* Raise parsing exception *)
 let fail_no_position msg =
   Log.log L_error "Parser error: @[<v>%s@]" msg;
   raise LustreAst.Parser_error
 
+ 
 (* Raise parsing exception *)
 let warn_no_position msg = Log.log L_warn "Parser warning: @[<v>%s@]" msg

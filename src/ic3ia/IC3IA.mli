@@ -16,29 +16,21 @@
 
 *)
 
-(** Property-directed reachability (aka IC3) with Implicit Abstraction
+(** Property-directed reachability (aka IC3) with Implicit Abstraction 
 
-    Adaptation of the PDR algorithm implemented by JKind, based on "Efficient
-    implementation of property directed reachability" by Niklas Een, Alan
-    Mishchenko, and Robert Brayton.
+    Adaptation of the PDR algorithm implemented by JKind, based on
+    "Efficient implementation of property directed reachability"
+    by Niklas Een, Alan Mishchenko, and Robert Brayton.
 
-    SMT extension based on "IC3 Modulo Theories via Implicit Predicate
-    Abstraction" by Alessandro Cimatti, Alberto Griggio, Sergio Mover, and
-    Stefano Tonetta
+    SMT extension based on "IC3 Modulo Theories via Implicit Predicate Abstraction"
+    by Alessandro Cimatti, Alberto Griggio, Sergio Mover, and Stefano Tonetta
 
     @author Daniel Larraz *)
 
 exception UnsupportedFeature of string
 
-val main :
-  bool ->
-  bool ->
-  Property.t ->
-  'a InputSystem.t ->
-  Analysis.param ->
-  TransSys.t ->
-  unit
 (** Entry point *)
-
-val on_exit : TransSys.t option -> unit
+val main : bool -> bool -> Property.t -> 'a InputSystem.t -> Analysis.param -> TransSys.t -> unit
+    
 (** Cleanup before exit *)
+val on_exit : TransSys.t option -> unit

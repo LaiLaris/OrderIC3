@@ -16,45 +16,51 @@
 
 *)
 
-(** Abstract system
+(** Abstract system 
 
-    The functions and data types of this module are polymorphic in the actual
-    source of the input system. See functions in {!InputSystem} to delegate to
-    concrete implementations of an input format.
+    The functions and data types of this module are polymorphic in the
+    actual source of the input system. See functions in {!InputSystem}
+    to delegate to concrete implementations of an input format.
 
-    A system is a set of subsystems, identified by a unique scope and containing
-    instances of one other in a directed acyclic manner. Each system has at
-    least an implementation or a contract, it may have both.
+    A system is a set of subsystems, identified by a unique scope and
+    containing instances of one other in a directed acyclic
+    manner. Each system has at least an implementation or a contract,
+    it may have both.
 
     @author Christoph Sticksel *)
 
-type 'a t = {
-  scope : Scope.t;  (** Name of the system as a scope *)
-  source : 'a;  (** Original input *)
-  opacity : Opacity.t;
-      (** Whether the system should be always abstracted by its contract, never,
-          or sometimes *)
-  has_contract : bool;  (** System has a contract *)
-  has_modes : bool;  (** System has modes. *)
-  has_impl : bool;  (** System has an implementation *)
-  subsystems : 'a t list;  (** Sub-systems *)
-}
 (** A system parameterized by its actual source *)
+type 'a t = {
+  
+  scope: Scope.t ;         (** Name of the system as a scope *)
 
-val strategy_info_of : 'a t -> Strategy.info
+  source : 'a ;            (** Original input *)
+  
+  opacity : Opacity.t ;    (** Whether the system should be always abstracted by its contract, never, or sometimes *)
+
+  has_contract : bool ;    (** System has a contract *)
+
+  has_modes : bool ;       (** System has modes. *)
+
+  has_impl : bool ;        (** System has an implementation *)
+
+  subsystems : 'a t list ; (** Sub-systems *)
+}
+
 (** Strategy info of a subsystem. *)
+val strategy_info_of: 'a t -> Strategy.info
 
+(** Return all subsystems in topological order with the top system at
+    the head of the list *)
 val all_subsystems : 'a t -> 'a t list
-(** Return all subsystems in topological order with the top system at the head
-    of the list *)
 
-val all_subsystems_of_list : 'a t list -> 'a t list
 (** Return all subsystems of the list in topological order *)
+val all_subsystems_of_list : 'a t list -> 'a t list
 
+(** Return the subsystem of the given scope 
+
+   Raise [Not_found] if there is no subsystem of that scope *)
 val find_subsystem : 'a t -> Scope.t -> 'a t
-(** Return the subsystem of the given scope
-
-    Raise [Not_found] if there is no subsystem of that scope *)
 
 val find_subsystem_of_list : 'a t list -> Scope.t -> 'a t
 

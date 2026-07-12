@@ -20,31 +20,31 @@
 
     @author Christoph Sticksel *)
 
-type t = string
-(** Identifier
+(** Identifier 
 
     This type will become private later *)
+type t = string
 
-val equal : t -> t -> bool
 (** Equality of identifiers *)
+val equal : t -> t -> bool
 
-val compare : t -> t -> int
 (** Total order of identifiers *)
+val compare : t -> t -> int
 
-module IdentSet : Set.S with type elt = t
 (** Set of identifiers *)
+module IdentSet : Set.S with type elt = t
 
-module IdentMap : Map.S with type key = t
 (** Map of identifiers *)
+module IdentMap : Map.S with type key = t
 
-val pp_print_ident : Format.formatter -> t -> unit
 (** Pretty-print an identifier *)
+val pp_print_ident : Format.formatter -> t -> unit
 
-val of_string : string -> t
 (** Construct an identifier from a string *)
+val of_string : string -> t
 
-val to_string : t -> string
 (** Return a string representation of an identifier x*)
+val to_string : t -> string 
 
 (* 
    Local Variables:

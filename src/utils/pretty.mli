@@ -22,114 +22,117 @@
 (** Functions for pretty ascii output (colors, etc.)
 
     By default a set of tags are added to stdout and stderr. To activate them
-    call [Format.pp_set_tags fmt true]. Colors can be added to another formatter
-    with the function {!add_colors}.
+    call [Format.pp_set_tags fmt true]. Colors can be added to another formatter with the function {!add_colors}.
 
-    Tags must be added to the format string with [@{<tag> what you want@}]. They
-    can be arbitrarily nested. For instance to print a string in red with part
-    of it bold do
-    {[
-      Format.printf "@{<red>I'm red. @{<b> I'm bold red.@}@}"
-    ]}
+Tags must be added to the format string with [@{<tag> what you want@}]. They can be arbitrarily nested. For instance to print a string in red with part of it bold do
+{[
+Format.printf "@{<red>I'm red. @{<b> I'm bold red.@}@}"
+]}
 
-    The font tags available are:
-    - [n] : normal
-    - [b] : bold
-    - [/b] : cancel bold
-    - [dim] : dimmer color
-    - [u] : underline
-    - [/u] : cancel underline
-    - [i] : italicize
-    - [/i] : cancel italicize
-    - [/bl] : cancel blinking
+The font tags available are:
+- [n] : normal
+- [b] : bold
+- [/b] : cancel bold
+- [dim] : dimmer color
+- [u] : underline
+- [/u] : cancel underline
+- [i] : italicize
+- [/i] : cancel italicize
+- [/bl] : cancel blinking
 
-    The color (foreground) tags are:
-    - [black]
-    - [red]
-    - [green]
-    - [yellow]
-    - [blue]
-    - [magenta]
-    - [cyan]
-    - [gray]
-    - [default]
-    - [c:0-255] give directly the color number on 256 colors terminals
+The color (foreground) tags are: 
+- [black]
+- [red]
+- [green]
+- [yellow]
+- [blue]
+- [magenta]
+- [cyan]
+- [gray]
+- [default]
+- [c:0-255] give directly the color number on 256 colors terminals
 
-    And their bright version
-    - [black_b]
-    - [red_b]
-    - [green_b]
-    - [yellow_b]
-    - [blue_b]
-    - [magenta_b]
-    - [cyan_b]
-    - [gray_b]
-    - [default_b]
+And their bright version
+- [black_b]
+- [red_b]
+- [green_b]
+- [yellow_b]
+- [blue_b]
+- [magenta_b]
+- [cyan_b]
+- [gray_b]
+- [default_b]
 
-    The background color tags are:
-    - [bg_black]
-    - [bg_red]
-    - [bg_green]
-    - [bg_yellow]
-    - [bg_blue]
-    - [bg_magenta]
-    - [bg_cyan]
-    - [bg_gray]
-    - [bg_default]
 
-    And their bright version
-    - [bg_black_b]
-    - [bg_red_b]
-    - [bg_green_b]
-    - [bg_yellow_b]
-    - [bg_blue_b]
-    - [bg_magenta_b]
-    - [bg_cyan_b]
-    - [bg_gray_b]
-    - [bg_default_b]
+The background color tags are: 
+- [bg_black]
+- [bg_red]
+- [bg_green]
+- [bg_yellow]
+- [bg_blue]
+- [bg_magenta]
+- [bg_cyan]
+- [bg_gray]
+- [bg_default]
 
-    @author Alain Mebsout *)
+And their bright version
+- [bg_black_b]
+- [bg_red_b]
+- [bg_green_b]
+- [bg_yellow_b]
+- [bg_blue_b]
+- [bg_magenta_b]
+- [bg_cyan_b]
+- [bg_gray_b]
+- [bg_default_b]
+
+
+    @author Alain Mebsout
+*)
+
 
 open Format
 
+
 (** {1 Pretty colors} *)
 
-val vt_width : int
 (** Width of the virtual terminal (80 if cannot be detected) *)
+val vt_width : int
 
-val print_line : formatter -> unit -> unit
 (** prints separating line *)
+val print_line : formatter -> unit -> unit
 
-val print_double_line : formatter -> unit -> unit
 (** prints separating double line *)
+val print_double_line : formatter -> unit -> unit
 
-val add_colors : formatter -> unit
 (** add color tags to a formatter *)
+val add_colors : formatter -> unit
+
 
 (** {1 Event tags} *)
 
-val timeout_tag : Format.formatter -> unit
 (** Timeout tag. *)
+val timeout_tag : Format.formatter -> unit
 
-val success_tag : Format.formatter -> unit
 (** Success tag. *)
+val success_tag : Format.formatter -> unit
 
-val failure_tag : Format.formatter -> unit
 (** Failure tag. *)
+val failure_tag : Format.formatter -> unit
 
-val error_tag : Format.formatter -> unit
 (** Error tag. *)
+val error_tag : Format.formatter -> unit
 
-val warning_tag : Format.formatter -> unit
 (** Warning tag. *)
+val warning_tag : Format.formatter -> unit
 
-val note_tag : Format.formatter -> unit
 (** Note tag. *)
+val note_tag : Format.formatter -> unit
 
-val interruption_tag : Format.formatter -> unit
 (** Interruption tag. *)
+val interruption_tag : Format.formatter -> unit
 
-val done_tag : Format.formatter -> unit
 (** Done tag. *)
+val done_tag : Format.formatter -> unit
 
 val tag_of_level : formatter -> Lib.log_level -> unit

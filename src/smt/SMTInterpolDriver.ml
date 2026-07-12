@@ -22,19 +22,28 @@ let check_logic logic =
   let open TermLib in
   let open TermLib.FeatureSet in
   match logic with
-  | `Inferred l when mem BV l ->
-      let msg =
-        Format.asprintf "In %a: SMTInterpol does not support machine integers"
-          Lib.pp_print_kind_module (KEvent.get_module ())
-      in
-      failwith msg
+  | `Inferred l when mem BV l -> (
+    let msg =
+    Format.asprintf
+      "In %a: SMTInterpol does not support machine integers"
+      Lib.pp_print_kind_module (KEvent.get_module ())
+    in
+    failwith msg
+  )
   | _ -> ()
 
 (* Configuration for SMTInterpol *)
-let cmd_line logic timeout _ (* produce_models *) _ (* produce_proofs *) _
-    (* produce_unsat_cores *) _ (* produce_unsat_assumptions *) _
-    (* minimize_cores *) _ (* produce_interpolants *) =
-  check_logic logic;
+let cmd_line
+    logic
+    timeout
+    _ (* produce_models *) 
+    _ (* produce_proofs *)
+    _ (* produce_unsat_cores *)
+    _ (* produce_unsat_assumptions *)
+    _ (* minimize_cores *) 
+    _ (* produce_interpolants *) =
+
+  check_logic logic ;
 
   (* Path and name of SMTInterpol JAR *)
   let smtinterpol_jar = Flags.Smt.smtinterpol_jar () in
@@ -56,5 +65,7 @@ let cmd_line logic timeout _ (* produce_models *) _ (* produce_proofs *) _
   match timeout with
   | None -> cmd
   | Some timeout ->
-      let timeout = Format.sprintf "-t %.0f" (timeout |> ceil) in
-      Array.append cmd [| timeout |]
+    let timeout = 
+      Format.sprintf "-t %.0f" (timeout |> ceil)
+    in
+    Array.append cmd [|timeout|]

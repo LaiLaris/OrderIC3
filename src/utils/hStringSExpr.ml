@@ -17,28 +17,34 @@
 *)
 
 (* Signature of an string atom as input for the functor {!SExprBase.Make} *)
-module HStringAtom = struct
-  type t = HString.t
-
-  let pp_print_atom = HString.pp_print_hstring
+module HStringAtom = struct 
+  type t = HString.t 
+  let pp_print_atom = HString.pp_print_hstring 
 end
+
 
 (* Define the type of the result from the functor application *)
 module type HStringSExpr = SExprBase.S with type atom = HString.t
 
+
 (* Create a module of string S-expressions *)
 module HStringSExpr = SExprBase.Make (HStringAtom)
+
 
 (* Include the module here to avoid having to write
    HStringSExpr.HStringSExpr *)
 include HStringSExpr
 
-let rec equal s1 s2 =
-  match (s1, s2) with
+
+let rec equal s1 s2 = match s1, s2 with
   | Atom a1, Atom a2 -> a1 == a2
-  | List l1, List l2 -> (
-      try List.for_all2 equal l1 l2 with Invalid_argument _ -> false)
+  | List l1, List l2 ->
+    begin
+      try List.for_all2 equal l1 l2
+      with Invalid_argument _ -> false
+    end
   | _ -> false
+
 
 (* 
    Local Variables:
