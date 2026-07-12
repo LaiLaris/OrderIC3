@@ -40,6 +40,55 @@ let max_unrolling = ref 0
 (* Formatter to output inductive clauses to *)
 let ppf_inductive_assertions = ref Format.std_formatter
 
+let ind_gen_literal_frequency : float Term.TermHashtbl.t =
+  Term.TermHashtbl.create 251
+
+let ind_gen_literal_frequency_decay = 0.99
+
+let decay_ind_gen_literal_frequency () =
+  Term.TermHashtbl.filter_map_inplace
+    (fun _ count -> Some (count *. ind_gen_literal_frequency_decay))
+    ind_gen_literal_frequency
+
+let incr_ind_gen_literal_frequency literals =
+  decay_ind_gen_literal_frequency ();
+  List.iter
+    (fun lit ->
+      let count =
+        try Term.TermHashtbl.find ind_gen_literal_frequency lit
+        with Not_found -> 0.0
+      in
+      Term.TermHashtbl.replace ind_gen_literal_frequency lit (count +. 1.0))
+    literals
+
+let ind_gen_literal_frequency_of lit =
+  try Term.TermHashtbl.find ind_gen_literal_frequency lit with Not_found -> 0.0
+
+let rec literal_ast_complexity term =
+  match Term.destruct term with
+  | Term.T.Const _ | Term.T.Var _ -> 1
+  | Term.T.App (_, args) ->
+      1
+      + List.fold_left
+          (fun acc arg -> acc + literal_ast_complexity arg)
+          0 args
+
+let string_contains_substring haystack needle =
+  let haystack_len = String.length haystack in
+  let needle_len = String.length needle in
+  if needle_len = 0 then true
+  else
+    let rec loop index =
+      if index + needle_len > haystack_len then false
+      else
+        String.sub haystack index needle_len = needle || loop (index + 1)
+    in
+    loop 0
+
+let literal_contains_div_keyword lit =
+  let s = Format.asprintf "%a" Term.pp_print_term lit in
+  string_contains_substring s "div"
+
   
 (* Output statistics *)
 let print_stats () = 
@@ -399,6 +448,61 @@ let deactivate_subsumed solver (subsumed, frame') =
    relatively inductive to [frame] and initial. *)
 let ind_generalize solver prop_set frame clause literals =
 
+  let prioritize_ind_gen_frequency_literals literals =
+    if Flags.IC3QE.freq_sort () && frame <> [] && List.length literals > 1 then
+      let reordered =
+        let use_ast_complexity = Flags.IC3QE.ast_complexity () in
+        let indexed = List.mapi (fun i lit -> (i, lit)) literals in
+        List.sort
+          (fun (i1, lit1) (i2, lit2) ->
+            let c =
+              compare
+                (literal_contains_div_keyword lit2)
+                (literal_contains_div_keyword lit1)
+            in
+            if c <> 0 then c
+            else
+              let c =
+                compare
+                  (ind_gen_literal_frequency_of lit1)
+                  (ind_gen_literal_frequency_of lit2)
+              in
+              if c <> 0 then c
+              else if use_ast_complexity then
+                let c2 =
+                  compare
+                    (literal_ast_complexity lit1)
+                    (literal_ast_complexity lit2)
+                in
+                if c2 <> 0 then c2 else compare i1 i2
+              else compare i1 i2)
+          indexed
+        |> List.map snd
+      in
+      let pp_literal_frequency ppf lit =
+        if Flags.IC3QE.ast_complexity () then
+          Format.fprintf ppf "%a [freq=%.3f, ast=%d]" Term.pp_print_term lit
+            (ind_gen_literal_frequency_of lit)
+            (literal_ast_complexity lit)
+        else
+          Format.fprintf ppf "%a [freq=%.3f]" Term.pp_print_term lit
+            (ind_gen_literal_frequency_of lit)
+      in
+      SMTSolver.trace_comment solver
+        (Format.asprintf
+           "@[<v>ind-gen literal frequency priority for clause #%d:@,\
+            original: {@,%a@,}@,\
+            reordered by %s: {@,%a@,}@]"
+           (C.id_of_clause clause)
+           (pp_print_list pp_literal_frequency "@,")
+           literals
+           (if Flags.IC3QE.ast_complexity () then "freq+ast" else "freq")
+           (pp_print_list pp_literal_frequency "@,")
+           reordered);
+      reordered
+    else literals
+  in
+
   (* Linearly traverse the list of literals in the clause, and remove
      a literal the clause without the literal remains relatively
      inductive and initial
@@ -439,6 +543,9 @@ let ind_generalize solver prop_set frame clause literals =
                (C.id_of_clause clause')
                (pp_print_list Term.pp_print_term ";@ ")
                (C.literals_of_clause clause'));
+
+          if Flags.IC3QE.freq_sort () then
+            incr_ind_gen_literal_frequency (C.literals_of_clause clause');
           
           clause'
             
@@ -539,7 +646,7 @@ let ind_generalize solver prop_set frame clause literals =
 
   in
 
-  linear_search [] literals
+  linear_search [] (prioritize_ind_gen_frequency_literals literals)
 
 (*
 
@@ -664,6 +771,24 @@ let ind_generalize solver prop_set frame clause literals =
 (* Extrapolation from a two-state counterexample                            *)
 (* ************************************************************************ *)
 
+let canonicalize_generalized_literal lit =
+  lit
+  |> (fun lit ->
+      if Flags.IC3QE.generalize_eq_canonicalize () then
+        C.canonicalize_eq_literal lit
+      else lit)
+  |> fun lit ->
+     if Flags.IC3QE.generalize_ineq_canonicalize () then
+       C.canonicalize_ineq_literal lit
+     else lit
+
+let canonicalize_generalized_literals literals =
+  if not (Flags.IC3QE.generalize_canonicalize ()
+          || Flags.IC3QE.generalize_eq_canonicalize ()
+          || Flags.IC3QE.generalize_ineq_canonicalize ())
+  then literals
+  else List.map canonicalize_generalized_literal literals
+
 (* Given a model and two formulas f and g return a conjunction of
    literals such that 
 
@@ -712,7 +837,7 @@ let extrapolate trans_sys state f g =
   Stat.record_time Stat.ic3_generalize_time;
 
   (* Return generalized term *)
-  gen_term
+  canonicalize_generalized_literals gen_term
 
 
 (* ************************************************************************ *)

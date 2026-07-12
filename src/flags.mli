@@ -439,6 +439,21 @@ module IC3QE : sig
   (** Use invariants from invariant generators. *)
   val use_invgen : unit -> bool
 
+  (** Use AST complexity as a tie-breaker in IC3QE frequency literal ordering. *)
+  val ast_complexity : unit -> bool
+
+  (** Enable online inductive-generalization literal-frequency ordering. *)
+  val freq_sort : unit -> bool
+
+  (** Canonicalize equality literals returned by QE generalization. *)
+  val generalize_eq_canonicalize : unit -> bool
+
+  (** Canonicalize inequality literals returned by QE generalization. *)
+  val generalize_ineq_canonicalize : unit -> bool
+
+  (** Compatibility alias for enabling both QE literal canonicalizations. *)
+  val generalize_canonicalize : unit -> bool
+
   (** DEPRECATED: Legal abstraction mechanisms for in IC3. *)
   type abstr = [ `None | `IA ]
 

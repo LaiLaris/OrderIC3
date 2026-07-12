@@ -958,6 +958,70 @@ module IC3QE = struct
     )
   let use_invgen () = !use_invgen
 
+  let ast_complexity_default = false
+  let ast_complexity = ref ast_complexity_default
+  let _ = add_spec
+    "--ic3qe_ast_complexity"
+    (Arg.Set ast_complexity)
+    (fun fmt ->
+      Format.fprintf fmt
+        "@[<v>Use AST complexity as a tie-breaker in IC3QE frequency literal ordering@ Default: %a@]"
+        fmt_bool ast_complexity_default
+    )
+  let ast_complexity () = !ast_complexity
+
+  let freq_sort_default = false
+  let freq_sort = ref freq_sort_default
+  let _ = add_spec
+    "--ic3qe_freq_sort"
+    (Arg.Set freq_sort)
+    (fun fmt ->
+      Format.fprintf fmt
+        "@[<v>Enable online inductive-generalization literal-frequency ordering during inductive generalization@ Default: %a@]"
+        fmt_bool freq_sort_default
+    )
+  let freq_sort () = !freq_sort
+
+  let generalize_eq_canonicalize_default = false
+  let generalize_eq_canonicalize_flag = ref generalize_eq_canonicalize_default
+  let _ = add_spec
+    "--ic3qe_ge_eq_can"
+    (Arg.Set generalize_eq_canonicalize_flag)
+    (fun fmt ->
+      Format.fprintf fmt
+        "@[<v>Canonicalize equality literals returned by QE.generalize@ Default: %a@]"
+        fmt_bool generalize_eq_canonicalize_default
+    )
+  let generalize_eq_canonicalize () = !generalize_eq_canonicalize_flag
+
+  let generalize_ineq_canonicalize_default = false
+  let generalize_ineq_canonicalize_flag = ref generalize_ineq_canonicalize_default
+  let _ = add_spec
+    "--ic3qe_ge_ineq_can"
+    (Arg.Set generalize_ineq_canonicalize_flag)
+    (fun fmt ->
+      Format.fprintf fmt
+        "@[<v>Canonicalize inequality literals returned by QE.generalize@ Default: %a@]"
+        fmt_bool generalize_ineq_canonicalize_default
+    )
+  let generalize_ineq_canonicalize () = !generalize_ineq_canonicalize_flag
+
+  let generalize_canonicalize_default = false
+  let generalize_canonicalize = ref generalize_canonicalize_default
+  let _ = add_spec
+    "--ic3qe_ge_can"
+    (Arg.Unit
+       (fun () ->
+          generalize_canonicalize := true;
+          generalize_eq_canonicalize_flag := true;
+          generalize_ineq_canonicalize_flag := true))
+    (fun fmt ->
+      Format.fprintf fmt
+        "@[<v>Compatibility flag that canonicalizes both equality and inequality literals returned by QE.generalize@ Default: %a@]"
+        fmt_bool generalize_canonicalize_default
+    )
+  let generalize_canonicalize () = !generalize_canonicalize
+
   type abstr = [ `None | `IA ]
   (*let abstr_of_string = function
     | "None" -> `None

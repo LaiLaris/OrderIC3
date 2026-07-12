@@ -102,6 +102,288 @@ let length_of_clause { literals } = List.length literals
 (* Return source of clause *)
 let source_of_clause { source } = source
 
+let neg_one = Numeral.neg Numeral.one
+
+let add_coeff key coeff acc =
+  let prev =
+    match Term.TermMap.find_opt key acc with
+    | Some v -> v
+    | None -> Numeral.zero
+  in
+  let next = Numeral.add prev coeff in
+  if Numeral.equal next Numeral.zero then Term.TermMap.remove key acc
+  else Term.TermMap.add key next acc
+
+let merge_linear_forms (coeffs1, const1) (coeffs2, const2) =
+  let coeffs =
+    Term.TermMap.fold
+      (fun key coeff acc -> add_coeff key coeff acc)
+      coeffs2 coeffs1
+  in
+  (coeffs, Numeral.add const1 const2)
+
+let scale_linear_form k (coeffs, const) =
+  if Numeral.equal k Numeral.zero then (Term.TermMap.empty, Numeral.zero)
+  else
+    ( Term.TermMap.fold
+        (fun key coeff acc -> add_coeff key (Numeral.mult k coeff) acc)
+        coeffs Term.TermMap.empty,
+      Numeral.mult k const )
+
+let is_constant_form (coeffs, _) = Term.TermMap.is_empty coeffs
+
+let rec collect_linear_int_expr t =
+  match Term.destruct t with
+  | Term.T.App (s, args) when s == Symbol.s_plus ->
+      List.fold_left
+        (fun acc arg ->
+          match acc, collect_linear_int_expr arg with
+          | Some acc, Some expr -> Some (merge_linear_forms acc expr)
+          | _ -> None)
+        (Some (Term.TermMap.empty, Numeral.zero))
+        args
+  | Term.T.App (s, [a; b]) when s == Symbol.s_minus -> (
+      match collect_linear_int_expr a, collect_linear_int_expr b with
+      | Some lhs, Some rhs ->
+          Some (merge_linear_forms lhs (scale_linear_form neg_one rhs))
+      | _ -> None)
+  | Term.T.App (s, [a]) when s == Symbol.s_minus -> (
+      match collect_linear_int_expr a with
+      | Some expr -> Some (scale_linear_form neg_one expr)
+      | None -> None)
+  | Term.T.App (s, [a; b]) when s == Symbol.s_times -> (
+      match collect_linear_int_expr a, collect_linear_int_expr b with
+      | Some lhs, Some rhs when is_constant_form lhs ->
+          Some (scale_linear_form (snd lhs) rhs)
+      | Some lhs, Some rhs when is_constant_form rhs ->
+          Some (scale_linear_form (snd rhs) lhs)
+      | _ -> None)
+  | _ when Term.is_numeral t -> Some (Term.TermMap.empty, Term.numeral_of_term t)
+  | _ when Term.type_of_term t == Type.t_int ->
+      Some (Term.TermMap.singleton t Numeral.one, Numeral.zero)
+  | _ -> None
+
+type normalized_cmp = Eq | Gt | Geq | Lt | Leq
+
+let eval_constant_normalized_cmp cmp const =
+  let diff = Numeral.compare const Numeral.zero in
+  match cmp with
+  | Eq -> if diff = 0 then Term.t_true else Term.t_false
+  | Gt -> if diff > 0 then Term.t_true else Term.t_false
+  | Geq -> if diff >= 0 then Term.t_true else Term.t_false
+  | Lt -> if diff < 0 then Term.t_true else Term.t_false
+  | Leq -> if diff <= 0 then Term.t_true else Term.t_false
+
+let build_linear_term (coeffs, const) =
+  let terms =
+    Term.TermMap.bindings coeffs
+    |> List.map (fun (var_term, coeff) ->
+           if Numeral.equal coeff Numeral.one then var_term
+           else Term.mk_times [Term.mk_num coeff; var_term])
+  in
+  let terms =
+    if Numeral.equal const Numeral.zero then terms
+    else terms @ [Term.mk_num const]
+  in
+  match terms with
+  | [] -> Term.mk_num Numeral.zero
+  | [term] -> term
+  | _ -> Term.mk_plus terms
+
+let flip_cmp = function
+  | Eq -> Eq
+  | Gt -> Lt
+  | Geq -> Leq
+  | Lt -> Gt
+  | Leq -> Geq
+
+let normalize_linear_form_sign cmp (coeffs, const) =
+  match Term.TermMap.bindings coeffs with
+  | (_, coeff) :: _ when Numeral.compare coeff Numeral.zero < 0 ->
+      (flip_cmp cmp, scale_linear_form neg_one (coeffs, const))
+  | _ -> (cmp, (coeffs, const))
+
+let canonical_linear_comparison cmp expr =
+  let cmp, (coeffs, const) = normalize_linear_form_sign cmp expr in
+  if Term.TermMap.is_empty coeffs then
+    eval_constant_normalized_cmp cmp const
+  else
+    let lhs = build_linear_term (coeffs, const) in
+    match cmp with
+    | Eq -> Term.mk_eq [lhs; Term.mk_num Numeral.zero]
+    | Gt -> Term.mk_gt [lhs; Term.mk_num Numeral.zero]
+    | Geq -> Term.mk_geq [lhs; Term.mk_num Numeral.zero]
+    | Lt -> Term.mk_lt [lhs; Term.mk_num Numeral.zero]
+    | Leq -> Term.mk_leq [lhs; Term.mk_num Numeral.zero]
+
+let eval_constant_cmp symbol lhs rhs =
+  let diff = Numeral.compare lhs rhs in
+  match Symbol.node_of_symbol symbol with
+  | `EQ -> Some (if diff = 0 then Term.t_true else Term.t_false)
+  | `GT -> Some (if diff > 0 then Term.t_true else Term.t_false)
+  | `LT -> Some (if diff < 0 then Term.t_true else Term.t_false)
+  | `GEQ -> Some (if diff >= 0 then Term.t_true else Term.t_false)
+  | `LEQ -> Some (if diff <= 0 then Term.t_true else Term.t_false)
+  | _ -> None
+
+let is_comparison_symbol symbol =
+  match Symbol.node_of_symbol symbol with
+  | `EQ | `GT | `LT | `GEQ | `LEQ -> true
+  | _ -> false
+
+let eval_constant_comparison body =
+  match Term.destruct body with
+  | Term.T.App (symbol, [lhs; rhs]) when is_comparison_symbol symbol -> (
+      match collect_linear_int_expr lhs, collect_linear_int_expr rhs with
+      | Some (lhs_coeffs, lhs_const), Some (rhs_coeffs, rhs_const)
+        when Term.TermMap.is_empty lhs_coeffs && Term.TermMap.is_empty rhs_coeffs
+        ->
+          eval_constant_cmp symbol lhs_const rhs_const
+      | _ -> None)
+  | _ -> None
+
+let simple_int_var_of_term t =
+  match collect_linear_int_expr t with
+  | Some (coeffs, const) when Numeral.equal const Numeral.zero -> (
+      match Term.TermMap.bindings coeffs with
+      | [var_term, coeff] when Numeral.equal coeff Numeral.one -> Some var_term
+      | _ -> None)
+  | _ -> None
+
+let int_constant_of_term t =
+  match collect_linear_int_expr t with
+  | Some (coeffs, const) when Term.TermMap.is_empty coeffs -> Some const
+  | _ -> None
+
+let is_simple_var_const_comparison lhs rhs =
+  match simple_int_var_of_term lhs, int_constant_of_term rhs with
+  | Some _, Some _ -> true
+  | _ -> (
+      match int_constant_of_term lhs, simple_int_var_of_term rhs with
+      | Some _, Some _ -> true
+      | _ -> false)
+
+let normalize_simple_int_term t =
+  match simple_int_var_of_term t with
+  | Some var_term -> var_term
+  | None -> (
+      match int_constant_of_term t with
+      | Some n -> Term.mk_num n
+      | None -> t)
+
+let rebuild_simple_comparison symbol lhs rhs =
+  let lhs = normalize_simple_int_term lhs in
+  let rhs = normalize_simple_int_term rhs in
+  match Symbol.node_of_symbol symbol with
+  | `GT -> Term.mk_gt [lhs; rhs]
+  | `GEQ -> Term.mk_geq [lhs; rhs]
+  | `LT -> Term.mk_lt [lhs; rhs]
+  | `LEQ -> Term.mk_leq [lhs; rhs]
+  | _ -> invalid_arg "rebuild_simple_comparison"
+
+let eq_canonicalization_blocked_symbols = [`DIV; `INTDIV]
+
+let eq_canonicalization_has_blocking_keyword term =
+  let blocked_symbol symbol =
+    List.exists
+      (fun blocked -> Symbol.node_of_symbol symbol = blocked)
+      eq_canonicalization_blocked_symbols
+  in
+  let rec loop term =
+    match Term.T.node_of_t term with
+    | Term.T.FreeVar _ | Term.T.BoundVar _ -> false
+    | Term.T.Leaf symbol -> blocked_symbol symbol
+    | Term.T.Node (symbol, args) ->
+        blocked_symbol symbol || List.exists loop args
+    | Term.T.Let _ | Term.T.Exists _ | Term.T.Forall _ -> true
+    | Term.T.Annot (term, _) -> loop term
+  in
+  loop term
+
+let destruct_negated_literal lit =
+  match Term.destruct lit with
+  | Term.T.App (s, [arg]) when s == Symbol.s_not -> (true, arg)
+  | _ -> (false, lit)
+
+let fold_constant_comparison ~rebuild neg body fallback =
+  match eval_constant_comparison body with
+  | Some folded -> rebuild neg folded
+  | None -> fallback
+
+let normalize_ineq_difference neg cmp lhs rhs =
+  match cmp with
+  | `GT ->
+      ((if neg then Term.mk_minus [rhs; lhs] else Term.mk_minus [lhs; rhs]),
+       if neg then Leq else Gt)
+  | `GEQ ->
+      ((if neg then Term.mk_minus [rhs; lhs] else Term.mk_minus [lhs; rhs]),
+       if neg then Lt else Geq)
+  | `LT ->
+      ((if neg then Term.mk_minus [lhs; rhs] else Term.mk_minus [rhs; lhs]),
+       if neg then Leq else Gt)
+  | `LEQ ->
+      ((if neg then Term.mk_minus [lhs; rhs] else Term.mk_minus [rhs; lhs]),
+       if neg then Lt else Geq)
+  | _ -> invalid_arg "normalize_ineq_difference"
+
+let canonicalize_eq_literal lit =
+  let rebuild neg body =
+    if neg then Term.negate_simplify body else body
+  in
+  let neg, body = destruct_negated_literal lit in
+  match Term.destruct body with
+  | Term.T.Const symb -> (
+      match Symbol.node_of_symbol symb with
+      | `TRUE | `FALSE -> rebuild neg body
+      | _ -> fold_constant_comparison ~rebuild neg body lit)
+  | _ ->
+      fold_constant_comparison ~rebuild neg body
+        (
+          match Term.destruct body with
+          | Term.T.App (s, [lhs; rhs]) when s == Symbol.s_eq -> (
+              if is_simple_var_const_comparison lhs rhs then
+                rebuild neg body
+              else if
+                eq_canonicalization_has_blocking_keyword lhs
+                || eq_canonicalization_has_blocking_keyword rhs
+              then
+                lit
+              else
+                match collect_linear_int_expr (Term.mk_minus [lhs; rhs]) with
+                | Some expr -> rebuild neg (canonical_linear_comparison Eq expr)
+                | None -> lit)
+          | _ -> lit)
+
+let canonicalize_ineq_literal lit =
+  let rebuild neg body =
+    if neg then Term.mk_not body else body
+  in
+  let neg, body = destruct_negated_literal lit in
+  match Term.destruct body with
+  | Term.T.Const symb -> (
+      match Symbol.node_of_symbol symb with
+      | `TRUE | `FALSE -> rebuild neg body
+      | _ -> fold_constant_comparison ~rebuild neg body lit)
+  | Term.T.App (s, [lhs; rhs]) ->
+      fold_constant_comparison ~rebuild neg body
+        (
+          match Symbol.node_of_symbol s with
+          | `GT | `GEQ | `LT | `LEQ
+            when is_simple_var_const_comparison lhs rhs ->
+              rebuild neg (rebuild_simple_comparison s lhs rhs)
+          | `GT | `GEQ | `LT | `LEQ -> (
+              let diff_term, cmp =
+                normalize_ineq_difference neg (Symbol.node_of_symbol s) lhs rhs
+              in
+              match collect_linear_int_expr diff_term with
+              | Some expr -> canonical_linear_comparison cmp expr
+              | None -> lit)
+          | _ -> lit)
+  | _ -> lit
+
+let canonicalize_literal lit =
+  lit |> canonicalize_eq_literal |> canonicalize_ineq_literal
+
 (*
 (* Pretty-print the source of a clause *)
 let pp_print_source ppf = function

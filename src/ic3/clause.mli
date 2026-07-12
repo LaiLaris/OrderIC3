@@ -98,7 +98,16 @@ val literals_of_clause : t -> Term.t list
 
 (** Return the source of the clause *)
 val source_of_clause : t -> source 
-  
+
+val canonicalize_eq_literal : Term.t -> Term.t
+(** Canonicalize linear equality literals to a stable representative. *)
+
+val canonicalize_ineq_literal : Term.t -> Term.t
+(** Canonicalize linear inequality literals to a stable representative. *)
+
+val canonicalize_literal : Term.t -> Term.t
+(** Canonicalize linear arithmetic literals to a stable representative. *)
+
 (** {1 Activation Literals} *)
   
 (** Return the activation literal for the positive unprimed clause 
