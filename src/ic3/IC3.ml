@@ -62,13 +62,19 @@ let decay_ind_gen_literal_frequency () =
 
 let incr_ind_gen_literal_frequency literals =
   decay_ind_gen_literal_frequency ();
+  (* Normalize by clause length so each generalized clause contributes a
+     total frequency weight of 1.0. *)
+  let length = max 1 (List.length literals) in
+  let weight = 1.0 /. float_of_int length in
+
   List.iter
     (fun lit ->
       let count =
         try Term.TermHashtbl.find ind_gen_literal_frequency lit
         with Not_found -> 0.0
       in
-      Term.TermHashtbl.replace ind_gen_literal_frequency lit (count +. 1.0))
+      (* Term.TermHashtbl.replace ind_gen_literal_frequency lit (count +. 1.0)) *)
+      Term.TermHashtbl.replace ind_gen_literal_frequency lit (count +. weight))
     literals
 
 let ind_gen_literal_frequency_of lit =
@@ -565,8 +571,8 @@ let ind_generalize ?(wdm_context = None) solver prop_set frame clause literals =
               else if use_ast_complexity then
                 let c2 =
                   compare
-                    (literal_ast_complexity lit1)
                     (literal_ast_complexity lit2)
+                    (literal_ast_complexity lit1)
                 in
                 if c2 <> 0 then c2 else compare i1 i2
               else compare i1 i2)
