@@ -18,6 +18,9 @@
 
 open Lib
 
+open Graphicspdf
+module Graphics = Graphicspdf
+
 exception UnsupportedFeature of string
 
 module C = Clause
@@ -44,6 +47,13 @@ let ind_gen_literal_frequency : float Term.TermHashtbl.t =
   Term.TermHashtbl.create 251
 
 let ind_gen_literal_frequency_decay = 0.99
+
+let is_ind_gen_trivial_false_literal lit =
+  lit == Term.t_false
+  ||
+  match Term.destruct lit with
+  | Term.T.App (s, [term]) when s == Symbol.s_not -> term == Term.t_true
+  | _ -> false
 
 let decay_ind_gen_literal_frequency () =
   Term.TermHashtbl.filter_map_inplace
@@ -73,21 +83,65 @@ let rec literal_ast_complexity term =
           (fun acc arg -> acc + literal_ast_complexity arg)
           0 args
 
-let string_contains_substring haystack needle =
-  let haystack_len = String.length haystack in
-  let needle_len = String.length needle in
-  if needle_len = 0 then true
-  else
-    let rec loop index =
-      if index + needle_len > haystack_len then false
-      else
-        String.sub haystack index needle_len = needle || loop (index + 1)
-    in
-    loop 0
+let rec literal_contains_div_operator lit =
+  match Term.destruct lit with
+  | Term.T.App (s, args) -> (
+      match Symbol.node_of_symbol s with
+      | `DIV | `INTDIV -> true
+      | _ -> List.exists literal_contains_div_operator args)
+  | Term.T.Const _ | Term.T.Var _ -> false
 
-let literal_contains_div_keyword lit =
-  let s = Format.asprintf "%a" Term.pp_print_term lit in
-  string_contains_substring s "div"
+(* WDM uses the concrete SAT model returned by a failed push query as a
+   witness. Clause literals are unprimed; evaluate them at step 1 to score
+   whether they hold in the failed successor state. *)
+let wdm_literal_holds_in_succ_model trans_sys model lit =
+  match
+    Term.bump_state Numeral.one lit
+    |> Eval.eval_term (TransSys.uf_defs trans_sys) model
+  with
+  | Eval.ValBool true -> true
+  | _ -> false
+
+let wdm_literal_model_score trans_sys models lit =
+  List.fold_left
+    (fun count model ->
+      if wdm_literal_holds_in_succ_model trans_sys model lit then count + 1
+      else count)
+    0 models
+
+let wdm_order_literals_by_models trans_sys models literals =
+  let indexed = List.mapi (fun i lit -> (i, lit)) literals in
+  indexed
+  |> List.sort (fun (i1, lit1) (i2, lit2) ->
+         let c =
+           compare
+             (wdm_literal_model_score trans_sys models lit2)
+             (wdm_literal_model_score trans_sys models lit1)
+         in
+         if c <> 0 then c else compare i1 i2)
+  |> List.map snd
+
+let wdm_failure_push_models : (int, Model.t list) Hashtbl.t =
+  Hashtbl.create 251
+
+let wdm_copy_model model = Model.to_list model |> Model.of_list
+
+let wdm_remember_failure_push_model level model =
+  let models =
+    match Hashtbl.find_opt wdm_failure_push_models level with
+    | Some models -> models
+    | None -> []
+  in
+  Hashtbl.replace wdm_failure_push_models level (wdm_copy_model model :: models)
+
+let wdm_models_of_level level =
+  match Hashtbl.find_opt wdm_failure_push_models level with
+  | Some models -> models
+  | None -> []
+
+let wdm_context_of_level trans_sys level =
+  if Flags.IC3QE.wdm () then Some (trans_sys, wdm_models_of_level level)
+  else None
 
   
 (* Output statistics *)
@@ -220,12 +274,12 @@ let rec check_frames' solver prop_set accum = function
     (* Check if all successors of frame are in the next frame *)
     let is_rel_ind () = 
 
-      SMTSolver.trace_comment 
+      (* SMTSolver.trace_comment 
         solver
         (Format.sprintf 
            "check_frames: Does R_%d & T |= R_%d hold?"
            (List.length tl)
-           (List.length tl |> succ));
+           (List.length tl |> succ)); *)
 
       (* Activation literal for conjunction of clauses *)
       let actlit_n1 = 
@@ -292,11 +346,11 @@ let rec check_frames' solver prop_set accum = function
       (* Check if first clause is initial *)
       | c :: ctl -> 
 
-        SMTSolver.trace_comment 
+        (* SMTSolver.trace_comment 
           solver
           (Format.sprintf 
              "check_frames: Does I |= C for C in R_%d hold?"
-             (List.length tl |> succ));
+             (List.length tl |> succ)); *)
 
         if
           
@@ -323,11 +377,11 @@ let rec check_frames' solver prop_set accum = function
 
     in
 
-    SMTSolver.trace_comment 
+    (* SMTSolver.trace_comment 
       solver
       (Format.sprintf 
          "check_frames: Does R_%d |= P hold?"
-         (List.length tl |> succ));
+         (List.length tl |> succ)); *)
 
     SMTSolver.check_sat_assuming
       solver
@@ -437,6 +491,41 @@ let deactivate_subsumed solver (subsumed, frame') =
   
   (subsumed, frame')
 
+(* ********************************************************************** *)
+(* Draw bad state tree                                                    *)
+(* ********************************************************************** *)
+
+type tree_node = { node_clause : C.t; mutable children : tree_node list }
+
+let reuse_tree = ref None
+
+let add_root_to_tree root_node =
+  match !reuse_tree with
+  | None -> reuse_tree := Some root_node
+  | Some _ -> ()
+
+let find_node_by_id tree id =
+  let rec find_node_by_id_recursive node id =
+    if C.id_of_clause node.node_clause = id then Some node
+    else
+      match node.children with
+      | [] -> None
+      | hd :: tl -> (
+          match find_node_by_id_recursive hd id with
+          | None -> find_node_by_id_recursive { hd with children = tl } id
+          | Some _ as found -> found)
+  in
+  match !tree with
+  | None -> None
+  | Some root -> find_node_by_id_recursive root id
+
+let add_node_to_tree id clause =
+  match find_node_by_id reuse_tree id with
+  | None -> ()
+  | Some parent ->
+      let new_node = { node_clause = clause; children = [] } in
+      parent.children <- new_node :: parent.children
+
 (* ************************************************************************ *)
 (* Inductive generalization                                                 *)
 (* ************************************************************************ *)
@@ -446,8 +535,13 @@ let deactivate_subsumed solver (subsumed, frame') =
    Assuming that [clause] is relatively inductive to [frame] and
    initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
-let ind_generalize solver prop_set frame clause literals =
+let ind_generalize ?(wdm_context = None) solver prop_set frame clause literals =
 
+  let skip_trivial_false_literals literals =
+    match List.filter (fun lit -> not (is_ind_gen_trivial_false_literal lit)) literals with
+    | [] -> literals
+    | filtered -> filtered
+  in
   let prioritize_ind_gen_frequency_literals literals =
     if Flags.IC3QE.freq_sort () && frame <> [] && List.length literals > 1 then
       let reordered =
@@ -457,8 +551,8 @@ let ind_generalize solver prop_set frame clause literals =
           (fun (i1, lit1) (i2, lit2) ->
             let c =
               compare
-                (literal_contains_div_keyword lit2)
-                (literal_contains_div_keyword lit1)
+                (literal_contains_div_operator lit2)
+                (literal_contains_div_operator lit1)
             in
             if c <> 0 then c
             else
@@ -501,6 +595,29 @@ let ind_generalize solver prop_set frame clause literals =
            reordered);
       reordered
     else literals
+  in
+  let prioritize_wdm_literals literals =
+    match wdm_context with
+    | Some (trans_sys, models)
+      when Flags.IC3QE.wdm () && models <> [] && List.length literals > 1 ->
+        let reordered = wdm_order_literals_by_models trans_sys models literals in
+        let pp_literal_wdm_score ppf lit =
+          Format.fprintf ppf "%a [wdm=%d]" Term.pp_print_term lit
+            (wdm_literal_model_score trans_sys models lit)
+        in
+        SMTSolver.trace_comment solver
+          (Format.asprintf
+             "@[<v>ind-gen WDM priority for clause #%d using %d witness \
+              model(s):@,\
+              original: {@,%a@,}@,\
+              reordered by WDM: {@,%a@,}@]"
+             (C.id_of_clause clause) (List.length models)
+             (pp_print_list pp_literal_wdm_score "@,")
+             literals
+             (pp_print_list pp_literal_wdm_score "@,")
+             reordered);
+        reordered
+    | _ -> literals
   in
 
   (* Linearly traverse the list of literals in the clause, and remove
@@ -546,7 +663,6 @@ let ind_generalize solver prop_set frame clause literals =
 
           if Flags.IC3QE.freq_sort () then
             incr_ind_gen_literal_frequency (C.literals_of_clause clause');
-          
           clause'
             
         )
@@ -595,9 +711,9 @@ let ind_generalize solver prop_set frame clause literals =
       (* Clause without literal is initial *)
       let is_initial () = 
 
-        SMTSolver.trace_comment solver
+        (* SMTSolver.trace_comment solver
           "ind_generalize: Checking if clause without literal is \
-           relatively inductive.";
+           relatively inductive."; *)
 
         if 
           
@@ -622,8 +738,8 @@ let ind_generalize solver prop_set frame clause literals =
 
       in
 
-      SMTSolver.trace_comment solver
-        "ind_generalize: Checking if clause without literal is initial.";
+      (* SMTSolver.trace_comment solver
+        "ind_generalize: Checking if clause without literal is initial."; *)
 
       if
         
@@ -642,11 +758,13 @@ let ind_generalize solver prop_set frame clause literals =
         
         (* If unsat: Clause without literal is initial *)
         is_initial ()
-
-
   in
 
-  linear_search [] (prioritize_ind_gen_frequency_literals literals)
+  linear_search []
+    (literals
+     |> skip_trivial_false_literals
+     |> prioritize_ind_gen_frequency_literals
+     |> prioritize_wdm_literals)
 
 (*
 
@@ -771,24 +889,6 @@ let ind_generalize solver prop_set frame clause literals =
 (* Extrapolation from a two-state counterexample                            *)
 (* ************************************************************************ *)
 
-let canonicalize_generalized_literal lit =
-  lit
-  |> (fun lit ->
-      if Flags.IC3QE.generalize_eq_canonicalize () then
-        C.canonicalize_eq_literal lit
-      else lit)
-  |> fun lit ->
-     if Flags.IC3QE.generalize_ineq_canonicalize () then
-       C.canonicalize_ineq_literal lit
-     else lit
-
-let canonicalize_generalized_literals literals =
-  if not (Flags.IC3QE.generalize_canonicalize ()
-          || Flags.IC3QE.generalize_eq_canonicalize ()
-          || Flags.IC3QE.generalize_ineq_canonicalize ())
-  then literals
-  else List.map canonicalize_generalized_literal literals
-
 (* Given a model and two formulas f and g return a conjunction of
    literals such that 
 
@@ -837,7 +937,7 @@ let extrapolate trans_sys state f g =
   Stat.record_time Stat.ic3_generalize_time;
 
   (* Return generalized term *)
-  canonicalize_generalized_literals gen_term
+  gen_term
 
 
 (* ************************************************************************ *)
@@ -1869,6 +1969,7 @@ let partition_fwd_prop
     solver
     trans_sys
     prop_set
+    level
     frame
     clauses = 
 
@@ -1935,6 +2036,21 @@ let partition_fwd_prop
               |> Eval.bool_of_value)
             maybe_prop
         in
+
+        if Flags.IC3QE.wdm () && keep_new <> [] then (
+          wdm_remember_failure_push_model level model;
+          let failed_clause_ids =
+            List.map
+              (fun c -> Format.asprintf "#%d" (C.id_of_clause c))
+              keep_new
+            |> String.concat ","
+          in
+          SMTSolver.trace_comment solver
+            (Format.asprintf
+               "WDM remember witness level=%d, now=%d, failed clauses={%s}"
+               level
+               (List.length (wdm_models_of_level level))
+               failed_clause_ids));
         
         (* Clauses found not propagateable *)
         let keep' = keep @ keep_new in
@@ -1974,7 +2090,7 @@ let partition_fwd_prop
 (* Forward propagate clauses in all frames *)
 let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
 
-  let subsume_and_add a c =
+  let subsume_and_add level a c =
 
     SMTSolver.trace_comment
       solver
@@ -2002,6 +2118,7 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
         (Stat.time_fun Stat.ic3_ind_gen_time
            (fun () -> 
               ind_generalize 
+                ~wdm_context:(wdm_context_of_level trans_sys level)
                 solver
                 prop_set
                 (F.values a |> List.map (C.actlit_p0_of_clause solver))
@@ -2191,7 +2308,7 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
             (* Add a new frame with the non-inductive clauses *)
             let frames' =
               (List.fold_left
-                 subsume_and_add
+                 (subsume_and_add 0)
                  F.empty
                  non_inductive_clauses)
               :: frames
@@ -2212,7 +2329,7 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
             (* Add a new frame with clauses to propagate *)
             let frames' =
               (List.fold_left
-                 subsume_and_add
+                 (subsume_and_add 0)
                  F.empty
                  prop)
               :: frames
@@ -2249,8 +2366,10 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
         in
 
         (* Add propagated clauses to frame with subsumption *)
+        let level = succ (List.length frames) in
+
         let frame' =
-          List.fold_left subsume_and_add frame prop
+          List.fold_left (subsume_and_add level) frame prop
         in
         
         (* DEBUG *)
@@ -2269,6 +2388,7 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
             solver
             trans_sys
             prop_set
+            level
             frames_tl_full
             (F.values frame')
         in
@@ -2304,6 +2424,22 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
                  (frames_tl))
               |> Term.mk_and
             in
+            let ind_inv_conjuncts =
+            let rec collect acc t =
+              if Term.is_node t then
+                let s = Term.node_symbol_of_term t in
+                match Symbol.node_of_symbol s with
+                | `AND -> List.fold_left collect acc (Term.node_args_of_term t)
+                | _ -> t :: acc
+              else t :: acc
+            in
+            List.rev (collect [] ind_inv)
+          in
+          SMTSolver.trace_comment solver
+            (Format.asprintf
+               "@[<hv>Inductive invariant:@ @[<hv 1>{%a}@]@]"
+               (pp_print_list Term.pp_print_term ";@ ")
+               ind_inv_conjuncts);
 
             (* Activation literals for inductive invariant *)
             let ind_inv_p0, ind_inv_n0, ind_inv_n1 = 
@@ -2394,6 +2530,7 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
                       solver
                       trans_sys
                       prop_set
+                      level
                       (frames_tl_full @ keep @ fwd)
                       keep_before_gen
                   in
@@ -2425,7 +2562,7 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
               aparam 
               trans_sys
               fwd'
-              ((List.fold_left subsume_and_add F.empty keep)
+              ((List.fold_left (subsume_and_add level) F.empty keep)
                :: frames)
               frames_tl
 
@@ -2472,17 +2609,17 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
 
   Stat.set ic3_k Stat.ic3_k;
 
-  Stat.start_timer Stat.ic3_fwd_prop_time;
+  Stat.unpause_time Stat.ic3_fwd_prop_time;
 
   let frames' =
 
-    try 
+    try
 
       (* Forward propagate clauses in all frames *)
       fwd_propagate
         solver
         input_sys
-        aparam 
+        aparam
         trans_sys
         prop_set
         frames
@@ -2544,20 +2681,20 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
 
   Stat.set_int_list (frame_sizes frames') Stat.ic3_frame_sizes;
 
-  Stat.start_timer Stat.ic3_strengthen_time;
+  Stat.unpause_time Stat.ic3_strengthen_time;
 
   (* Recursively block counterexamples in frontier frame *)
-  let frames'' , predicates = 
+  let frames'' , predicates =
     block
       solver
       input_sys
-      aparam 
+      aparam
       trans_sys
       prop_set
       ()
-      predicates 
+      predicates
       []
-      frames' 
+      frames'
   in
 
   Stat.record_time Stat.ic3_strengthen_time;
@@ -3400,15 +3537,79 @@ let main input_sys aparam trans_sys =
   )
   | _ -> () );
 
-  match Flags.IC3QE.abstr () with
-  | `IA -> main_ic3 input_sys aparam trans_sys
-  | `None -> (
-    if TransSys.subsystem_includes_function_symbol trans_sys then
-      raise (UnsupportedFeature
-        "Shutting down IC3QE: system includes an abstract function.")
-    ;
-    main_ic3 input_sys aparam trans_sys
-  )
+  Fun.protect
+    ~finally:(fun () ->
+      let draw_text_centered text x y =
+        let font_size = 12 in
+        let width = String.length text * font_size / 2 in
+        let height = font_size in
+        Graphics.moveto (x - (width / 2) - 1) (y - (height / 2) + 2);
+        Graphics.draw_string text
+      in
+      let rec draw_tree_node_horizontal node x y =
+        Graphics.set_color Graphics.black;
+        Graphics.draw_circle x y 10;
+        if C.id_of_clause node.node_clause = 3 then draw_text_centered "~P" x y
+        else
+          draw_text_centered
+            (string_of_int (C.id_of_clause node.node_clause))
+            x y;
+
+        let level_gap_x = 80 in
+        let node_gap_y = 50 in
+
+        let rec subtree_height n =
+          match n.children with
+          | [] -> node_gap_y
+          | children ->
+              List.fold_left (fun acc c -> acc + subtree_height c) 0 children
+        in
+
+        let total_h = subtree_height node in
+        let child_x = x + level_gap_x in
+        let start_y = y - (total_h / 2) in
+
+        let rec draw_children_horizontal children current_offset =
+          match children with
+          | [] -> ()
+          | child :: rest ->
+              let h = subtree_height child in
+              let child_y = start_y + current_offset + (h / 2) in
+              let next_offset = current_offset + h in
+              Graphics.moveto x y;
+              Graphics.lineto child_x child_y;
+              draw_tree_node_horizontal child child_x child_y;
+              draw_children_horizontal rest next_offset
+        in
+        draw_children_horizontal node.children 0
+      in
+
+      let draw_tree tree =
+        match tree with
+        | None -> print_endline "树没建好"
+        | Some root -> (
+            match Flags.IC3QE.reuse_tree_pdf () with
+            | Some path when path <> "" ->
+                let pdf_path = path in
+                Graphics.open_pdf pdf_path;
+                Graphics.open_graph "1800x2400";
+                let root_x = 50 in
+                let root_y = Graphics.size_y () / 2 in
+                draw_tree_node_horizontal root root_x root_y;
+                Graphics.close_graph ()
+            | _ -> ())
+      in
+      draw_tree !reuse_tree)
+    (fun () ->
+      match Flags.IC3QE.abstr () with
+      | `IA -> main_ic3 input_sys aparam trans_sys
+      | `None -> (
+        if TransSys.subsystem_includes_function_symbol trans_sys then
+          raise (UnsupportedFeature
+            "Shutting down IC3QE: system includes an abstract function.")
+        ;
+        main_ic3 input_sys aparam trans_sys
+      ))
 
 
 (* 

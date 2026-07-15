@@ -861,6 +861,21 @@ module IC3QE = struct
     )
   let print_to_file () = !print_to_file
 
+  let reuse_tree_pdf_default = None
+  let reuse_tree_pdf = ref reuse_tree_pdf_default
+  let _ = add_spec
+    "--ic3qe_reuse_tree_pdf"
+    (Arg.String (fun str -> reuse_tree_pdf := Some str))
+    (fun fmt ->
+      Format.fprintf fmt
+        "@[<v>\
+          where <string> is a file path in an existing directory.@ \
+          Output PDF path for reuse tree@ \
+          Default: auto\
+        @]"
+    )
+  let reuse_tree_pdf () = !reuse_tree_pdf
+
   let inductively_generalize_default = 1
   let inductively_generalize = ref inductively_generalize_default
   let _ = add_spec
@@ -958,6 +973,18 @@ module IC3QE = struct
     )
   let use_invgen () = !use_invgen
 
+  let wdm_default = false
+  let wdm = ref wdm_default
+  let _ = add_spec
+    "--ic3qe_wdm"
+    (Arg.Set wdm)
+    (fun fmt ->
+      Format.fprintf fmt
+        "@[<v>Enable witness-directed minimization ordering during inductive generalization@ Default: %a@]"
+        fmt_bool wdm_default
+    )
+  let wdm () = !wdm
+
   let ast_complexity_default = false
   let ast_complexity = ref ast_complexity_default
   let _ = add_spec
@@ -981,46 +1008,6 @@ module IC3QE = struct
         fmt_bool freq_sort_default
     )
   let freq_sort () = !freq_sort
-
-  let generalize_eq_canonicalize_default = false
-  let generalize_eq_canonicalize_flag = ref generalize_eq_canonicalize_default
-  let _ = add_spec
-    "--ic3qe_ge_eq_can"
-    (Arg.Set generalize_eq_canonicalize_flag)
-    (fun fmt ->
-      Format.fprintf fmt
-        "@[<v>Canonicalize equality literals returned by QE.generalize@ Default: %a@]"
-        fmt_bool generalize_eq_canonicalize_default
-    )
-  let generalize_eq_canonicalize () = !generalize_eq_canonicalize_flag
-
-  let generalize_ineq_canonicalize_default = false
-  let generalize_ineq_canonicalize_flag = ref generalize_ineq_canonicalize_default
-  let _ = add_spec
-    "--ic3qe_ge_ineq_can"
-    (Arg.Set generalize_ineq_canonicalize_flag)
-    (fun fmt ->
-      Format.fprintf fmt
-        "@[<v>Canonicalize inequality literals returned by QE.generalize@ Default: %a@]"
-        fmt_bool generalize_ineq_canonicalize_default
-    )
-  let generalize_ineq_canonicalize () = !generalize_ineq_canonicalize_flag
-
-  let generalize_canonicalize_default = false
-  let generalize_canonicalize = ref generalize_canonicalize_default
-  let _ = add_spec
-    "--ic3qe_ge_can"
-    (Arg.Unit
-       (fun () ->
-          generalize_canonicalize := true;
-          generalize_eq_canonicalize_flag := true;
-          generalize_ineq_canonicalize_flag := true))
-    (fun fmt ->
-      Format.fprintf fmt
-        "@[<v>Compatibility flag that canonicalizes both equality and inequality literals returned by QE.generalize@ Default: %a@]"
-        fmt_bool generalize_canonicalize_default
-    )
-  let generalize_canonicalize () = !generalize_canonicalize
 
   type abstr = [ `None | `IA ]
   (*let abstr_of_string = function
@@ -1139,6 +1126,52 @@ module QE = struct
     )
   let set_qe_method q = qe_method := q
   let qe_method () = !qe_method
+
+  let generalize_eq_canonicalize_default = false
+  let generalize_eq_canonicalize_flag = ref generalize_eq_canonicalize_default
+  let _ =
+    add_spec
+      "--ic3qe_ge_eq_can"
+      (Arg.Set generalize_eq_canonicalize_flag)
+      (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Canonicalize equality literals before returning from QE.generalize@ Default: %a@]"
+          fmt_bool generalize_eq_canonicalize_default)
+
+  let generalize_eq_canonicalize () = !generalize_eq_canonicalize_flag
+
+  let generalize_ineq_canonicalize_default = false
+  let generalize_ineq_canonicalize_flag =
+    ref generalize_ineq_canonicalize_default
+
+  let _ =
+    add_spec
+      "--ic3qe_ge_ineq_can"
+      (Arg.Set generalize_ineq_canonicalize_flag)
+      (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Canonicalize inequality literals before returning from QE.generalize@ Default: %a@]"
+          fmt_bool generalize_ineq_canonicalize_default)
+
+  let generalize_ineq_canonicalize () = !generalize_ineq_canonicalize_flag
+
+  let generalize_canonicalize_default = false
+  let generalize_canonicalize = ref generalize_canonicalize_default
+
+  let _ =
+    add_spec
+      "--ic3qe_ge_can"
+      (Arg.Unit
+         (fun () ->
+           generalize_canonicalize := true;
+           generalize_eq_canonicalize_flag := true;
+           generalize_ineq_canonicalize_flag := true))
+      (fun fmt ->
+        Format.fprintf fmt
+          "@[<v>Deprecated compatibility flag that canonicalizes both equality and inequality literals before returning from QE.generalize@ Default: %a@]"
+          fmt_bool generalize_canonicalize_default)
+
+  let generalize_canonicalize () = !generalize_canonicalize
 
   type extract = [ `First | `Vars ]
   let extract_of_string = function

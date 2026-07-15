@@ -1012,13 +1012,13 @@ let create_and_assert_fresh_actlit solver tag term actlit_type =
   (* Increment counter for tag *)
   incr actlit_count_ref;
 
-  SMTSolver.trace_comment 
+  (* SMTSolver.trace_comment 
     solver
     (Format.sprintf
        "create_and_assert_fresh_actlit: Assert activation literal %s for %s %d"
        (tag_of_actlit_type actlit_type)
        tag
-       !actlit_count_ref);
+       !actlit_count_ref); *)
 
   (* Name of uninterpreted function symbol primed negative *)
   let uf_symbol_name = 

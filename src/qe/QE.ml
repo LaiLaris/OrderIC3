@@ -506,7 +506,23 @@ let solve_eqs vars terms =
 
 
 let generalize trans_sys uf_defs model elim term =
-
+  let canonicalize_literals literals =
+    let literals =
+      if Flags.QE.generalize_eq_canonicalize () then
+        List.map Clause.canonicalize_eq_literal literals
+      else
+        literals
+    in
+    if Flags.QE.generalize_ineq_canonicalize () then
+      List.map Clause.canonicalize_ineq_literal literals
+    else
+      literals
+  in
+  let should_canonicalize =
+    Flags.QE.generalize_canonicalize ()
+    || Flags.QE.generalize_eq_canonicalize ()
+    || Flags.QE.generalize_ineq_canonicalize ()
+  in
   let qe_method = Flags.QE.qe_method () in
 
   (* Partition list of state variables into Boolean and integer variables *)
@@ -701,7 +717,22 @@ let generalize trans_sys uf_defs model elim term =
 
   in
 
-  Debug.qe "QE term %a" Term.pp_print_term (Term.mk_and term');
+  let term' =
+    if should_canonicalize then (
+      Debug.qe "@[<hv>Before QE canonicalization:@ @[<hv>%a@]@]@."
+        (pp_print_list Term.pp_print_term ";@ ")
+        term';
+      let term' = canonicalize_literals term' in
+      Debug.qe "@[<hv>After QE canonicalization:@ @[<hv>%a@]@]@."
+        (pp_print_list Term.pp_print_term ";@ ")
+        term';
+      term')
+    else (
+      Debug.qe "@[<hv>QE generalized literals:@ @[<hv>%a@]@]@."
+        (pp_print_list Term.pp_print_term ";@ ")
+        term';
+      term')
+  in
 
   (* Return quantifier eliminated term *)
   term'

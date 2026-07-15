@@ -238,6 +238,8 @@ let define_fun s uf_symbol vars term =
        vars
        (UfSymbol.res_type_of_uf_symbol uf_symbol)
        (S.Conv.smtexpr_of_term term))
+       (* 原2.3.0版本 *)
+       (* term) *)
 
 
 
@@ -318,49 +320,58 @@ let pop ?(n = 1) s =
 
 let prof_check_sat ?(timeout = 0) s =
   let module S = (val s.solver_inst) in
-  Stat.start_timer Stat.smt_check_sat_time;
+  Stat.incr Stat.ic3_solver;
+  Stat.incr Stat.smt_check_sat_count;
+  Stat.unpause_time Stat.smt_check_sat_time;
   let res = S.check_sat ~timeout () in
   Stat.record_time Stat.smt_check_sat_time;
   res
 
 let prof_check_sat_assuming s exprs =
   let module S = (val s.solver_inst) in
-  Stat.start_timer Stat.smt_check_sat_time;
+  Stat.incr Stat.ic3_solver;
+  Stat.incr Stat.smt_check_sat_count;
+  Stat.unpause_time Stat.smt_check_sat_time;
   let res = S.check_sat_assuming exprs in
   Stat.record_time Stat.smt_check_sat_time;
   res
 
 let prof_get_value s e =
   let module S = (val s.solver_inst) in
-  Stat.start_timer Stat.smt_get_value_time;
+  Stat.incr Stat.smt_get_value_count;
+  Stat.unpause_time Stat.smt_get_value_time;
   let res = S.get_value e in
   Stat.record_time Stat.smt_get_value_time;
   res
 
 let prof_get_model s e =
   let module S = (val s.solver_inst) in
-  Stat.start_timer Stat.smt_get_value_time;
+  Stat.incr Stat.smt_get_value_count;
+  Stat.unpause_time Stat.smt_get_value_time;
   let res = S.get_model e in
   Stat.record_time Stat.smt_get_value_time;
   res
 
 let prof_get_unsat_core s =
   let module S = (val s.solver_inst) in
-  Stat.start_timer Stat.smt_get_unsat_core_time;
+  Stat.incr Stat.smt_get_unsat_core_count;
+  Stat.unpause_time Stat.smt_get_unsat_core_time;
   let res = S.get_unsat_core () in
   Stat.record_time Stat.smt_get_unsat_core_time;
   res
 
 let prof_get_unsat_assumptions s =
   let module S = (val s.solver_inst) in
-  Stat.start_timer Stat.smt_get_unsat_core_time;
+  Stat.incr Stat.smt_get_unsat_core_count;
+  Stat.unpause_time Stat.smt_get_unsat_core_time;
   let res = S.get_unsat_assumptions () in
   Stat.record_time Stat.smt_get_unsat_core_time;
   res
 
 let trace_comment s c =
   let module S = (val s.solver_inst) in
-  S.trace_comment c
+  S.trace_comment c;
+  print_endline c
 
 
 

@@ -181,6 +181,9 @@ val ic3_k : int_item
 (** Number of restarts *)
 val ic3_restarts : int_item 
 
+(** Number of solver instances created *)
+val ic3_solver : int_item
+
 (** Frame sizes in *)
 val ic3_frame_sizes : int_list_item
 
@@ -405,13 +408,22 @@ val pp_print_testgen_stats: Format.formatter -> unit
 (** {2 SMT} *)
 
 (** Time in check-sat calls *)
-val smt_check_sat_time : float_item 
+val smt_check_sat_time : float_item
+
+(** Number of check-sat calls *)
+val smt_check_sat_count : int_item
 
 (** Time in get-value calls *)
-val smt_get_value_time : float_item 
+val smt_get_value_time : float_item
+
+(** Number of get-value calls *)
+val smt_get_value_count : int_item
 
 (** Time in get-unsat-core calls *)
-val smt_get_unsat_core_time : float_item 
+val smt_get_unsat_core_time : float_item
+
+(** Number of get-unsat-core calls *)
+val smt_get_unsat_core_count : int_item 
 
 (** Stop and record all timers *)
 val smt_stop_timers : unit -> unit 

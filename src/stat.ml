@@ -388,6 +388,9 @@ let ic3_k =
 let ic3_restarts = 
   empty_item "Restarts" 0
 
+let ic3_solver =
+  empty_item "Solver" 0
+
 let ic3_frame_sizes = 
   empty_item "Frame sizes" []
 
@@ -443,6 +446,7 @@ let ic3_stats_title = "IC3"
 let ic3_stats = 
   [ I ic3_k; 
     I ic3_restarts;
+    I ic3_solver;
     L ic3_frame_sizes; 
     I ic3_fwd_propagated; 
     I ic3_fwd_gen_propagated; 
@@ -673,23 +677,35 @@ let pp_print_testgen_stats ppf =
 
 (* ********** SMT statistics ********** *)
 
-let smt_check_sat_time = 
+let smt_check_sat_time =
   empty_item "check-sat time" 0.
 
-let smt_get_value_time = 
+let smt_check_sat_count =
+  empty_item "check-sat calls" 0
+
+let smt_get_value_time =
   empty_item "get-value time" 0.
 
-let smt_get_unsat_core_time = 
+let smt_get_value_count =
+  empty_item "get-value calls" 0
+
+let smt_get_unsat_core_time =
   empty_item "get-unsat-core time" 0.
+
+let smt_get_unsat_core_count =
+  empty_item "get-unsat-core calls" 0
 
 (* Title for SMT statistics *)
 let smt_stats_title = "SMT"
 
 (* All SMT statistics *)
-let smt_stats = 
+let smt_stats =
   [ F smt_check_sat_time;
+    I smt_check_sat_count;
     F smt_get_value_time;
-    F smt_get_unsat_core_time ] 
+    I smt_get_value_count;
+    F smt_get_unsat_core_time;
+    I smt_get_unsat_core_count ] 
 
 (* Stop and record all times *)
 let smt_stop_timers () = stop_all_timers smt_stats
@@ -806,4 +822,3 @@ let remaining_timeout () =
    indent-tabs-mode: nil
    End: 
 *)
-

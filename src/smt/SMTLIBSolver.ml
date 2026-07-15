@@ -575,6 +575,8 @@ module Make (Driver : SMTLIBSolverDriver) : SolverSig.S = struct
               Format.fprintf ppf "(%s %s)" 
                 (UfSymbol.string_of_uf_symbol
                   (Var.unrolled_uf_of_state_var_instance var))
+                (* 原2.3.0版本 *)
+                (* Format.fprintf ppf "(%s %s)" (Var.string_of_var var) *)
                 (string_of_sort (Var.type_of_var var)))
            "@ ")
         arg_vars

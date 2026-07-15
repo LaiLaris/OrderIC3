@@ -418,6 +418,9 @@ module IC3QE : sig
   (** File for inductive blocking clauses. *)
   val print_to_file : unit -> string option
 
+  (** Output PDF path for reuse tree. *)
+  val reuse_tree_pdf : unit -> string option
+
   (** Tighten blocking clauses to an unsatisfiable core. *)
   val inductively_generalize : unit -> int
 
@@ -439,20 +442,14 @@ module IC3QE : sig
   (** Use invariants from invariant generators. *)
   val use_invgen : unit -> bool
 
+  (** Enable witness-directed minimization ordering during inductive generalization. *)
+  val wdm : unit -> bool
+
   (** Use AST complexity as a tie-breaker in IC3QE frequency literal ordering. *)
   val ast_complexity : unit -> bool
 
   (** Enable online inductive-generalization literal-frequency ordering. *)
   val freq_sort : unit -> bool
-
-  (** Canonicalize equality literals returned by QE generalization. *)
-  val generalize_eq_canonicalize : unit -> bool
-
-  (** Canonicalize inequality literals returned by QE generalization. *)
-  val generalize_ineq_canonicalize : unit -> bool
-
-  (** Compatibility alias for enabling both QE literal canonicalizations. *)
-  val generalize_canonicalize : unit -> bool
 
   (** DEPRECATED: Legal abstraction mechanisms for in IC3. *)
   type abstr = [ `None | `IA ]
@@ -480,6 +477,15 @@ module QE : sig
 
   (** Set [qe_method]. *)
   val set_qe_method : qe_method -> unit
+
+  (** Canonicalize equality literals before returning from [QE.generalize]. *)
+  val generalize_eq_canonicalize : unit -> bool
+
+  (** Canonicalize inequality literals before returning from [QE.generalize]. *)
+  val generalize_ineq_canonicalize : unit -> bool
+
+  (** Deprecated compatibility alias for enabling both QE literal canonicalizations. *)
+  val generalize_canonicalize : unit -> bool
 
   (** Supported heuristics for extraction of implicants. *)
   type extract = [ `First | `Vars ]
