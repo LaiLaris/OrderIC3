@@ -97,6 +97,32 @@ let rec literal_contains_div_operator lit =
       | _ -> List.exists literal_contains_div_operator args)
   | Term.T.Const _ | Term.T.Var _ -> false
 
+let literal_atom lit =
+  match Term.destruct lit with
+  | Term.T.App (s, [atom]) when s == Symbol.s_not -> atom
+  | _ -> lit
+
+let is_boolean_literal lit =
+  let atom = literal_atom lit in
+  match Term.destruct atom with
+  | Term.T.Var v -> Type.is_bool (Var.type_of_var v)
+  | Term.T.Const _ -> Type.is_bool (Term.type_of_term atom)
+  | Term.T.App _ -> false
+
+let is_arithmetic_term term =
+  let typ = Term.type_of_term term in
+  Type.is_int typ || Type.is_int_range typ || Type.is_real typ
+
+let is_arithmetic_literal lit =
+  let atom = literal_atom lit in
+  match Term.destruct atom with
+  | Term.T.App (s, args) -> (
+      match Symbol.node_of_symbol s with
+      | `EQ | `DISTINCT | `LEQ | `LT | `GEQ | `GT ->
+          List.exists is_arithmetic_term args
+      | _ -> false)
+  | Term.T.Const _ | Term.T.Var _ -> false
+
 (* WDM uses the concrete SAT model returned by a failed push query as a
    witness. Clause literals are unprimed; evaluate them at step 1 to score
    whether they hold in the failed successor state. *)
@@ -543,6 +569,8 @@ let add_node_to_tree id clause =
    relatively inductive to [frame] and initial. *)
 let ind_generalize ?(wdm_context = None) solver prop_set frame clause literals =
 
+  let core_length = List.length literals in
+
   let skip_trivial_false_literals literals =
     match List.filter (fun lit -> not (is_ind_gen_trivial_false_literal lit)) literals with
     | [] -> literals
@@ -552,32 +580,44 @@ let ind_generalize ?(wdm_context = None) solver prop_set frame clause literals =
     if Flags.IC3QE.freq_sort () && frame <> [] && List.length literals > 1 then
       let reordered =
         let use_ast_complexity = Flags.IC3QE.ast_complexity () in
-        let indexed = List.mapi (fun i lit -> (i, lit)) literals in
-        List.sort
-          (fun (i1, lit1) (i2, lit2) ->
-            let c =
-              compare
-                (literal_contains_div_operator lit2)
-                (literal_contains_div_operator lit1)
-            in
-            if c <> 0 then c
-            else
+        match literals with
+        | [lit1; lit2]
+          when core_length = 2
+               && compare
+                 (ind_gen_literal_frequency_of lit1)
+                 (ind_gen_literal_frequency_of lit2)
+               = 0
+               &&
+               ((is_boolean_literal lit1 && is_arithmetic_literal lit2)
+               || (is_arithmetic_literal lit1 && is_boolean_literal lit2)) ->
+            literals
+        | _ ->
+          let indexed = List.mapi (fun i lit -> (i, lit)) literals in
+          List.sort
+            (fun (i1, lit1) (i2, lit2) ->
               let c =
                 compare
-                  (ind_gen_literal_frequency_of lit1)
-                  (ind_gen_literal_frequency_of lit2)
+                  (literal_contains_div_operator lit2)
+                  (literal_contains_div_operator lit1)
               in
               if c <> 0 then c
-              else if use_ast_complexity then
-                let c2 =
+              else
+                let c =
                   compare
-                    (literal_ast_complexity lit2)
-                    (literal_ast_complexity lit1)
+                    (ind_gen_literal_frequency_of lit1)
+                    (ind_gen_literal_frequency_of lit2)
                 in
-                if c2 <> 0 then c2 else compare i1 i2
-              else compare i1 i2)
-          indexed
-        |> List.map snd
+                if c <> 0 then c
+                else if use_ast_complexity then
+                  let c2 =
+                    compare
+                      (literal_ast_complexity lit2)
+                      (literal_ast_complexity lit1)
+                  in
+                  if c2 <> 0 then c2 else compare i1 i2
+                else compare i1 i2)
+            indexed
+          |> List.map snd
       in
       let pp_literal_frequency ppf lit =
         if Flags.IC3QE.ast_complexity () then
