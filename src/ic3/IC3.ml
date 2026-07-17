@@ -567,7 +567,10 @@ let add_node_to_tree id clause =
    Assuming that [clause] is relatively inductive to [frame] and
    initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
-let ind_generalize ?(wdm_context = None) solver prop_set frame clause literals =
+let ind_generalize
+    ?(already_in_target_frame = fun _ -> false)
+    ?(wdm_context = None)
+    solver prop_set frame clause literals =
 
   let core_length = List.length literals in
 
@@ -611,8 +614,8 @@ let ind_generalize ?(wdm_context = None) solver prop_set frame clause literals =
                 else if use_ast_complexity then
                   let c2 =
                     compare
-                      (literal_ast_complexity lit2)
                       (literal_ast_complexity lit1)
+                      (literal_ast_complexity lit2)
                   in
                   if c2 <> 0 then c2 else compare i1 i2
                 else compare i1 i2)
@@ -707,8 +710,9 @@ let ind_generalize ?(wdm_context = None) solver prop_set frame clause literals =
                (pp_print_list Term.pp_print_term ";@ ")
                (C.literals_of_clause clause'));
 
-          if Flags.IC3QE.freq_sort () then
-            incr_ind_gen_literal_frequency (C.literals_of_clause clause');
+          let literals' = C.literals_of_clause clause' in
+          if Flags.IC3QE.freq_sort () && not (already_in_target_frame literals') then
+            incr_ind_gen_literal_frequency literals';
           clause'
             
         )
@@ -1423,6 +1427,12 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
 
         in
 
+        let already_in_target_frame literals =
+          List.exists
+            (fun (_, delta_frame) -> F.mem literals delta_frame)
+            trace
+        in
+
         (* Inductively generalize clauses propagated for blocking to
            this frame *)
         let block_clause, trace = match C.source_of_clause block_clause_orig with 
@@ -1435,6 +1445,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
               Stat.time_fun Stat.ic3_ind_gen_time
                 (fun () -> 
                   ind_generalize 
+                    ~already_in_target_frame
                     solver
                     prop_set
                     actlits_p0_r_pred_i
@@ -1615,6 +1626,7 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
                Stat.time_fun Stat.ic3_ind_gen_time
                  (fun () -> 
                    ind_generalize 
+                     ~already_in_target_frame
                      solver
                      prop_set
                      actlits_p0_r_pred_i
