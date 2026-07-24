@@ -123,6 +123,177 @@ let is_arithmetic_literal lit =
       | _ -> false)
   | Term.T.Const _ | Term.T.Var _ -> false
 
+(* Detect learned arithmetic clause families that keep the same symbolic
+   structure while only their constants change.  Such families are a sign
+   of a sliding constant ladder.  For a support-nested pair in an active
+   family, the literal with the smaller variable support is treated as the
+   moving threshold and is tried earlier for deletion. *)
+let ind_gen_template_stagnation_threshold = 3
+
+let ind_gen_template_stagnation_k = ref (-1)
+
+let ind_gen_template_instances :
+    ((string * string), (string * string) list) Hashtbl.t =
+  Hashtbl.create 251
+
+let ind_gen_literal_template_cache : string Term.TermHashtbl.t =
+  Term.TermHashtbl.create 251
+
+let ind_gen_literal_support_cache : Var.VarSet.t Term.TermHashtbl.t =
+  Term.TermHashtbl.create 251
+
+let reset_ind_gen_template_stagnation k =
+  if !ind_gen_template_stagnation_k <> k then (
+    ind_gen_template_stagnation_k := k;
+    Hashtbl.clear ind_gen_template_instances;
+    Term.TermHashtbl.clear ind_gen_literal_template_cache;
+    Term.TermHashtbl.clear ind_gen_literal_support_cache)
+
+let literal_variable_support lit =
+  match Term.TermHashtbl.find_opt ind_gen_literal_support_cache lit with
+  | Some support -> support
+  | None ->
+      let support = Term.vars_of_term lit in
+      Term.TermHashtbl.add ind_gen_literal_support_cache lit support;
+      support
+
+let strict_variable_support_subset lit1 lit2 =
+  let support1 = literal_variable_support lit1 in
+  let support2 = literal_variable_support lit2 in
+  Var.VarSet.subset support1 support2
+  && not (Var.VarSet.equal support1 support2)
+
+(* Keep coefficients and divisors in a template, but abstract additive and
+   comparison constants.  In canonical affine terms this maps, for example,
+   [x - 1 > 0] and [x - 42 > 0] to the same template while keeping [2*x]
+   distinct from [3*x]. *)
+let literal_constant_template lit =
+  match Term.TermHashtbl.find_opt ind_gen_literal_template_cache lit with
+  | Some template -> template
+  | None ->
+      let buffer = Buffer.create 64 in
+      let rec add_term preserve_numeric term =
+        if
+          (Term.is_numeral term || Term.is_negative_numeral term
+          || Term.is_decimal term)
+          && not preserve_numeric
+        then Buffer.add_string buffer "#"
+        else
+          match Term.destruct term with
+          | Term.T.Const symbol ->
+              Buffer.add_string buffer (Symbol.string_of_symbol symbol)
+          | Term.T.Var var -> Buffer.add_string buffer (Var.string_of_var var)
+          | Term.T.App (symbol, args) ->
+              let preserve_numeric_args =
+                preserve_numeric
+                ||
+                match Symbol.node_of_symbol symbol with
+                | `TIMES | `DIV | `INTDIV | `MOD -> true
+                | _ -> false
+              in
+              Buffer.add_char buffer '(';
+              Buffer.add_string buffer (Symbol.string_of_symbol symbol);
+              List.iter
+                (fun arg ->
+                  Buffer.add_char buffer ' ';
+                  add_term preserve_numeric_args arg)
+                args;
+              Buffer.add_char buffer ')'
+      in
+      add_term false lit;
+      let template = Buffer.contents buffer in
+      Term.TermHashtbl.add ind_gen_literal_template_cache lit template;
+      template
+
+let literal_instance_key lit = Format.asprintf "%a" Term.pp_print_term lit
+
+let ordered_template_pair lit1 lit2 =
+  let template1 = literal_constant_template lit1 in
+  let template2 = literal_constant_template lit2 in
+  let instance1 = literal_instance_key lit1 in
+  let instance2 = literal_instance_key lit2 in
+  if String.compare template1 template2 < 0 then
+    ((template1, template2), (instance1, instance2))
+  else if String.compare template1 template2 > 0 then
+    ((template2, template1), (instance2, instance1))
+  else if String.compare instance1 instance2 <= 0 then
+    ((template1, template2), (instance1, instance2))
+  else ((template2, template1), (instance2, instance1))
+
+let ind_gen_template_pair_is_stagnating lit1 lit2 =
+  if Hashtbl.length ind_gen_template_instances = 0 then false
+  else if
+    not
+      (is_arithmetic_literal lit1 && is_arithmetic_literal lit2
+      &&
+      (strict_variable_support_subset lit1 lit2
+      || strict_variable_support_subset lit2 lit1))
+  then false
+  else
+    let template_pair, _ = ordered_template_pair lit1 lit2 in
+    match Hashtbl.find_opt ind_gen_template_instances template_pair with
+    | Some instances ->
+        List.length instances >= ind_gen_template_stagnation_threshold
+    | None -> false
+
+let compare_ind_gen_template_stagnation lit1 lit2 =
+  if ind_gen_template_pair_is_stagnating lit1 lit2 then
+    if strict_variable_support_subset lit1 lit2 then -1
+    else if strict_variable_support_subset lit2 lit1 then 1
+    else 0
+  else 0
+
+let has_ind_gen_template_stagnation literals =
+  let rec exists_pair = function
+    | [] -> false
+    | lit :: tl ->
+        List.exists (ind_gen_template_pair_is_stagnating lit) tl
+        || exists_pair tl
+  in
+  exists_pair literals
+
+(* Return the pairs that have just reached the stagnation threshold so that
+   the trace records when the adaptive ordering becomes active. *)
+let remember_ind_gen_template_pairs literals =
+  let rec add_pairs activated = function
+    | [] -> activated
+    | lit1 :: tl ->
+        let activated =
+          List.fold_left
+            (fun activated lit2 ->
+              if
+                is_arithmetic_literal lit1 && is_arithmetic_literal lit2
+                &&
+                (strict_variable_support_subset lit1 lit2
+                || strict_variable_support_subset lit2 lit1)
+              then
+                let template_pair, instance_pair =
+                  ordered_template_pair lit1 lit2
+                in
+                let instances =
+                  match
+                    Hashtbl.find_opt ind_gen_template_instances template_pair
+                  with
+                  | Some instances -> instances
+                  | None -> []
+                in
+                if List.mem instance_pair instances then activated
+                else
+                  let instances' = instance_pair :: instances in
+                  Hashtbl.replace ind_gen_template_instances template_pair
+                    instances';
+                  if
+                    List.length instances'
+                    = ind_gen_template_stagnation_threshold
+                  then (lit1, lit2) :: activated
+                  else activated
+              else activated)
+            activated tl
+        in
+        add_pairs activated tl
+  in
+  add_pairs [] literals
+
 (* WDM uses the concrete SAT model returned by a failed push query as a
    witness. Clause literals are unprimed; evaluate them at step 1 to score
    whether they hold in the failed successor state. *)
@@ -581,8 +752,8 @@ let ind_generalize
   in
   let prioritize_ind_gen_frequency_literals literals =
     if Flags.IC3QE.freq_sort () && frame <> [] && List.length literals > 1 then
+      let use_ast_complexity = Flags.IC3QE.ast_complexity () in
       let reordered =
-        let use_ast_complexity = Flags.IC3QE.ast_complexity () in
         match literals with
         | [lit1; lit2]
           when core_length = 2
@@ -613,20 +784,30 @@ let ind_generalize
                 if c <> 0 then c
                 else if use_ast_complexity then
                   let c2 =
-                    compare
-                      (literal_ast_complexity lit1)
-                      (literal_ast_complexity lit2)
+                    compare_ind_gen_template_stagnation lit1 lit2
                   in
-                  if c2 <> 0 then c2 else compare i1 i2
+                  if c2 <> 0 then c2
+                  else
+                    let c3 =
+                      compare
+                        (literal_ast_complexity lit1)
+                        (literal_ast_complexity lit2)
+                    in
+                    if c3 <> 0 then c3 else compare i1 i2
                 else compare i1 i2)
             indexed
           |> List.map snd
       in
+      let template_stagnation_active =
+        use_ast_complexity && has_ind_gen_template_stagnation literals
+      in
       let pp_literal_frequency ppf lit =
         if Flags.IC3QE.ast_complexity () then
-          Format.fprintf ppf "%a [freq=%.3f, ast=%d]" Term.pp_print_term lit
+          Format.fprintf ppf "%a [freq=%.3f, ast=%d, support=%d]"
+            Term.pp_print_term lit
             (ind_gen_literal_frequency_of lit)
             (literal_ast_complexity lit)
+            (Var.VarSet.cardinal (literal_variable_support lit))
         else
           Format.fprintf ppf "%a [freq=%.3f]" Term.pp_print_term lit
             (ind_gen_literal_frequency_of lit)
@@ -639,7 +820,9 @@ let ind_generalize
            (C.id_of_clause clause)
            (pp_print_list pp_literal_frequency "@,")
            literals
-           (if Flags.IC3QE.ast_complexity () then "freq+ast" else "freq")
+           (if template_stagnation_active then "freq+support-penalty+ast"
+            else if Flags.IC3QE.ast_complexity () then "freq+ast"
+            else "freq")
            (pp_print_list pp_literal_frequency "@,")
            reordered);
       reordered
@@ -711,6 +894,20 @@ let ind_generalize
                (C.literals_of_clause clause'));
 
           let literals' = C.literals_of_clause clause' in
+          let activated_template_pairs =
+            if Flags.IC3QE.freq_sort () && Flags.IC3QE.ast_complexity () then
+              remember_ind_gen_template_pairs literals'
+            else []
+          in
+          List.iter
+            (fun (lit1, lit2) ->
+              SMTSolver.trace_comment solver
+                (Format.asprintf
+                   "@[<v>ind-gen sliding-template support penalty activated \
+                    after %d distinct instances:@,%a@,%a@]"
+                   ind_gen_template_stagnation_threshold
+                   Term.pp_print_term lit1 Term.pp_print_term lit2))
+            activated_template_pairs;
           if Flags.IC3QE.freq_sort () && not (already_in_target_frame literals') then
             incr_ind_gen_literal_frequency literals';
           clause'
@@ -2660,6 +2857,8 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
 
   (* Current k is length of trace *)
   let ic3_k = succ (List.length frames) in
+
+  reset_ind_gen_template_stagnation ic3_k;
 
   KEvent.log L_info "IC3QE main loop at k=%d" ic3_k;
 
