@@ -752,11 +752,46 @@ let ind_generalize
   in
   let prioritize_ind_gen_frequency_literals literals =
     if Flags.IC3QE.freq_sort () && frame <> [] && List.length literals > 1 then
-      let use_ast_complexity = Flags.IC3QE.ast_complexity () in
+      (* Keep --ic3qe_freq_sort as a pure frequency-only strategy.  The AST,
+         theory-cost, template, and control-skeleton rules belong exclusively
+         to the full ge_can + freq + AST configuration. *)
+      let use_full_ordering =
+        Flags.IC3QE.ast_complexity ()
+        && Flags.QE.generalize_eq_canonicalize ()
+        && Flags.QE.generalize_ineq_canonicalize ()
+      in
+      let boolean_literal_count =
+        List.fold_left
+          (fun count lit -> if is_boolean_literal lit then count + 1 else count)
+          0 literals
+      in
+      let arithmetic_literal_count =
+        List.fold_left
+          (fun count lit ->
+            if is_arithmetic_literal lit then count + 1 else count)
+          0 literals
+      in
+      let cold_mixed_core =
+        use_full_ordering
+        && List.length literals = 3
+        && List.for_all
+             (fun lit -> ind_gen_literal_frequency_of lit = 0.0)
+             literals
+        && boolean_literal_count = 1
+        && arithmetic_literal_count = 2
+        && not (List.exists literal_contains_div_operator literals)
+      in
+      let cold_mixed_core_rank lit =
+        if is_arithmetic_literal lit then 0
+        else if is_boolean_literal lit then 2
+        else 1
+      in
       let reordered =
         match literals with
         | [lit1; lit2]
-          when core_length = 2
+          when use_full_ordering
+               && core_length = 2
+               && not cold_mixed_core
                && compare
                  (ind_gen_literal_frequency_of lit1)
                  (ind_gen_literal_frequency_of lit2)
@@ -770,39 +805,50 @@ let ind_generalize
           List.sort
             (fun (i1, lit1) (i2, lit2) ->
               let c =
-                compare
-                  (literal_contains_div_operator lit2)
-                  (literal_contains_div_operator lit1)
+                if use_full_ordering then
+                  compare
+                    (literal_contains_div_operator lit2)
+                    (literal_contains_div_operator lit1)
+                else 0
               in
               if c <> 0 then c
               else
                 let c =
-                  compare
-                    (ind_gen_literal_frequency_of lit1)
-                    (ind_gen_literal_frequency_of lit2)
-                in
-                if c <> 0 then c
-                else if use_ast_complexity then
-                  let c2 =
-                    compare_ind_gen_template_stagnation lit1 lit2
+                  if cold_mixed_core then
+                    compare
+                      (cold_mixed_core_rank lit1)
+                      (cold_mixed_core_rank lit2)
+                  else 0
                   in
-                  if c2 <> 0 then c2
+                  if c <> 0 then c
                   else
-                    let c3 =
+                    let c =
                       compare
-                        (literal_ast_complexity lit1)
-                        (literal_ast_complexity lit2)
+                        (ind_gen_literal_frequency_of lit1)
+                        (ind_gen_literal_frequency_of lit2)
                     in
-                    if c3 <> 0 then c3 else compare i1 i2
-                else compare i1 i2)
+                    if c <> 0 then c
+                    else if use_full_ordering then
+                      let c2 =
+                        compare_ind_gen_template_stagnation lit1 lit2
+                      in
+                      if c2 <> 0 then c2
+                      else
+                        let c3 =
+                          compare
+                            (literal_ast_complexity lit1)
+                            (literal_ast_complexity lit2)
+                        in
+                        if c3 <> 0 then c3 else compare i1 i2
+                    else compare i1 i2)
             indexed
           |> List.map snd
       in
       let template_stagnation_active =
-        use_ast_complexity && has_ind_gen_template_stagnation literals
+        use_full_ordering && has_ind_gen_template_stagnation literals
       in
       let pp_literal_frequency ppf lit =
-        if Flags.IC3QE.ast_complexity () then
+        if use_full_ordering then
           Format.fprintf ppf "%a [freq=%.3f, ast=%d, support=%d]"
             Term.pp_print_term lit
             (ind_gen_literal_frequency_of lit)
@@ -820,8 +866,9 @@ let ind_generalize
            (C.id_of_clause clause)
            (pp_print_list pp_literal_frequency "@,")
            literals
-           (if template_stagnation_active then "freq+support-penalty+ast"
-            else if Flags.IC3QE.ast_complexity () then "freq+ast"
+           (if cold_mixed_core then "cold-mixed+freq+ast"
+            else if template_stagnation_active then "freq+support-penalty+ast"
+            else if use_full_ordering then "freq+ast"
             else "freq")
            (pp_print_list pp_literal_frequency "@,")
            reordered);
@@ -895,7 +942,12 @@ let ind_generalize
 
           let literals' = C.literals_of_clause clause' in
           let activated_template_pairs =
-            if Flags.IC3QE.freq_sort () && Flags.IC3QE.ast_complexity () then
+            if
+              Flags.IC3QE.freq_sort ()
+              && Flags.IC3QE.ast_complexity ()
+              && Flags.QE.generalize_eq_canonicalize ()
+              && Flags.QE.generalize_ineq_canonicalize ()
+            then
               remember_ind_gen_template_pairs literals'
             else []
           in
