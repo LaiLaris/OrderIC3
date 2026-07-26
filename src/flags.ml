@@ -1009,6 +1009,30 @@ module IC3QE = struct
     )
   let freq_sort () = !freq_sort
 
+  let subject_freq_default = false
+  let subject_freq = ref subject_freq_default
+  let _ = add_spec
+    "--ic3qe_subject_freq"
+    (Arg.Set subject_freq)
+    (fun fmt ->
+      Format.fprintf fmt
+        "@[<v>Enable subject-centered adjustment for IC3QE literal-frequency ordering@ Default: %a@]"
+        fmt_bool subject_freq_default
+    )
+  let subject_freq () = !subject_freq
+
+  let template_aware_freq_default = false
+  let template_aware_freq = ref template_aware_freq_default
+  let _ = add_spec
+    "--ic3qe_template_aware_freq"
+    (Arg.Set template_aware_freq)
+    (fun fmt ->
+      Format.fprintf fmt
+        "@[<v>Enable template-aware frequency learning for IC3QE literal-frequency ordering@ Default: %a@]"
+        fmt_bool template_aware_freq_default
+    )
+  let template_aware_freq () = !template_aware_freq
+
   type abstr = [ `None | `IA ]
   (*let abstr_of_string = function
     | "None" -> `None

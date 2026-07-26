@@ -451,6 +451,12 @@ module IC3QE : sig
   (** Enable online inductive-generalization literal-frequency ordering. *)
   val freq_sort : unit -> bool
 
+  (** Enable subject-centered adjustment on top of IC3QE literal-frequency ordering. *)
+  val subject_freq : unit -> bool
+
+  (** Enable template-aware frequency learning for IC3QE literal-frequency ordering. *)
+  val template_aware_freq : unit -> bool
+
   (** DEPRECATED: Legal abstraction mechanisms for in IC3. *)
   type abstr = [ `None | `IA ]
 
