@@ -41,8 +41,17 @@ let max_unrolling = ref 0
 let ppf_inductive_assertions = ref Format.std_formatter
 
 (* ************************************************************************ *)
-(* Literal frequency ordering for inductive generalization (ge_can + freq)  *)
+(* Literal frequency ordering for inductive generalization *)
 (* ************************************************************************ *)
+
+let rec literal_ast_complexity term =
+  match Term.destruct term with
+  | Term.T.Const _ | Term.T.Var _ -> 1
+  | Term.T.App (_, args) ->
+      1
+      + List.fold_left
+          (fun acc arg -> acc + literal_ast_complexity arg)
+          0 args
 
 let ind_gen_literal_frequency : float Term.TermHashtbl.t =
   Term.TermHashtbl.create 251
@@ -96,24 +105,6 @@ let is_arithmetic_literal lit =
       match Symbol.node_of_symbol s with
       | `EQ | `DISTINCT | `LEQ | `LT | `GEQ | `GT ->
           List.exists is_arithmetic_term args
-      | _ -> false)
-  | Term.T.Const _ | Term.T.Var _ -> false
-
-let is_arithmetic_equality_literal lit =
-  let atom = literal_atom lit in
-  match Term.destruct atom with
-  | Term.T.App (s, args) -> (
-      match Symbol.node_of_symbol s with
-      | `EQ | `DISTINCT -> List.exists is_arithmetic_term args
-      | _ -> false)
-  | Term.T.Const _ | Term.T.Var _ -> false
-
-let is_arithmetic_inequality_literal lit =
-  let atom = literal_atom lit in
-  match Term.destruct atom with
-  | Term.T.App (s, args) -> (
-      match Symbol.node_of_symbol s with
-      | `LEQ | `LT | `GEQ | `GT -> List.exists is_arithmetic_term args
       | _ -> false)
   | Term.T.Const _ | Term.T.Var _ -> false
 
@@ -638,7 +629,6 @@ let deactivate_subsumed solver (subsumed, frame') =
 let ind_generalize
     ?(already_in_target_frame = fun _ -> false)
     solver prop_set frame clause literals =
-
   let skip_trivial_false_literals literals =
     match
       List.filter
@@ -650,103 +640,40 @@ let ind_generalize
   in
   let prioritize_ind_gen_frequency_literals literals =
     if Flags.IC3QE.freq_sort () && frame <> [] && List.length literals > 1 then
-      (* Order clause literals so that literals seen more often in previously
-         generalized clauses are tried for deletion first.  Optional
-         subject-centering can boost arithmetic equality literals whose
-         variable support also carries an inequality. *)
-      let subject_support =
-        let support_has_equality support =
-          List.exists
-            (fun lit ->
-              is_arithmetic_equality_literal lit
-              && Var.VarSet.equal support (literal_variable_support lit))
-            literals
-        in
-        let support_has_inequality support =
-          List.exists
-            (fun lit ->
-              is_arithmetic_inequality_literal lit
-              && Var.VarSet.equal support (literal_variable_support lit))
-            literals
-        in
-        let support_frequency support =
-          List.fold_left
-            (fun sum lit ->
-              if Var.VarSet.equal support (literal_variable_support lit) then
-                sum +. ind_gen_literal_frequency_of lit
-              else sum)
-            0.0 literals
-        in
-        let candidates =
-          List.fold_left
-            (fun candidates lit ->
-              let support = literal_variable_support lit in
-              if
-                is_arithmetic_literal lit
-                && not (Var.VarSet.is_empty support)
-                && support_has_equality support
-                && support_has_inequality support
-                && not
-                     (List.exists
-                        (fun support' -> Var.VarSet.equal support support')
-                        candidates)
-              then support :: candidates
-              else candidates)
-            [] literals
-        in
-        match candidates with
-        | [] -> None
-        | first :: rest ->
-            let best =
-              List.fold_left
-                (fun best support ->
-                  if support_frequency support > support_frequency best then
-                    support
-                  else best)
-                first rest
-            in
-            if support_frequency best > 0.0 then Some best else None
-      in
-      let subject_centered_frequency lit =
-        let frequency = ind_gen_literal_frequency_of lit in
-        if not (Flags.IC3QE.subject_freq ()) then frequency
-        else
-          match subject_support with
-          | Some support
-            when is_arithmetic_equality_literal lit
-                 && Var.VarSet.equal support (literal_variable_support lit) ->
-              frequency
-              +. (0.5
-                  *. List.fold_left
-                       (fun sum lit' ->
-                         if
-                           Var.VarSet.equal support
-                             (literal_variable_support lit')
-                         then sum +. ind_gen_literal_frequency_of lit'
-                         else sum)
-                       0.0 literals)
-          | _ -> frequency
-      in
-      let ordering_label =
-        if Flags.IC3QE.subject_freq () then "freq+subject" else "freq"
-      in
+      (* Try low-frequency literals for deletion first.  Optionally use AST
+         complexity as a tie-breaker, then preserve the original order. *)
       let reordered =
         let indexed = List.mapi (fun i lit -> (i, lit)) literals in
         List.sort
           (fun (i1, lit1) (i2, lit2) ->
             let c =
               compare
-                (subject_centered_frequency lit1)
-                (subject_centered_frequency lit2)
+                (ind_gen_literal_frequency_of lit1)
+                (ind_gen_literal_frequency_of lit2)
             in
-            if c <> 0 then c else compare i1 i2)
+            if c <> 0 then c
+            else if Flags.IC3QE.ast_complexity () then
+              let c =
+                compare
+                  (literal_ast_complexity lit2)
+                  (literal_ast_complexity lit1)
+              in
+              if c <> 0 then c else compare i1 i2
+            else compare i1 i2)
           indexed
         |> List.map snd
       in
       let pp_literal_frequency ppf lit =
-        Format.fprintf ppf "%a [freq=%.3f, sfreq=%.3f]" Term.pp_print_term lit
-          (ind_gen_literal_frequency_of lit)
-          (subject_centered_frequency lit)
+        if Flags.IC3QE.ast_complexity () then
+          Format.fprintf ppf "%a [freq=%.3f, ast=%d]" Term.pp_print_term lit
+            (ind_gen_literal_frequency_of lit)
+            (literal_ast_complexity lit)
+        else
+          Format.fprintf ppf "%a [freq=%.3f]" Term.pp_print_term lit
+            (ind_gen_literal_frequency_of lit)
+      in
+      let ordering_label =
+        if Flags.IC3QE.ast_complexity () then "freq+ast" else "freq"
       in
       SMTSolver.trace_comment solver
         (Format.asprintf
@@ -2730,7 +2657,7 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
 
   Stat.set ic3_k Stat.ic3_k;
 
-  Stat.start_timer Stat.ic3_fwd_prop_time;
+  Stat.unpause_time Stat.ic3_fwd_prop_time;
 
   let frames' =
 
@@ -2802,7 +2729,7 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
 
   Stat.set_int_list (frame_sizes frames') Stat.ic3_frame_sizes;
 
-  Stat.start_timer Stat.ic3_strengthen_time;
+  Stat.unpause_time Stat.ic3_strengthen_time;
 
   (* Recursively block counterexamples in frontier frame *)
   let frames'' , predicates = 
