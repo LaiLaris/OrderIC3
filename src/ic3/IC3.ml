@@ -40,29 +40,9 @@ let max_unrolling = ref 0
 (* Formatter to output inductive clauses to *)
 let ppf_inductive_assertions = ref Format.std_formatter
 
-let ind_gen_literal_frequency : float Term.TermHashtbl.t =
-  Term.TermHashtbl.create 251
-
-let ind_gen_literal_frequency_decay = 0.99
-
-let decay_ind_gen_literal_frequency () =
-  Term.TermHashtbl.filter_map_inplace
-    (fun _ count -> Some (count *. ind_gen_literal_frequency_decay))
-    ind_gen_literal_frequency
-
-let incr_ind_gen_literal_frequency literals =
-  decay_ind_gen_literal_frequency ();
-  List.iter
-    (fun lit ->
-      let count =
-        try Term.TermHashtbl.find ind_gen_literal_frequency lit
-        with Not_found -> 0.0
-      in
-      Term.TermHashtbl.replace ind_gen_literal_frequency lit (count +. 1.0))
-    literals
-
-let ind_gen_literal_frequency_of lit =
-  try Term.TermHashtbl.find ind_gen_literal_frequency lit with Not_found -> 0.0
+(* ************************************************************************ *)
+(* Literal frequency ordering for inductive generalization *)
+(* ************************************************************************ *)
 
 let rec literal_ast_complexity term =
   match Term.destruct term with
@@ -73,25 +53,225 @@ let rec literal_ast_complexity term =
           (fun acc arg -> acc + literal_ast_complexity arg)
           0 args
 
-let string_contains_substring haystack needle =
-  let haystack_len = String.length haystack in
-  let needle_len = String.length needle in
-  if needle_len = 0 then true
+let ind_gen_literal_frequency : float Term.TermHashtbl.t =
+  Term.TermHashtbl.create 251
+
+let ind_gen_literal_frequency_decay = 0.99
+
+let is_ind_gen_trivial_false_literal lit =
+  lit == Term.t_false
+  ||
+  match Term.destruct lit with
+  | Term.T.App (s, [term]) when s == Symbol.s_not -> term == Term.t_true
+  | _ -> false
+
+let decay_ind_gen_literal_frequency () =
+  Term.TermHashtbl.filter_map_inplace
+    (fun _ count -> Some (count *. ind_gen_literal_frequency_decay))
+    ind_gen_literal_frequency
+
+let incr_ind_gen_literal_frequency_raw literals =
+  decay_ind_gen_literal_frequency ();
+  (* Normalize by clause length so each generalized clause contributes a
+     total frequency weight of 1.0. *)
+  let length = max 1 (List.length literals) in
+  let weight = 1.0 /. float_of_int length in
+
+  List.iter
+    (fun lit ->
+      let count =
+        try Term.TermHashtbl.find ind_gen_literal_frequency lit
+        with Not_found -> 0.0
+      in
+      Term.TermHashtbl.replace ind_gen_literal_frequency lit (count +. weight))
+    literals
+
+let ind_gen_literal_frequency_of lit =
+  try Term.TermHashtbl.find ind_gen_literal_frequency lit with Not_found -> 0.0
+
+let literal_atom lit =
+  match Term.destruct lit with
+  | Term.T.App (s, [atom]) when s == Symbol.s_not -> atom
+  | _ -> lit
+
+let is_arithmetic_term term =
+  let typ = Term.type_of_term term in
+  Type.is_int typ || Type.is_int_range typ || Type.is_real typ
+
+let is_arithmetic_literal lit =
+  let atom = literal_atom lit in
+  match Term.destruct atom with
+  | Term.T.App (s, args) -> (
+      match Symbol.node_of_symbol s with
+      | `EQ | `DISTINCT | `LEQ | `LT | `GEQ | `GT ->
+          List.exists is_arithmetic_term args
+      | _ -> false)
+  | Term.T.Const _ | Term.T.Var _ -> false
+
+let ind_gen_literal_support_cache : Var.VarSet.t Term.TermHashtbl.t =
+  Term.TermHashtbl.create 251
+
+let ind_gen_template_instances :
+    ((string * string), (string * string) list) Hashtbl.t =
+  Hashtbl.create 251
+
+let ind_gen_literal_template_cache : string Term.TermHashtbl.t =
+  Term.TermHashtbl.create 251
+
+let ind_gen_template_frequency_threshold = 3
+
+let ind_gen_template_frequency_k = ref (-1)
+
+let reset_ind_gen_template_frequency k =
+  if !ind_gen_template_frequency_k <> k then (
+    ind_gen_template_frequency_k := k;
+    Hashtbl.clear ind_gen_template_instances;
+    Term.TermHashtbl.clear ind_gen_literal_template_cache;
+    Term.TermHashtbl.clear ind_gen_literal_support_cache)
+
+let literal_variable_support lit =
+  match Term.TermHashtbl.find_opt ind_gen_literal_support_cache lit with
+  | Some support -> support
+  | None ->
+      let support = Term.vars_of_term lit in
+      Term.TermHashtbl.add ind_gen_literal_support_cache lit support;
+      support
+
+let strict_variable_support_subset lit1 lit2 =
+  let support1 = literal_variable_support lit1 in
+  let support2 = literal_variable_support lit2 in
+  Var.VarSet.subset support1 support2
+  && not (Var.VarSet.equal support1 support2)
+
+(* Abstract additive/comparison constants while preserving coefficients and
+   divisors.  This maps sliding boundary instances such as [x - 1 > 0] and
+   [x - 42 > 0] to the same template without merging [2*x] and [3*x]. *)
+let literal_constant_template lit =
+  match Term.TermHashtbl.find_opt ind_gen_literal_template_cache lit with
+  | Some template -> template
+  | None ->
+      let buffer = Buffer.create 64 in
+      let rec add_term preserve_numeric term =
+        if
+          (Term.is_numeral term || Term.is_negative_numeral term
+          || Term.is_decimal term)
+          && not preserve_numeric
+        then Buffer.add_string buffer "#"
+        else
+          match Term.destruct term with
+          | Term.T.Const symbol ->
+              Buffer.add_string buffer (Symbol.string_of_symbol symbol)
+          | Term.T.Var var -> Buffer.add_string buffer (Var.string_of_var var)
+          | Term.T.App (symbol, args) ->
+              let preserve_numeric_args =
+                preserve_numeric
+                ||
+                match Symbol.node_of_symbol symbol with
+                | `TIMES | `DIV | `INTDIV | `MOD -> true
+                | _ -> false
+              in
+              Buffer.add_char buffer '(';
+              Buffer.add_string buffer (Symbol.string_of_symbol symbol);
+              List.iter
+                (fun arg ->
+                  Buffer.add_char buffer ' ';
+                  add_term preserve_numeric_args arg)
+                args;
+              Buffer.add_char buffer ')'
+      in
+      add_term false lit;
+      let template = Buffer.contents buffer in
+      Term.TermHashtbl.add ind_gen_literal_template_cache lit template;
+      template
+
+let literal_instance_key lit = Format.asprintf "%a" Term.pp_print_term lit
+
+let ordered_template_pair lit1 lit2 =
+  let template1 = literal_constant_template lit1 in
+  let template2 = literal_constant_template lit2 in
+  let instance1 = literal_instance_key lit1 in
+  let instance2 = literal_instance_key lit2 in
+  if String.compare template1 template2 < 0 then
+    ((template1, template2), (instance1, instance2))
+  else if String.compare template1 template2 > 0 then
+    ((template2, template1), (instance2, instance1))
+  else if String.compare instance1 instance2 <= 0 then
+    ((template1, template2), (instance1, instance2))
+  else ((template2, template1), (instance2, instance1))
+
+let remember_ind_gen_template_pairs literals =
+  let rec add_pairs = function
+    | [] -> ()
+    | lit1 :: tl ->
+        List.iter
+          (fun lit2 ->
+            if
+              is_arithmetic_literal lit1 && is_arithmetic_literal lit2
+              &&
+              (strict_variable_support_subset lit1 lit2
+              || strict_variable_support_subset lit2 lit1)
+            then
+              let template_pair, instance_pair = ordered_template_pair lit1 lit2 in
+              let instances =
+                match Hashtbl.find_opt ind_gen_template_instances template_pair with
+                | Some instances -> instances
+                | None -> []
+              in
+              if not (List.mem instance_pair instances) then
+                Hashtbl.replace ind_gen_template_instances template_pair
+                  (instance_pair :: instances))
+          tl;
+        add_pairs tl
+  in
+  add_pairs literals
+
+let template_pair_frequency_weight literals lit =
+  if not (is_arithmetic_literal lit) then 1.0
   else
-    let rec loop index =
-      if index + needle_len > haystack_len then false
-      else
-        String.sub haystack index needle_len = needle || loop (index + 1)
+    let max_pair_instances =
+      List.fold_left
+        (fun max_instances lit' ->
+          if
+            lit == lit'
+            || not (is_arithmetic_literal lit')
+            || not
+                 (strict_variable_support_subset lit lit'
+                 || strict_variable_support_subset lit' lit)
+          then max_instances
+          else
+            let template_pair, _ = ordered_template_pair lit lit' in
+            match Hashtbl.find_opt ind_gen_template_instances template_pair with
+            | Some instances -> max max_instances (List.length instances)
+            | None -> max_instances)
+        0 literals
     in
-    loop 0
+    if max_pair_instances >= ind_gen_template_frequency_threshold then
+      1.0 /. sqrt (float_of_int max_pair_instances)
+    else 1.0
 
-let literal_contains_div_keyword lit =
-  let s = Format.asprintf "%a" Term.pp_print_term lit in
-  string_contains_substring s "div"
+let incr_ind_gen_literal_frequency_template_aware literals =
+  decay_ind_gen_literal_frequency ();
+  remember_ind_gen_template_pairs literals;
+  let length = max 1 (List.length literals) in
+  let base_weight = 1.0 /. float_of_int length in
+  List.iter
+    (fun lit ->
+      let count =
+        try Term.TermHashtbl.find ind_gen_literal_frequency lit
+        with Not_found -> 0.0
+      in
+      let weight = base_weight *. template_pair_frequency_weight literals lit in
+      Term.TermHashtbl.replace ind_gen_literal_frequency lit (count +. weight))
+    literals
 
-  
+let incr_ind_gen_literal_frequency literals =
+  if Flags.IC3QE.template_aware_freq () then
+    incr_ind_gen_literal_frequency_template_aware literals
+  else incr_ind_gen_literal_frequency_raw literals
+
+
 (* Output statistics *)
-let print_stats () = 
+let print_stats () =
 
   KEvent.stat
     ([Stat.misc_stats_title, Stat.misc_stats] @
@@ -446,38 +626,43 @@ let deactivate_subsumed solver (subsumed, frame') =
    Assuming that [clause] is relatively inductive to [frame] and
    initial, find a smaller subclause of [clause] that is still
    relatively inductive to [frame] and initial. *)
-let ind_generalize solver prop_set frame clause literals =
-
+let ind_generalize
+    ?(already_in_target_frame = fun _ -> false)
+    solver prop_set frame clause literals =
+  let skip_trivial_false_literals literals =
+    match
+      List.filter
+        (fun lit -> not (is_ind_gen_trivial_false_literal lit))
+        literals
+    with
+    | [] -> literals
+    | filtered -> filtered
+  in
   let prioritize_ind_gen_frequency_literals literals =
     if Flags.IC3QE.freq_sort () && frame <> [] && List.length literals > 1 then
+      (* Try low-frequency literals for deletion first.  Optionally use AST
+         complexity as a tie-breaker, then preserve the original order. *)
       let reordered =
-        let use_ast_complexity = Flags.IC3QE.ast_complexity () in
         let ast_complexity_order = Flags.IC3QE.ast_complexity_order () in
         let indexed = List.mapi (fun i lit -> (i, lit)) literals in
         List.sort
           (fun (i1, lit1) (i2, lit2) ->
             let c =
               compare
-                (literal_contains_div_keyword lit2)
-                (literal_contains_div_keyword lit1)
+                (ind_gen_literal_frequency_of lit1)
+                (ind_gen_literal_frequency_of lit2)
             in
             if c <> 0 then c
-            else
+            else if Flags.IC3QE.ast_complexity () then
+              let complexity1 = literal_ast_complexity lit1 in
+              let complexity2 = literal_ast_complexity lit2 in
               let c =
-                compare
-                  (ind_gen_literal_frequency_of lit1)
-                  (ind_gen_literal_frequency_of lit2)
+                match ast_complexity_order with
+                | `Asc -> compare complexity1 complexity2
+                | `Desc -> compare complexity2 complexity1
               in
-              if c <> 0 then c
-              else if use_ast_complexity then
-                let complexity1 = literal_ast_complexity lit1 in
-                let complexity2 = literal_ast_complexity lit2 in
-                let c2 = match ast_complexity_order with
-                  | `Asc -> compare complexity1 complexity2
-                  | `Desc -> compare complexity2 complexity1
-                in
-                if c2 <> 0 then c2 else compare i1 i2
-              else compare i1 i2)
+              if c <> 0 then c else compare i1 i2
+            else compare i1 i2)
           indexed
         |> List.map snd
       in
@@ -490,6 +675,13 @@ let ind_generalize solver prop_set frame clause literals =
           Format.fprintf ppf "%a [freq=%.3f]" Term.pp_print_term lit
             (ind_gen_literal_frequency_of lit)
       in
+      let ordering_label =
+        if Flags.IC3QE.ast_complexity () then
+          match Flags.IC3QE.ast_complexity_order () with
+          | `Asc -> "freq+ast-asc"
+          | `Desc -> "freq+ast-desc"
+        else "freq"
+      in
       SMTSolver.trace_comment solver
         (Format.asprintf
            "@[<v>ind-gen literal frequency priority for clause #%d:@,\
@@ -498,11 +690,7 @@ let ind_generalize solver prop_set frame clause literals =
            (C.id_of_clause clause)
            (pp_print_list pp_literal_frequency "@,")
            literals
-           (if Flags.IC3QE.ast_complexity () then
-              match Flags.IC3QE.ast_complexity_order () with
-              | `Asc -> "freq+ast-asc"
-              | `Desc -> "freq+ast-desc"
-            else "freq")
+           ordering_label
            (pp_print_list pp_literal_frequency "@,")
            reordered);
       reordered
@@ -513,7 +701,7 @@ let ind_generalize solver prop_set frame clause literals =
      a literal the clause without the literal remains relatively
      inductive and initial
 
-     [kept] are the literals that cannot be removed. 
+     [kept] are the literals that cannot be removed.
 
   *)
   let rec linear_search kept = function
@@ -550,11 +738,15 @@ let ind_generalize solver prop_set frame clause literals =
                (pp_print_list Term.pp_print_term ";@ ")
                (C.literals_of_clause clause'));
 
-          if Flags.IC3QE.freq_sort () then
-            incr_ind_gen_literal_frequency (C.literals_of_clause clause');
-          
+          let literals' = C.literals_of_clause clause' in
+          if
+            Flags.IC3QE.freq_sort ()
+            && not (already_in_target_frame literals')
+          then
+            incr_ind_gen_literal_frequency literals';
+
           clause'
-            
+
         )
 
     (* Do not try to generalize to the empty clause, this should not
@@ -601,9 +793,9 @@ let ind_generalize solver prop_set frame clause literals =
       (* Clause without literal is initial *)
       let is_initial () = 
 
-        SMTSolver.trace_comment solver
+        (* SMTSolver.trace_comment solver
           "ind_generalize: Checking if clause without literal is \
-           relatively inductive.";
+           relatively inductive."; *)
 
         if 
           
@@ -628,8 +820,8 @@ let ind_generalize solver prop_set frame clause literals =
 
       in
 
-      SMTSolver.trace_comment solver
-        "ind_generalize: Checking if clause without literal is initial.";
+      (* SMTSolver.trace_comment solver
+        "ind_generalize: Checking if clause without literal is initial."; *)
 
       if
         
@@ -652,7 +844,10 @@ let ind_generalize solver prop_set frame clause literals =
 
   in
 
-  linear_search [] (prioritize_ind_gen_frequency_literals literals)
+  linear_search []
+    (literals
+     |> skip_trivial_false_literals
+     |> prioritize_ind_gen_frequency_literals)
 
 (*
 
@@ -1267,16 +1462,23 @@ let rec block solver input_sys aparam trans_sys prop_set term_tbl predicates =
 
         (* Inductively generalize clauses propagated for blocking to
            this frame *)
-        let block_clause, trace = match C.source_of_clause block_clause_orig with 
+        let already_in_target_frame literals =
+          List.exists
+            (fun (_, delta_frame) -> F.mem literals delta_frame)
+            trace
+        in
+
+        let block_clause, trace = match C.source_of_clause block_clause_orig with
 
           (* Clause was propagates for blocking *)
-          | C.CopyBlockProp _ -> 
+          | C.CopyBlockProp _ ->
 
-            let block_clause = 
+            let block_clause =
 
               Stat.time_fun Stat.ic3_ind_gen_time
-                (fun () -> 
-                  ind_generalize 
+                (fun () ->
+                  ind_generalize
+                    ~already_in_target_frame
                     solver
                     prop_set
                     actlits_p0_r_pred_i
@@ -2454,13 +2656,15 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
   (* Current k is length of trace *)
   let ic3_k = succ (List.length frames) in
 
+  reset_ind_gen_template_frequency ic3_k;
+
   KEvent.log L_info "IC3QE main loop at k=%d" ic3_k;
 
   KEvent.progress ic3_k;
 
   Stat.set ic3_k Stat.ic3_k;
 
-  Stat.start_timer Stat.ic3_fwd_prop_time;
+  Stat.unpause_time Stat.ic3_fwd_prop_time;
 
   let frames' =
 
@@ -2532,7 +2736,7 @@ let rec ic3 solver input_sys aparam trans_sys prop_set frames predicates =
 
   Stat.set_int_list (frame_sizes frames') Stat.ic3_frame_sizes;
 
-  Stat.start_timer Stat.ic3_strengthen_time;
+  Stat.unpause_time Stat.ic3_strengthen_time;
 
   (* Recursively block counterexamples in frontier frame *)
   let frames'' , predicates = 
