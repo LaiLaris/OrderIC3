@@ -448,6 +448,11 @@ module IC3QE : sig
   (** Use AST complexity as a tie-breaker in IC3QE frequency literal ordering. *)
   val ast_complexity : unit -> bool
 
+  (** Direction of the AST-complexity tie-breaker. [Asc] tries simpler
+      literals for deletion first; [Desc] tries more complex literals first. *)
+  type ast_complexity_order = [ `Asc | `Desc ]
+  val ast_complexity_order : unit -> ast_complexity_order
+
   (** Enable online inductive-generalization literal-frequency ordering. *)
   val freq_sort : unit -> bool
 

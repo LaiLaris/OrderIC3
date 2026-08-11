@@ -997,6 +997,34 @@ module IC3QE = struct
     )
   let ast_complexity () = !ast_complexity
 
+  type ast_complexity_order = [ `Asc | `Desc ]
+  let ast_complexity_order_of_string = function
+    | "asc" -> `Asc
+    | "desc" -> `Desc
+    | _ ->
+      raise
+        (Arg.Bad
+           "Bad value for --ic3qe_ast_complexity_order; expected asc or desc")
+  let string_of_ast_complexity_order = function
+    | `Asc -> "asc"
+    | `Desc -> "desc"
+  let ast_complexity_order_default = `Asc
+  let ast_complexity_order = ref ast_complexity_order_default
+  let _ = add_spec
+    "--ic3qe_ast_complexity_order"
+    (Arg.String
+       (fun str ->
+         ast_complexity_order := ast_complexity_order_of_string str))
+    (fun fmt ->
+      Format.fprintf fmt
+        "@[<v>where <string> can be asc, desc@ \
+         Choose AST-complexity tie-break direction in IC3QE frequency literal ordering.@ \
+         Asc tries simpler literals for deletion first; desc tries more complex literals first.@ \
+         Only used with --ic3qe_ast_complexity.@ \
+         Default: %s@]"
+        (string_of_ast_complexity_order ast_complexity_order_default))
+  let ast_complexity_order () = !ast_complexity_order
+
   let freq_sort_default = false
   let freq_sort = ref freq_sort_default
   let _ = add_spec
