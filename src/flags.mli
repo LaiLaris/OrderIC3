@@ -453,6 +453,12 @@ module IC3QE : sig
   type ast_complexity_order = [ `Asc | `Desc ]
   val ast_complexity_order : unit -> ast_complexity_order
 
+  (** Experimental deterministic ordering of literals attempted during
+      inductive generalization.  This changes only the traversal order of the
+      deletion loop and leaves clause construction and propagation unchanged. *)
+  type indgen_literal_order = [ `Original | `Asc | `Desc ]
+  val indgen_literal_order : unit -> indgen_literal_order
+
   (** Enable online inductive-generalization literal-frequency ordering. *)
   val freq_sort : unit -> bool
 

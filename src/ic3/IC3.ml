@@ -638,8 +638,34 @@ let ind_generalize
     | [] -> literals
     | filtered -> filtered
   in
-  let prioritize_ind_gen_frequency_literals literals =
-    if Flags.IC3QE.freq_sort () && frame <> [] && List.length literals > 1 then
+  let prioritize_ind_gen_literals literals =
+    match Flags.IC3QE.indgen_literal_order () with
+    | (`Asc | `Desc) as order when List.length literals > 1 ->
+      let reordered =
+        List.stable_sort
+          (fun lit1 lit2 ->
+            let text1 = Term.string_of_term lit1 in
+            let text2 = Term.string_of_term lit2 in
+            match order with
+            | `Asc -> String.compare text1 text2
+            | `Desc -> String.compare text2 text1)
+          literals
+      in
+      let ordering_label = match order with `Asc -> "asc" | `Desc -> "desc" in
+      SMTSolver.trace_comment solver
+        (Format.asprintf
+           "@[<v>ind-gen literal test order for clause #%d:@,\
+            original: {@,%a@,}@,\
+            reordered by %s: {@,%a@,}@]"
+           (C.id_of_clause clause)
+           (pp_print_list Term.pp_print_term "@,")
+           literals
+           ordering_label
+           (pp_print_list Term.pp_print_term "@,")
+           reordered);
+      reordered
+    | _ when Flags.IC3QE.freq_sort () && frame <> []
+             && List.length literals > 1 ->
       (* Try low-frequency literals for deletion first.  Optionally use AST
          complexity as a tie-breaker, then preserve the original order. *)
       let reordered =
@@ -694,7 +720,7 @@ let ind_generalize
            (pp_print_list pp_literal_frequency "@,")
            reordered);
       reordered
-    else literals
+    | _ -> literals
   in
 
   (* Linearly traverse the list of literals in the clause, and remove
@@ -847,7 +873,7 @@ let ind_generalize
   linear_search []
     (literals
      |> skip_trivial_false_literals
-     |> prioritize_ind_gen_frequency_literals)
+     |> prioritize_ind_gen_literals)
 
 (*
 
@@ -2494,6 +2520,24 @@ let fwd_propagate solver input_sys aparam trans_sys prop_set frames =
                  (frames_tl))
               |> Term.mk_and
             in
+
+            let ind_inv_conjuncts =
+              let rec collect acc t =
+                if Term.is_node t then
+                  let s = Term.node_symbol_of_term t in
+                  match Symbol.node_of_symbol s with
+                  | `AND ->
+                    List.fold_left collect acc (Term.node_args_of_term t)
+                  | _ -> t :: acc
+                else t :: acc
+              in
+              List.rev (collect [] ind_inv)
+            in
+            SMTSolver.trace_comment solver
+              (Format.asprintf
+                 "@[<hv>Inductive invariant:@ @[<hv 1>{%a}@]@]"
+                 (pp_print_list Term.pp_print_term ";@ ")
+                 ind_inv_conjuncts);
 
             (* Activation literals for inductive invariant *)
             let ind_inv_p0, ind_inv_n0, ind_inv_n1 = 

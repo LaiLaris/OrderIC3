@@ -1025,6 +1025,37 @@ module IC3QE = struct
         (string_of_ast_complexity_order ast_complexity_order_default))
   let ast_complexity_order () = !ast_complexity_order
 
+  type indgen_literal_order = [ `Original | `Asc | `Desc ]
+  let indgen_literal_order_of_string = function
+    | "original" -> `Original
+    | "asc" -> `Asc
+    | "desc" -> `Desc
+    | _ ->
+      raise
+        (Arg.Bad
+           "Bad value for --ic3qe_indgen_literal_order; expected original, asc, or desc")
+  let string_of_indgen_literal_order = function
+    | `Original -> "original"
+    | `Asc -> "asc"
+    | `Desc -> "desc"
+  let indgen_literal_order_default = `Original
+  let indgen_literal_order = ref indgen_literal_order_default
+  let _ = add_spec
+    "--ic3qe_indgen_literal_order"
+    (Arg.String
+       (fun str ->
+         indgen_literal_order := indgen_literal_order_of_string str))
+    (fun fmt ->
+      Format.fprintf fmt
+        "@[<v>where <string> can be original, asc, desc@ \
+         Choose a deterministic literal-deletion order for IC3QE inductive generalization.@ \
+         Asc and desc compare the internal textual representations of literals.@ \
+         This test option changes only the traversal order in inductive generalization@ \
+         and takes precedence over --ic3qe_freq_sort.@ \
+         Default: %s@]"
+        (string_of_indgen_literal_order indgen_literal_order_default))
+  let indgen_literal_order () = !indgen_literal_order
+
   let freq_sort_default = false
   let freq_sort = ref freq_sort_default
   let _ = add_spec
