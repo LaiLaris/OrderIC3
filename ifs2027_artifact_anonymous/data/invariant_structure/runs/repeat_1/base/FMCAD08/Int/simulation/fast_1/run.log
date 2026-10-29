@@ -1,0 +1,840 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/simulation/fast_1.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/simulation/fast_1.lus:122:12: 
+          Unguarded pre in expression (pre cca)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: prev_no_button, one_button_accept, one_button, main,
+                           cc_allowed, PosEdge, MoreThanTwoSec, MoreThanOneSec,
+                           Edge, AtLeastOnceSince
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+ Starting new process property directed reachability (QE) with PID 24158
+
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#4 {top.usr.igsw@0;
+    top.res.2.call_17_0@0;
+    top.usr.cconoff@0;
+    top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0;
+    top.impl.usr.cca@0;
+    (not top.usr.OK@0);
+    (not top.res.2.call_17_1@0);
+    (not top.usr.ccr@0);
+    (not top.usr.ccsetd@0);
+    (not top.usr.ccseti@0);
+    (not top.usr.sdok@0);
+    (not top.usr.accok@0);
+    (not top.res.inst_main_l134c20_main.res.glocal_11_5@0);
+    (not
+     top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.igsw@0
+ top.res.2.call_17_0@0
+ top.usr.cconoff@0
+ top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0
+ top.impl.usr.cca@0
+ (not top.usr.OK@0)
+ (not top.res.2.call_17_1@0)
+ (not top.usr.ccr@0)
+ (not top.usr.ccsetd@0)
+ (not top.usr.ccseti@0)
+ (not top.usr.sdok@0)
+ (not top.usr.accok@0)
+ (not top.res.inst_main_l134c20_main.res.glocal_11_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0))
+with unsat core to
+(or
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not top.res.2.call_17_1@0)
+ top.impl.usr.cca@0)
+ IC3QE main loop at k=1
+
+ Message received from property directed reachability (QE): Property InvProp[L141C5] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L141C5] true for 1 steps
+
+ind_generalize: Dropped 13 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #4:
+#5 {(not top.res.2.call_17_1@0)}
+block: Reduced clause
+(or
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not top.res.2.call_17_1@0)
+ top.impl.usr.cca@0)
+with ind. gen. to
+(not top.res.2.call_17_1@0)
+check_frames: frames k to 1
+
+Frame:
+5
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#6 {top.usr.igsw@0;
+    top.res.2.call_17_0@0;
+    top.res.2.call_17_1@0;
+    top.usr.cconoff@0;
+    top.impl.usr.cca@0;
+    (not top.usr.OK@0);
+    (not top.usr.ccseti@0);
+    (not top.usr.sdok@0);
+    (not top.usr.accok@0);
+    (not top.res.inst_main_l134c20_main.res.glocal_11_5@0);
+    (not
+     top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0);
+    (not
+     top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.igsw@0
+ top.res.2.call_17_0@0
+ top.res.2.call_17_1@0
+ top.usr.cconoff@0
+ top.impl.usr.cca@0
+ (not top.usr.OK@0)
+ (not top.usr.ccseti@0)
+ (not top.usr.sdok@0)
+ (not top.usr.accok@0)
+ (not top.res.inst_main_l134c20_main.res.glocal_11_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0))
+with unsat core to
+(or
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)
+ (not top.usr.ccseti@0))
+ind_generalize: Dropped 10 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #6:
+#7 {(not top.usr.ccseti@0);
+    (not
+     top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)}
+block: Reduced clause
+(or
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)
+ (not top.usr.ccseti@0))
+with ind. gen. to
+(or
+ (not top.usr.ccseti@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0))
+check_frames: frames k to 1
+
+Frame:
+5
+7
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#8 {top.usr.igsw@0;
+    top.res.2.call_17_0@0;
+    top.res.2.call_17_1@0;
+    top.usr.ccseti@0;
+    top.usr.cconoff@0;
+    top.usr.accok@0;
+    top.impl.usr.cca@0;
+    (not top.usr.OK@0);
+    (not top.usr.ccsetd@0);
+    (not top.usr.sdok@0);
+    (not top.res.inst_main_l134c20_main.res.glocal_11_5@0);
+    (not
+     top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0);
+    (not
+     top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.igsw@0
+ top.res.2.call_17_0@0
+ top.res.2.call_17_1@0
+ top.usr.ccseti@0
+ top.usr.cconoff@0
+ top.usr.accok@0
+ top.impl.usr.cca@0
+ (not top.usr.OK@0)
+ (not top.usr.ccsetd@0)
+ (not top.usr.sdok@0)
+ (not top.res.inst_main_l134c20_main.res.glocal_11_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0))
+with unsat core to
+(or
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ top.usr.accok@0)
+ind_generalize: Dropped 11 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #8:
+#9 {top.usr.accok@0;
+    (not
+     top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)}
+block: Reduced clause
+(or
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ top.usr.accok@0)
+with ind. gen. to
+(or
+ top.usr.accok@0
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0))
+check_frames: frames k to 1
+
+Frame:
+9
+5
+7
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#10 {top.usr.igsw@0;
+     top.res.2.call_17_1@0;
+     top.usr.ccseti@0;
+     top.res.inst_main_l134c20_main.res.glocal_11_5@0;
+     top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.call_6_1_5@0;
+     top.impl.usr.cca@0;
+     (not top.usr.OK@0);
+     (not top.usr.ccsetd@0);
+     (not top.usr.sdok@0);
+     (not top.usr.accok@0);
+     (not
+      top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0);
+     (not
+      top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0);
+     (not top.res.2.call_17_0@0);
+     (not top.usr.cconoff@0)}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.igsw@0
+ top.res.2.call_17_1@0
+ top.usr.ccseti@0
+ top.res.inst_main_l134c20_main.res.glocal_11_5@0
+ top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.call_6_1_5@0
+ top.impl.usr.cca@0
+ (not top.usr.OK@0)
+ (not top.usr.ccsetd@0)
+ (not top.usr.sdok@0)
+ (not top.usr.accok@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)
+ (not top.res.2.call_17_0@0)
+ (not top.usr.cconoff@0))
+with unsat core to
+(or
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)
+ (not top.usr.ccsetd@0))
+ind_generalize: Dropped 12 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #10:
+#11 {(not top.usr.ccsetd@0);
+     (not
+      top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)}
+block: Reduced clause
+(or
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)
+ (not top.usr.ccsetd@0))
+with ind. gen. to
+(or
+ (not top.usr.ccsetd@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0))
+check_frames: frames k to 1
+
+Frame:
+9
+5
+11
+7
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#12 {top.usr.igsw@0;
+     top.res.2.call_17_1@0;
+     top.usr.ccsetd@0;
+     top.usr.ccseti@0;
+     top.res.inst_main_l134c20_main.res.glocal_11_5@0;
+     top.impl.usr.cca@0;
+     (not top.usr.OK@0);
+     (not top.usr.ccr@0);
+     (not top.usr.sdok@0);
+     (not top.usr.accok@0);
+     (not
+      top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0);
+     (not
+      top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0);
+     (not top.res.2.call_17_0@0);
+     (not
+      top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.call_6_1_5@0)}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.igsw@0
+ top.res.2.call_17_1@0
+ top.usr.ccsetd@0
+ top.usr.ccseti@0
+ top.res.inst_main_l134c20_main.res.glocal_11_5@0
+ top.impl.usr.cca@0
+ (not top.usr.OK@0)
+ (not top.usr.ccr@0)
+ (not top.usr.sdok@0)
+ (not top.usr.accok@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)
+ (not top.res.2.call_17_0@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.call_6_1_5@0))
+with unsat core to
+(or
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)
+ (not top.usr.ccr@0))
+ind_generalize: Dropped 12 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #12:
+#13 {(not top.usr.ccr@0);
+     (not
+      top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)}
+block: Reduced clause
+(or
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0)
+ (not top.usr.ccr@0))
+with ind. gen. to
+(or
+ (not top.usr.ccr@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0))
+check_frames: frames k to 1
+
+Frame:
+9
+5
+13
+11
+7
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #4 in forward propagation:
+#14 {top.usr.igsw@0;
+     top.res.2.call_17_0@0;
+     top.usr.cconoff@0;
+     top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0;
+     top.impl.usr.cca@0;
+     (not top.usr.OK@0);
+     (not top.res.2.call_17_1@0);
+     (not top.usr.ccr@0);
+     (not top.usr.ccsetd@0);
+     (not top.usr.ccseti@0);
+     (not top.usr.sdok@0);
+     (not top.usr.accok@0);
+     (not top.res.inst_main_l134c20_main.res.glocal_11_5@0);
+     (not
+      top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 5
+fwd_propagate: Checking for inductiveness of clauses in last frame.
+Checking for inductiveness of clauses
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.122
+Analysis time       : 0.075
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 65
+Frame sizes                               : 5
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 208
+Stale activation literals                 : 187
+Total time                                : 0.073
+Forward propagation time                  : 0.001
+Frame strengthening time                  : 0.054
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.004
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.008
+check-sat calls     : 65
+get-value time      : 0.004
+get-value calls     : 5
+get-unsat-core time : 0.001
+get-unsat-core calls: 10
+
+ IC3QE main loop at k=2
+
+ind_generalize: Dropped 12 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #14:
+#16 {(not top.res.2.call_17_1@0);
+     (not top.res.inst_main_l134c20_main.res.glocal_11_5@0)}
+fwd_propagate: Asserting new invariants.
+check_frames: frames k to 1
+
+Frame:
+
+
+Frame:
+5
+check_frames: Does R_2 |= P hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_2 are safe.
+New clause at frontier:
+#17 {top.usr.igsw@0;
+     top.res.inst_main_l134c20_main.res.glocal_11_5@0;
+     top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0;
+     top.impl.usr.cca@0;
+     (not top.usr.OK@0);
+     (not top.res.2.call_17_1@0);
+     (not top.usr.sdok@0);
+     (not top.usr.accok@0);
+     (not
+      top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0);
+     (not top.res.2.call_17_0@0)}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.igsw@0
+ top.res.inst_main_l134c20_main.res.glocal_11_5@0
+ top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0
+ top.impl.usr.cca@0
+ (not top.usr.OK@0)
+ (not top.res.2.call_17_1@0)
+ (not top.usr.sdok@0)
+ (not top.usr.accok@0)
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not top.res.2.call_17_0@0))
+with unsat core to
+(or
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not top.res.2.call_17_1@0)
+ top.impl.usr.cca@0)
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             top.usr.accok@0
+                                                             (not
+                                                              top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (not
+                                                              top.usr.ccr@0)
+                                                             (not
+                                                              top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (not
+                                                              top.usr.ccsetd@0)
+                                                             (not
+                                                              top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (not
+                                                              top.usr.ccseti@0)
+                                                             (not
+                                                              top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (not
+                                                              top.res.2.call_17_1@0)
+                                                             (not
+                                                              top.res.inst_main_l134c20_main.res.glocal_11_5@0))
+
+ind_generalize: Dropped 8 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #17:
+#18 {top.impl.usr.cca@0; (not top.res.2.call_17_1@0)}
+block: Reduced clause
+(or
+ (not
+  top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)
+ (not top.res.2.call_17_1@0)
+ top.impl.usr.cca@0)
+with ind. gen. to
+(or top.impl.usr.cca@0 (not top.res.2.call_17_1@0))
+check_frames: frames k to 1
+
+Frame:
+18
+
+Frame:
+5
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_2
+block: Check if all successors of frontier R_2 are safe.
+block: All successors of R_2 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #4 in forward propagation:
+#19 {top.usr.igsw@0;
+     top.res.2.call_17_0@0;
+     top.usr.cconoff@0;
+     top.res.inst_main_l134c20_main.res.inst_one_button_accept_l121c12_one_button_accept.res.inst_prev_no_button_l68c11_prev_no_button.res.glocal_2_4_1_5@0;
+     top.impl.usr.cca@0;
+     (not top.usr.OK@0);
+     (not top.res.2.call_17_1@0);
+     (not top.usr.ccr@0);
+     (not top.usr.ccsetd@0);
+     (not top.usr.ccseti@0);
+     (not top.usr.sdok@0);
+     (not top.usr.accok@0);
+     (not top.res.inst_main_l134c20_main.res.glocal_11_5@0);
+     (not
+      top.res.inst_main_l134c20_main.res.inst_cc_allowed_l114c12_cc_allowed.res.inst_MoreThanTwoSec_l84c26_MoreThanTwoSec.res.glocal_1_2_2_5@0)}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 5
+fwd_propagate: Checking forward propagation of clauses in frame 2.
+subsume_and_add: clause 19
+ind_generalize: Dropped 12 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #19:
+#20 {(not top.res.2.call_17_1@0);
+     (not top.res.inst_main_l134c20_main.res.glocal_11_5@0)}
+check_frames: Does R_2 |= P hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.163
+Analysis time       : 0.116
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 140
+Frame sizes                               : 2 1
+Forward propagations                      : 4
+Forward propagations before generalization: 1
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 5
+Activation literals                       : 319
+Stale activation literals                 : 294
+Total time                                : 0.114
+Forward propagation time                  : 0.027
+Frame strengthening time                  : 0.065
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.003
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.015
+check-sat calls     : 140
+get-value time      : 0.005
+get-value calls     : 7
+get-unsat-core time : 0.001
+get-unsat-core calls: 12
+
+ IC3QE main loop at k=3
+
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.184
+Analysis time       : 0.137
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 3
+Restarts                                  : 0
+Solver                                    : 193
+Frame sizes                               : 2 1
+Forward propagations                      : 6
+Forward propagations before generalization: 2
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 2
+Inductive blocking clauses                : 5
+Activation literals                       : 377
+Stale activation literals                 : 346
+Total time                                : 0.135
+Forward propagation time                  : 0.044
+Frame strengthening time                  : 0.065
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.010
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.019
+check-sat calls     : 193
+get-value time      : 0.006
+get-value calls     : 8
+get-unsat-core time : 0.001
+get-unsat-core calls: 12
+
+ Message received from property directed reachability (QE): Property InvProp[L141C5] invariant (1-inductive)
+
+<Success> Property InvProp[L141C5] is valid by property directed reachability (QE) after 0.152s.
+
+ <Done> All properties proved or disproved in 0.200s.
+        Waiting for children to terminate.
+
+ Child process 24158 (property directed reachability (QE)) exited with return code 0
+
+ Process 24158 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.184
+Analysis time       : 0.137
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 3
+Restarts                                  : 0
+Solver                                    : 193
+Frame sizes                               : 2 1
+Forward propagations                      : 6
+Forward propagations before generalization: 2
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 2
+Inductive blocking clauses                : 5
+Activation literals                       : 377
+Stale activation literals                 : 346
+Total time                                : 0.135
+Forward propagation time                  : 0.044
+Frame strengthening time                  : 0.065
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.010
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.019
+check-sat calls     : 193
+get-value time      : 0.006
+get-value calls     : 8
+get-unsat-core time : 0.001
+get-unsat-core calls: 12
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L141C5]: valid (k=1)
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: prev_no_button, one_button_accept,
+                                     one_button, main, cc_allowed, PosEdge,
+                                     MoreThanTwoSec, MoreThanOneSec, Edge,
+                                     AtLeastOnceSince
+         - no contracts
+         - no sub-assumptions
+         valid: 'InvProp[L141C5]': /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/simulation/fast_1.lus:141:5
+         
+         
+

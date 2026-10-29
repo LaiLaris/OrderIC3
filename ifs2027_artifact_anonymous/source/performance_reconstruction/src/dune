@@ -1,0 +1,39 @@
+(executable
+ (package kind2)
+ (public_name kind2)
+ (libraries kind2dev)
+ (modules kind2)
+ (flags (:standard (:include linking-flags.sexp)))
+)
+
+(executable
+ (package kmoxi)
+ (public_name kmoxi)
+ (name moxi)
+ (libraries kind2dev)
+ (modules moxi)
+ (flags (:standard (:include linking-flags.sexp)))
+)
+
+(rule
+  (with-stdout-to linking-flags.sexp
+    (run ../scripts/gen-linking-flags.sh %{env:LINKING_MODE=dynamic} %{ocaml-config:system} %{ocaml-config:version})))
+
+(library
+ (name kind2dev)
+ (libraries dune-build-info num str threads yojson zmq menhirLib graphicspdf)
+ (modules
+  (:standard \ C2Icnf kind2 moxi))
+ (modules_without_implementation solverSig)
+ (wrapped false))
+
+(include_subdirs unqualified)
+
+(env
+ (dev
+  (flags
+   (:standard -warn-error -A -w A-4-9-29-40-41-42-44-48-67-70)))
+ (strict
+  (flags
+   (:standard -warn-error A -w A-4-9-29-40-41-42-44-48-67-70)))
+)

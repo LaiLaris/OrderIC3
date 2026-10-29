@@ -1,0 +1,238 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/simulation/hysteresis_1.lus'.
+
+ Lustre input detected
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: speed, counter
+
+ 2 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+ Starting new process property directed reachability (QE) with PID 35308
+
+ IC3QE main loop at k=1
+
+ Message received from property directed reachability (QE): Property InvProp[L34C5] true for 0 steps
+
+ Message received from property directed reachability (QE): Property speed[L32C23].SubRange[L17C5] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L34C5] true for 1 steps
+
+ Message received from property directed reachability (QE): Property speed[L32C23].SubRange[L17C5] true for 1 steps
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.066
+Analysis time       : 0.026
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 5
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 8
+Stale activation literals                 : 1
+Total time                                : 0.023
+Forward propagation time                  : 0.002
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.003
+check-sat calls     : 5
+get-value time      : 0.000
+get-value calls     : 0
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+ IC3QE main loop at k=2
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.074
+Analysis time       : 0.034
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 12
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 14
+Stale activation literals                 : 4
+Total time                                : 0.032
+Forward propagation time                  : 0.008
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.004
+check-sat calls     : 12
+get-value time      : 0.000
+get-value calls     : 0
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+ Message received from property directed reachability (QE): Property InvProp[L34C5] invariant (1-inductive)
+
+ Message received from property directed reachability (QE): Property speed[L32C23].SubRange[L17C5] invariant (1-inductive)
+
+<Success> Property InvProp[L34C5] is valid by property directed reachability (QE) after 0.062s.
+
+<Success> Generated candidate property speed[L32C23].SubRange[L17C5] is valid by property directed reachability (QE) after 0.062s.
+
+ <Done> All properties proved or disproved in 0.102s.
+        Waiting for children to terminate.
+
+ Child process 35308 (property directed reachability (QE)) exited with return code 0
+
+ Process 35308 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.074
+Analysis time       : 0.034
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 12
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 14
+Stale activation literals                 : 4
+Total time                                : 0.032
+Forward propagation time                  : 0.008
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.004
+check-sat calls     : 12
+get-value time      : 0.000
+get-value calls     : 0
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L34C5]: valid (k=1)
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: speed, counter
+         - no contracts
+         - no sub-assumptions
+         valid: 'InvProp[L34C5]': /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/simulation/hysteresis_1.lus:34:5
+         
+         
+

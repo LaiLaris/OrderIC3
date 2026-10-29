@@ -1,0 +1,343 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/simulation/fast_1_e7_2044.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/simulation/fast_1_e7_2044.lus:68:12: 
+          Unguarded pre in expression (pre cca)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: prev_no_button, one_button_accept, one_button, main,
+                           cc_allowed, PosEdge, MoreThanTwoSec, MoreThanOneSec,
+                           Edge, AtLeastOnceSince
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+ Starting new process property directed reachability (QE) with PID 36188
+
+ Message received from property directed reachability (QE): Property InvProp[L86C3] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L86C3] false at step 1
+
+<Failure> Property InvProp[L86C3] is invalid by property directed reachability (QE) for k=1 after 0.031s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    igsw     ff  ff
+    ccd      ff  ff
+    cconoff  tt  ff
+    bpa      ff  ff
+    cccanc   ff  ff
+    battok   ff  ff
+    gearok   ff  ff
+    qfok     ff  ff
+    sdok     tt  tt
+    accok    tt  tt
+    ccseti   tt  ff
+    ccsetd   tt  ff
+    ccr      tt  ff
+    vs      201 201
+    == Outputs ==
+    OK       tt  ff
+    == Locals ==
+    cca      ff  ff
+    
+  Node PosEdge (top[L84C36])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X tt ff
+    == Outputs ==
+    Y ff ff
+    
+  Node PosEdge (top[L84C17])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X tt ff
+    == Outputs ==
+    Y ff ff
+    
+  Node PosEdge (top[L83C31])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X tt ff
+    == Outputs ==
+    Y ff ff
+    
+  Node main (top[L79C20])
+    == Mode(s) ==
+    
+    == Inputs ==
+    igsw     ff  ff
+    ccd      ff  ff
+    cconoff  tt  ff
+    bpa      ff  ff
+    cccanc   ff  ff
+    battok   ff  ff
+    gearok   ff  ff
+    qfok     ff  ff
+    sdok     tt  tt
+    accok    tt  tt
+    ccseti   tt  ff
+    ccsetd   tt  ff
+    ccr      tt  ff
+    vs      201 201
+    == Outputs ==
+    ccont    ff  ff
+    cca      ff  ff
+    == Locals ==
+    ccall    ff  ff
+    
+  Node one_button_accept (top[L79C20] / main[L67C12])
+    == Mode(s) ==
+    
+    == Inputs ==
+    ccseti tt ff
+    ccsetd tt ff
+    ccr    tt ff
+    ccont  ff ff
+    cca    ff ff
+    == Outputs ==
+    oba    ff ff
+    == Locals ==
+    ob     ff ff
+    pnb    tt ff
+    
+  Node PosEdge (top[L79C20] / main[L67C12] / one_button_accept[L42C42])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X ff ff
+    == Outputs ==
+    Y ff tt
+    
+  Node AtLeastOnceSince (top[L79C20] / main[L67C12] / one_button_accept[L42C20])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X       ff ff
+    Y       ff tt
+    == Outputs ==
+    XsinceY tt ff
+    
+  Node prev_no_button (top[L79C20] / main[L67C12] / one_button_accept[L38C11])
+    == Mode(s) ==
+    
+    == Inputs ==
+    ccseti tt ff
+    ccsetd tt ff
+    ccr    tt ff
+    == Outputs ==
+    pnb    tt ff
+    
+  Node one_button (top[L79C20] / main[L67C12] / one_button_accept[L39C10])
+    == Mode(s) ==
+    
+    == Inputs ==
+    ccseti tt ff
+    ccsetd tt ff
+    ccr    tt ff
+    == Outputs ==
+    ob     ff ff
+    
+  Node cc_allowed (top[L79C20] / main[L64C12])
+    == Mode(s) ==
+    
+    == Inputs ==
+    ccont   ff  ff
+    igsw    ff  ff
+    bpa     ff  ff
+    cccanc  ff  ff
+    battok  ff  ff
+    gearok  ff  ff
+    qfok    ff  ff
+    sdok    tt  tt
+    accok   tt  tt
+    vs     201 201
+    == Outputs ==
+    ccall   ff  ff
+    
+  Node MoreThanTwoSec (top[L79C20] / main[L64C12] / cc_allowed[L51C26])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X tt tt
+    == Outputs ==
+    Y ff ff
+    
+  Node MoreThanOneSec (top[L79C20] / main[L64C12] / cc_allowed[L50C21])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X tt tt
+    == Outputs ==
+    Y ff tt
+    
+  Node PosEdge (top[L79C20] / main[L62C14])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X tt ff
+    == Outputs ==
+    Y ff ff
+    
+  Node PosEdge (top[L79C20] / main[L60C29])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X tt ff
+    == Outputs ==
+    Y ff ff
+    
+  Node Edge (top[L79C20] / main[L59C24])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X ff ff
+    == Outputs ==
+    Y ff ff
+    
+  Node PosEdge (top[L83C13])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X ff ff
+    == Outputs ==
+    Y ff tt
+    
+  
+ <Done> All properties proved or disproved in 0.081s.
+        Waiting for children to terminate.
+
+ Child process 36188 (property directed reachability (QE)) exited with return code 0
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.072
+Analysis time       : 0.022
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 2
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 4
+Stale activation literals                 : 0
+Total time                                : 0.019
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.001
+check-sat calls     : 2
+get-value time      : 0.001
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+ Process 36188 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.072
+Analysis time       : 0.022
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 2
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 4
+Stale activation literals                 : 0
+Total time                                : 0.019
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.001
+check-sat calls     : 2
+get-value time      : 0.001
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L86C3]: invalid after 1 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: prev_no_button, one_button_accept,
+                                     one_button, main, cc_allowed, PosEdge,
+                                     MoreThanTwoSec, MoreThanOneSec, Edge,
+                                     AtLeastOnceSince
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L86C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/simulation/fast_1_e7_2044.lus:86:3
+         
+         
+

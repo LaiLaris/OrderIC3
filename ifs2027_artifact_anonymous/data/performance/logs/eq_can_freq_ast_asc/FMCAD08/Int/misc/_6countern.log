@@ -1,0 +1,148 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/_6countern.lus'.
+
+ Lustre input detected
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top' (no subsystems)
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+ Starting new process property directed reachability (QE) with PID 5499
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.058
+Analysis time       : 0.014
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 1
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 3
+Stale activation literals                 : 0
+Total time                                : 0.011
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.001
+check-sat calls     : 1
+get-value time      : 0.000
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+ Message received from property directed reachability (QE): Property InvProp[L7C3] false at step 0
+
+<Failure> Property InvProp[L7C3] is invalid by property directed reachability (QE) for k=0 after 0.042s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Outputs ==
+    OK   ff
+    == Locals ==
+    time  0
+    
+  
+ <Done> All properties proved or disproved in 0.086s.
+        Waiting for children to terminate.
+
+ Child process 5499 (property directed reachability (QE)) exited with return code 0
+
+ Process 5499 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.058
+Analysis time       : 0.014
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 1
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 3
+Stale activation literals                 : 0
+Total time                                : 0.011
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.001
+check-sat calls     : 1
+get-value time      : 0.000
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L7C3]: invalid after 0 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top' (no subsystems)
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L7C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/_6countern.lus:7:3
+         
+         
+

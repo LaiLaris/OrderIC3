@@ -1,0 +1,330 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:24:9: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:24:28: 
+          Unguarded pre in expression (pre dirty)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:24:44: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:24:61: 
+          Unguarded pre in expression (pre exclusive)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:25:9: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:25:28: 
+          Unguarded pre in expression (pre dirty)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:26:9: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:26:28: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:26:39: 
+          Unguarded pre in expression (pre exclusive)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:27:9: 
+          Unguarded pre in expression (pre exclusive)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:28:9: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:29:9: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:30:9: 
+          Unguarded pre in expression (pre dirty)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:31:9: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:32:9: 
+          Unguarded pre in expression (pre exclusive)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: illinois, excludes9, Sofar
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+ Starting new process property directed reachability (QE) with PID 38034
+
+New clause at frontier:
+#4 {(= (+ (* (- 1) top.res.2.call_16_1@0) 0) 0);
+    (not top.res.call_19@0);
+    (not top.usr.OK@0);
+    (not (> (* (- 1) top.res.2.call_16_2@0) 0));
+    (not (> (* 1 top.res.2.call_16_1@0) 0));
+    (not (> (* 1 top.res.2.call_16_0@0) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (= (+ (* (- 1) top.res.2.call_16_1@0) 0) 0)
+ (not top.res.call_19@0)
+ (not top.usr.OK@0)
+ (not (> (* (- 1) top.res.2.call_16_2@0) 0))
+ (not (> (* 1 top.res.2.call_16_1@0) 0))
+ (not (> (* 1 top.res.2.call_16_0@0) 0)))
+with unsat core to
+(or
+ (not (> (* (- 1) top.res.2.call_16_2@0) 0))
+ (not top.usr.OK@0)
+ (not top.res.call_19@0))
+ind-gen literal frequency priority for clause #4:
+original: {
+(not (> (* (- 1) top.res.2.call_16_2@0) 0)) [freq=0.000, ast=7]
+(not top.usr.OK@0) [freq=0.000, ast=2]
+(not top.res.call_19@0) [freq=0.000, ast=2]
+}
+reordered by freq+ast-asc: {
+(not top.usr.OK@0) [freq=0.000, ast=2]
+(not top.res.call_19@0) [freq=0.000, ast=2]
+(not (> (* (- 1) top.res.2.call_16_2@0) 0)) [freq=0.000, ast=7]
+}
+ind_generalize: Dropped 5 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #4:
+#5 {(not (> (* (- 1) top.res.2.call_16_2@0) 0))}
+block: Reduced clause
+(or
+ (not (> (* (- 1) top.res.2.call_16_2@0) 0))
+ (not top.usr.OK@0)
+ (not top.res.call_19@0))
+with ind. gen. to
+(not (> (* (- 1) top.res.2.call_16_2@0) 0))
+check_frames: frames k to 1
+
+Frame:
+5
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+ IC3QE main loop at k=1
+
+ Message received from property directed reachability (QE): Property InvProp[L76C3] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L76C3] true for 1 steps
+
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.087
+Analysis time       : 0.029
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 15
+Frame sizes                               : 1
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 30
+Stale activation literals                 : 21
+Total time                                : 0.027
+Forward propagation time                  : 0.001
+Frame strengthening time                  : 0.012
+Generalization time                       : 0.004
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.002
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.004
+check-sat calls     : 15
+get-value time      : 0.001
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 2
+
+ IC3QE main loop at k=2
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.095
+Analysis time       : 0.037
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 24
+Frame sizes                               : 1
+Forward propagations                      : 1
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 36
+Stale activation literals                 : 24
+Total time                                : 0.035
+Forward propagation time                  : 0.006
+Frame strengthening time                  : 0.012
+Generalization time                       : 0.004
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.002
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.006
+check-sat calls     : 24
+get-value time      : 0.001
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 2
+
+ Message received from property directed reachability (QE): Property InvProp[L76C3] invariant (1-inductive)
+
+<Success> Property InvProp[L76C3] is valid by property directed reachability (QE) after 0.051s.
+
+ <Done> All properties proved or disproved in 0.109s.
+        Waiting for children to terminate.
+
+ Child process 38034 (property directed reachability (QE)) exited with return code 0
+
+ Process 38034 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.095
+Analysis time       : 0.037
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 24
+Frame sizes                               : 1
+Forward propagations                      : 1
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 36
+Stale activation literals                 : 24
+Total time                                : 0.035
+Forward propagation time                  : 0.006
+Frame strengthening time                  : 0.012
+Generalization time                       : 0.004
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.002
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.006
+check-sat calls     : 24
+get-value time      : 0.001
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 2
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L76C3]: valid (k=1)
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: illinois, excludes9, Sofar
+         - no contracts
+         - no sub-assumptions
+         valid: 'InvProp[L76C3]': /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/ILLINOIS_5_e7_692_e7_2865.lus:76:3
+         
+         
+

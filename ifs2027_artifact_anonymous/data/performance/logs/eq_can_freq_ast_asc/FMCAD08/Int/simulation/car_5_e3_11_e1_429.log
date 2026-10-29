@@ -1,0 +1,1296 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/simulation/car_5_e3_11_e1_429.lus'.
+
+ Lustre input detected
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: voiture, excludes2, Sofar
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+ Starting new process property directed reachability (QE) with PID 15110
+
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#4 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+    (not top.res.call_4@0);
+    (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+    (not top.usr.OK@0);
+    (not (> (+ (* 1 top.res.2.call_2_3@0) (- 8)) 0));
+    (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+    (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+ IC3QE main loop at k=1
+
+ Message received from property directed reachability (QE): Property InvProp[L39C3] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L39C3] true for 1 steps
+
+block: Reduced clause
+(or
+ (= (+ top.res.2.call_2_3@0 (- 9)) 0)
+ (not top.res.call_4@0)
+ (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0)
+ (not top.usr.OK@0)
+ (not (> (+ (* 1 top.res.2.call_2_3@0) (- 8)) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)))
+with unsat core to
+(or
+ (not (> (+ (* 1 top.res.2.call_2_3@0) (- 8)) 0))
+ (not top.usr.OK@0)
+ (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0)
+ (not top.res.call_4@0)
+ (= (+ top.res.2.call_2_3@0 (- 9)) 0))
+ind-gen literal frequency priority for clause #4:
+original: {
+(not (> (+ (* 1 top.res.2.call_2_3@0) (- 8)) 0)) [freq=0.000, ast=9]
+(not top.usr.OK@0) [freq=0.000, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.000, ast=2]
+(not top.res.call_4@0) [freq=0.000, ast=2]
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.000, ast=6]
+}
+reordered by freq+ast-asc: {
+(not top.usr.OK@0) [freq=0.000, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.000, ast=2]
+(not top.res.call_4@0) [freq=0.000, ast=2]
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.000, ast=6]
+(not (> (+ (* 1 top.res.2.call_2_3@0) (- 8)) 0)) [freq=0.000, ast=9]
+}
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #4:
+#5 {(not (> (+ (* 1 top.res.2.call_2_3@0) (- 8)) 0))}
+block: Reduced clause
+(or
+ (not (> (+ (* 1 top.res.2.call_2_3@0) (- 8)) 0))
+ (not top.usr.OK@0)
+ (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0)
+ (not top.res.call_4@0)
+ (= (+ top.res.2.call_2_3@0 (- 9)) 0))
+with ind. gen. to
+(not (> (+ (* 1 top.res.2.call_2_3@0) (- 8)) 0))
+check_frames: frames k to 1
+
+Frame:
+5
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #4 in forward propagation:
+#6 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+    (not top.res.call_4@0);
+    (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+    (not top.usr.OK@0);
+    (not (> (+ (* 1 top.res.2.call_2_3@0) (- 8)) 0));
+    (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+    (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0))}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 5
+fwd_propagate: Checking for inductiveness of clauses in last frame.
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+subsume_and_add: clause 6
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.085
+Analysis time       : 0.039
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 19
+Frame sizes                               : 1
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 38
+Stale activation literals                 : 29
+Total time                                : 0.036
+Forward propagation time                  : 0.002
+Frame strengthening time                  : 0.016
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.006
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.005
+check-sat calls     : 19
+get-value time      : 0.001
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 2
+
+ IC3QE main loop at k=2
+
+ind_generalize: Dropped 2 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #6:
+#7 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+    (not top.res.call_4@0);
+    (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+    (not top.usr.OK@0);
+    (not (> (+ (* 1 top.res.2.call_2_3@0) (- 8)) 0))}
+check_frames: frames k to 1
+
+Frame:
+7
+
+Frame:
+5
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_2 are safe.
+New clause at frontier:
+#8 {(not top.res.call_4@0);
+    (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+    (not top.usr.OK@0);
+    (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+    (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+    (not (= (+ top.res.2.call_2_3@0 (- 9)) 0));
+    (not true)}
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #8:
+#9 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+    (not top.res.call_4@0);
+    (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+    (not top.usr.OK@0);
+    (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+    (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+    (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+    (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+    (not (= (+ top.res.2.call_2_3@0 (- 8)) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (= (+ top.res.2.call_2_3@0 (- 9)) 0)
+ (not top.res.call_4@0)
+ (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0)
+ (not top.usr.OK@0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0))
+ (not (= (+ top.res.2.call_2_3@0 (- 8)) 0)))
+with unsat core to
+(not (= (+ top.res.2.call_2_3@0 (- 8)) 0))
+ind_generalize: Dropped 8 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #9:
+#10 {(not (= (+ top.res.2.call_2_3@0 (- 8)) 0))}
+block: Reduced clause
+(not (= (+ top.res.2.call_2_3@0 (- 8)) 0))
+with ind. gen. to
+(not (= (+ top.res.2.call_2_3@0 (- 8)) 0))
+Copied clause #9 for blocking at depth 0:
+#11 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 8)) 0))}
+check_frames: frames k to 1
+
+Frame:
+5
+10
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+ind-gen literal frequency priority for clause #11:
+original: {
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.198, ast=6]
+(not top.res.call_4@0) [freq=0.198, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.198, ast=2]
+(not top.usr.OK@0) [freq=0.198, ast=2]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(not (= (+ top.res.2.call_2_3@0 (- 8)) 0)) [freq=1.000, ast=7]
+}
+reordered by freq+ast-asc: {
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(not top.res.call_4@0) [freq=0.198, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.198, ast=2]
+(not top.usr.OK@0) [freq=0.198, ast=2]
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.198, ast=6]
+(not (= (+ top.res.2.call_2_3@0 (- 8)) 0)) [freq=1.000, ast=7]
+}
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #11:
+#12 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 7)) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (= (+ top.res.2.call_2_3@0 (- 9)) 0)
+ (not top.res.call_4@0)
+ (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0)
+ (not top.usr.OK@0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0))
+ (= (+ top.res.2.call_2_3@0 (- 8)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0))
+ (not (= (+ top.res.2.call_2_3@0 (- 7)) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)))
+with unsat core to
+(not (= (+ top.res.2.call_2_3@0 (- 7)) 0))
+ind_generalize: Dropped 11 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #12:
+#13 {(not (= (+ top.res.2.call_2_3@0 (- 7)) 0))}
+block: Reduced clause
+(not (= (+ top.res.2.call_2_3@0 (- 7)) 0))
+with ind. gen. to
+(not (= (+ top.res.2.call_2_3@0 (- 7)) 0))
+Copied clause #12 for blocking at depth 0:
+#14 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 7)) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0))}
+check_frames: frames k to 1
+
+Frame:
+5
+10
+13
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+ind-gen literal frequency priority for clause #14:
+original: {
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.196, ast=6]
+(not top.res.call_4@0) [freq=0.196, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.196, ast=2]
+(not top.usr.OK@0) [freq=0.196, ast=2]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 8)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(not (= (+ top.res.2.call_2_3@0 (- 7)) 0)) [freq=1.000, ast=7]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)) [freq=0.000, ast=9]
+}
+reordered by freq+ast-asc: {
+(= (+ top.res.2.call_2_3@0 (- 8)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)) [freq=0.000, ast=9]
+(not top.res.call_4@0) [freq=0.196, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.196, ast=2]
+(not top.usr.OK@0) [freq=0.196, ast=2]
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.196, ast=6]
+(not (= (+ top.res.2.call_2_3@0 (- 7)) 0)) [freq=1.000, ast=7]
+}
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #14:
+#15 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (= (+ top.res.2.call_2_3@0 (- 7)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 6)) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (= (+ top.res.2.call_2_3@0 (- 9)) 0)
+ (not top.res.call_4@0)
+ (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0)
+ (not top.usr.OK@0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0))
+ (= (+ top.res.2.call_2_3@0 (- 8)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0))
+ (= (+ top.res.2.call_2_3@0 (- 7)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0))
+ (not (= (+ top.res.2.call_2_3@0 (- 6)) 0)))
+with unsat core to
+(not (= (+ top.res.2.call_2_3@0 (- 6)) 0))
+ind_generalize: Dropped 14 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #15:
+#16 {(not (= (+ top.res.2.call_2_3@0 (- 6)) 0))}
+block: Reduced clause
+(not (= (+ top.res.2.call_2_3@0 (- 6)) 0))
+with ind. gen. to
+(not (= (+ top.res.2.call_2_3@0 (- 6)) 0))
+Copied clause #15 for blocking at depth 0:
+#17 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (= (+ top.res.2.call_2_3@0 (- 7)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 6)) 0))}
+check_frames: frames k to 1
+
+Frame:
+5
+10
+13
+16
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+ind-gen literal frequency priority for clause #17:
+original: {
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.194, ast=6]
+(not top.res.call_4@0) [freq=0.194, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.194, ast=2]
+(not top.usr.OK@0) [freq=0.194, ast=2]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 8)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 7)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0)) [freq=0.000, ast=9]
+(not (= (+ top.res.2.call_2_3@0 (- 6)) 0)) [freq=1.000, ast=7]
+}
+reordered by freq+ast-asc: {
+(= (+ top.res.2.call_2_3@0 (- 8)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 7)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0)) [freq=0.000, ast=9]
+(not top.res.call_4@0) [freq=0.194, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.194, ast=2]
+(not top.usr.OK@0) [freq=0.194, ast=2]
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.194, ast=6]
+(not (= (+ top.res.2.call_2_3@0 (- 6)) 0)) [freq=1.000, ast=7]
+}
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #17:
+#18 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (= (+ top.res.2.call_2_3@0 (- 7)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0));
+     (= (+ top.res.2.call_2_3@0 (- 6)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 5)) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (= (+ top.res.2.call_2_3@0 (- 9)) 0)
+ (not top.res.call_4@0)
+ (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0)
+ (not top.usr.OK@0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0))
+ (= (+ top.res.2.call_2_3@0 (- 8)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0))
+ (= (+ top.res.2.call_2_3@0 (- 7)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0))
+ (= (+ top.res.2.call_2_3@0 (- 6)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0))
+ (not (= (+ top.res.2.call_2_3@0 (- 5)) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0)))
+with unsat core to
+(not (= (+ top.res.2.call_2_3@0 (- 5)) 0))
+ind_generalize: Dropped 17 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #18:
+#19 {(not (= (+ top.res.2.call_2_3@0 (- 5)) 0))}
+block: Reduced clause
+(not (= (+ top.res.2.call_2_3@0 (- 5)) 0))
+with ind. gen. to
+(not (= (+ top.res.2.call_2_3@0 (- 5)) 0))
+Copied clause #18 for blocking at depth 0:
+#20 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (= (+ top.res.2.call_2_3@0 (- 7)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0));
+     (= (+ top.res.2.call_2_3@0 (- 6)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 5)) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0))}
+check_frames: frames k to 1
+
+Frame:
+5
+10
+13
+16
+19
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+ind-gen literal frequency priority for clause #20:
+original: {
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.192, ast=6]
+(not top.res.call_4@0) [freq=0.192, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.192, ast=2]
+(not top.usr.OK@0) [freq=0.192, ast=2]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 8)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 7)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 6)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0)) [freq=0.000, ast=9]
+(not (= (+ top.res.2.call_2_3@0 (- 5)) 0)) [freq=1.000, ast=7]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0)) [freq=0.000, ast=9]
+}
+reordered by freq+ast-asc: {
+(= (+ top.res.2.call_2_3@0 (- 8)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 7)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 6)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0)) [freq=0.000, ast=9]
+(not top.res.call_4@0) [freq=0.192, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.192, ast=2]
+(not top.usr.OK@0) [freq=0.192, ast=2]
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.192, ast=6]
+(not (= (+ top.res.2.call_2_3@0 (- 5)) 0)) [freq=1.000, ast=7]
+}
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #20:
+#21 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (= (+ top.res.2.call_2_3@0 (- 7)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0));
+     (= (+ top.res.2.call_2_3@0 (- 6)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0));
+     (= (+ top.res.2.call_2_3@0 (- 5)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 4)) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (= (+ top.res.2.call_2_3@0 (- 9)) 0)
+ (not top.res.call_4@0)
+ (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0)
+ (not top.usr.OK@0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0))
+ (= (+ top.res.2.call_2_3@0 (- 8)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0))
+ (= (+ top.res.2.call_2_3@0 (- 7)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0))
+ (= (+ top.res.2.call_2_3@0 (- 6)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0))
+ (= (+ top.res.2.call_2_3@0 (- 5)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0))
+ (not (= (+ top.res.2.call_2_3@0 (- 4)) 0)))
+with unsat core to
+(not (= (+ top.res.2.call_2_3@0 (- 4)) 0))
+ind_generalize: Dropped 20 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #21:
+#22 {(not (= (+ top.res.2.call_2_3@0 (- 4)) 0))}
+block: Reduced clause
+(not (= (+ top.res.2.call_2_3@0 (- 4)) 0))
+with ind. gen. to
+(not (= (+ top.res.2.call_2_3@0 (- 4)) 0))
+Copied clause #21 for blocking at depth 0:
+#23 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (= (+ top.res.2.call_2_3@0 (- 7)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0));
+     (= (+ top.res.2.call_2_3@0 (- 6)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0));
+     (= (+ top.res.2.call_2_3@0 (- 5)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 4)) 0))}
+check_frames: frames k to 1
+
+Frame:
+5
+10
+13
+16
+19
+22
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+ind-gen literal frequency priority for clause #23:
+original: {
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.190, ast=6]
+(not top.res.call_4@0) [freq=0.190, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.190, ast=2]
+(not top.usr.OK@0) [freq=0.190, ast=2]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 8)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 7)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 6)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 5)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0)) [freq=0.000, ast=9]
+(not (= (+ top.res.2.call_2_3@0 (- 4)) 0)) [freq=1.000, ast=7]
+}
+reordered by freq+ast-asc: {
+(= (+ top.res.2.call_2_3@0 (- 8)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 7)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 6)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 5)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0)) [freq=0.000, ast=9]
+(not top.res.call_4@0) [freq=0.190, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.190, ast=2]
+(not top.usr.OK@0) [freq=0.190, ast=2]
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.190, ast=6]
+(not (= (+ top.res.2.call_2_3@0 (- 4)) 0)) [freq=1.000, ast=7]
+}
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #23:
+#24 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (= (+ top.res.2.call_2_3@0 (- 7)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0));
+     (= (+ top.res.2.call_2_3@0 (- 6)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0));
+     (= (+ top.res.2.call_2_3@0 (- 5)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0));
+     (= (+ top.res.2.call_2_3@0 (- 4)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 3)) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 10) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 4) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (= (+ top.res.2.call_2_3@0 (- 9)) 0)
+ (not top.res.call_4@0)
+ (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0)
+ (not top.usr.OK@0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0))
+ (= (+ top.res.2.call_2_3@0 (- 8)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0))
+ (= (+ top.res.2.call_2_3@0 (- 7)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0))
+ (= (+ top.res.2.call_2_3@0 (- 6)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0))
+ (= (+ top.res.2.call_2_3@0 (- 5)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0))
+ (= (+ top.res.2.call_2_3@0 (- 4)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0))
+ (not (= (+ top.res.2.call_2_3@0 (- 3)) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 10) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 4) 0)))
+with unsat core to
+(not (= (+ top.res.2.call_2_3@0 (- 3)) 0))
+ind_generalize: Dropped 23 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #24:
+#25 {(not (= (+ top.res.2.call_2_3@0 (- 3)) 0))}
+block: Reduced clause
+(not (= (+ top.res.2.call_2_3@0 (- 3)) 0))
+with ind. gen. to
+(not (= (+ top.res.2.call_2_3@0 (- 3)) 0))
+Copied clause #24 for blocking at depth 0:
+#26 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (= (+ top.res.2.call_2_3@0 (- 7)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0));
+     (= (+ top.res.2.call_2_3@0 (- 6)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0));
+     (= (+ top.res.2.call_2_3@0 (- 5)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0));
+     (= (+ top.res.2.call_2_3@0 (- 4)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 3)) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 10) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 4) 0))}
+check_frames: frames k to 1
+
+Frame:
+5
+10
+13
+16
+19
+22
+25
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+ind-gen literal frequency priority for clause #26:
+original: {
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.188, ast=6]
+(not top.res.call_4@0) [freq=0.188, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.188, ast=2]
+(not top.usr.OK@0) [freq=0.188, ast=2]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 8)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 7)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 6)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 5)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 4)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0)) [freq=0.000, ast=9]
+(not (= (+ top.res.2.call_2_3@0 (- 3)) 0)) [freq=1.000, ast=7]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 10) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 4) 0)) [freq=0.000, ast=9]
+}
+reordered by freq+ast-asc: {
+(= (+ top.res.2.call_2_3@0 (- 8)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 7)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 6)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 5)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 4)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 10) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 4) 0)) [freq=0.000, ast=9]
+(not top.res.call_4@0) [freq=0.188, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.188, ast=2]
+(not top.usr.OK@0) [freq=0.188, ast=2]
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.188, ast=6]
+(not (= (+ top.res.2.call_2_3@0 (- 3)) 0)) [freq=1.000, ast=7]
+}
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #26:
+#27 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (= (+ top.res.2.call_2_3@0 (- 7)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0));
+     (= (+ top.res.2.call_2_3@0 (- 6)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0));
+     (= (+ top.res.2.call_2_3@0 (- 5)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0));
+     (= (+ top.res.2.call_2_3@0 (- 4)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0));
+     (= (+ top.res.2.call_2_3@0 (- 3)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 10) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 3) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 11) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 2)) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (= (+ top.res.2.call_2_3@0 (- 9)) 0)
+ (not top.res.call_4@0)
+ (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0)
+ (not top.usr.OK@0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0))
+ (= (+ top.res.2.call_2_3@0 (- 8)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0))
+ (= (+ top.res.2.call_2_3@0 (- 7)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0))
+ (= (+ top.res.2.call_2_3@0 (- 6)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0))
+ (= (+ top.res.2.call_2_3@0 (- 5)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0))
+ (= (+ top.res.2.call_2_3@0 (- 4)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0))
+ (= (+ top.res.2.call_2_3@0 (- 3)) 0)
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 10) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 4) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 3) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 11) 0))
+ (not (= (+ top.res.2.call_2_3@0 (- 2)) 0)))
+with unsat core to
+(not (= (+ top.res.2.call_2_3@0 (- 2)) 0))
+ind_generalize: Dropped 26 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #27:
+#28 {(not (= (+ top.res.2.call_2_3@0 (- 2)) 0))}
+block: Reduced clause
+(not (= (+ top.res.2.call_2_3@0 (- 2)) 0))
+with ind. gen. to
+(not (= (+ top.res.2.call_2_3@0 (- 2)) 0))
+Copied clause #27 for blocking at depth 0:
+#29 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (= (+ top.res.2.call_2_3@0 (- 7)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0));
+     (= (+ top.res.2.call_2_3@0 (- 6)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0));
+     (= (+ top.res.2.call_2_3@0 (- 5)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0));
+     (= (+ top.res.2.call_2_3@0 (- 4)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0));
+     (= (+ top.res.2.call_2_3@0 (- 3)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 10) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 3) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 11) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 2)) 0))}
+check_frames: frames k to 1
+
+Frame:
+5
+10
+13
+16
+19
+22
+25
+28
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+ind-gen literal frequency priority for clause #29:
+original: {
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.186, ast=6]
+(not top.res.call_4@0) [freq=0.186, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.186, ast=2]
+(not top.usr.OK@0) [freq=0.186, ast=2]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 8)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 7)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 6)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 5)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 4)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0)) [freq=0.000, ast=9]
+(= (+ top.res.2.call_2_3@0 (- 3)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 10) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 3) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 11) 0)) [freq=0.000, ast=9]
+(not (= (+ top.res.2.call_2_3@0 (- 2)) 0)) [freq=1.000, ast=7]
+}
+reordered by freq+ast-asc: {
+(= (+ top.res.2.call_2_3@0 (- 8)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 7)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 6)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 5)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 4)) 0) [freq=0.000, ast=6]
+(= (+ top.res.2.call_2_3@0 (- 3)) 0) [freq=0.000, ast=6]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 10) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 4) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) 3) 0)) [freq=0.000, ast=9]
+(not (> (+ (* (- 1) top.res.2.call_2_4@0) 11) 0)) [freq=0.000, ast=9]
+(not top.res.call_4@0) [freq=0.186, ast=2]
+(not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0) [freq=0.186, ast=2]
+(not top.usr.OK@0) [freq=0.186, ast=2]
+(= (+ top.res.2.call_2_3@0 (- 9)) 0) [freq=0.186, ast=6]
+(not (= (+ top.res.2.call_2_3@0 (- 2)) 0)) [freq=1.000, ast=7]
+}
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #29:
+#30 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+     (not top.res.call_4@0);
+     (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+     (not top.usr.OK@0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 4) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 8)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 9) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 5) 0));
+     (= (+ top.res.2.call_2_3@0 (- 7)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 6) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 8) 0));
+     (= (+ top.res.2.call_2_3@0 (- 6)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 7) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 7) 0));
+     (= (+ top.res.2.call_2_3@0 (- 5)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 8) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 6) 0));
+     (= (+ top.res.2.call_2_3@0 (- 4)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 5) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 9) 0));
+     (= (+ top.res.2.call_2_3@0 (- 3)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 10) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 4) 0));
+     (= (+ top.res.2.call_2_3@0 (- 2)) 0);
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 3) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 11) 0));
+     (not (= (+ top.res.2.call_2_3@0 (- 1)) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_4@0) 12) 0));
+     (not (> (+ (* (- 1) top.res.2.call_2_3@0) 2) 0))}
+block: Is blocking clause relative inductive to R_0?
+~P reachable from I: 30, 29, 26, 23, 20, 17, 14, 11, 8, 3
+extract_cex_path: extracting concrete counterexample trace.
+ Property InvProp[L39C3] disproved by IC3QE
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.379
+Analysis time       : 0.332
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 377
+Frame sizes                               : 8 1
+Forward propagations                      : 0
+Forward propagations before generalization: 1
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 1079
+Stale activation literals                 : 703
+Total time                                : 0.329
+Forward propagation time                  : 0.023
+Frame strengthening time                  : 0.284
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.035
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.077
+check-sat calls     : 377
+get-value time      : 0.012
+get-value calls     : 23
+get-unsat-core time : 0.002
+get-unsat-core calls: 16
+
+ Message received from property directed reachability (QE): Property InvProp[L39C3] false at step 10
+
+<Failure> Property InvProp[L39C3] is invalid by property directed reachability (QE) for k=10 after 0.354s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    m     ff tt tt tt tt tt tt tt tt tt tt
+    s     tt ff ff ff ff ff ff ff ff ff ff
+    == Outputs ==
+    OK    tt tt tt tt tt tt tt tt tt tt ff
+    == Locals ==
+    dist   0  1  2  3  4  5  6  7  8  9 10
+    move  tt tt tt tt tt tt tt tt tt tt tt
+    meter ff tt tt tt tt tt tt tt tt tt tt
+    env   tt tt tt tt tt tt tt tt tt tt tt
+    
+  Node excludes2 (top[L36C16])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X1       ff tt tt tt tt tt tt tt tt tt tt
+    X2       tt ff ff ff ff ff ff ff ff ff ff
+    == Outputs ==
+    excludes tt tt tt tt tt tt tt tt tt tt tt
+    
+  Node Sofar (top[L36C9])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     tt tt tt tt tt tt tt tt tt tt tt
+    == Outputs ==
+    Sofar tt tt tt tt tt tt tt tt tt tt tt
+    
+  Node voiture (top[L35C67])
+    == Mode(s) ==
+    
+    == Inputs ==
+    m        ff  tt  tt  tt  tt  tt  tt  tt  tt  tt  tt
+    s        tt  ff  ff  ff  ff  ff  ff  ff  ff  ff  ff
+    == Outputs ==
+    toofast  ff  ff  ff  ff  ff  ff  ff  ff  ff  ff  ff
+    stop     ff  ff  ff  ff  ff  ff  ff  ff  ff  ff  ff
+    bump     ff  ff  ff  ff  ff  ff  ff  ff  ff  ff  tt
+    dist      0   1   2   3   4   5   6   7   8   9  10
+    speed     0  -1  -2  -3  -4  -5  -6  -7  -8  -9 -10
+    time      0   0   0   0   0   0   0   0   0   0   0
+    move     tt  tt  tt  tt  tt  tt  tt  tt  tt  tt  tt
+    second   ff  ff  ff  ff  ff  ff  ff  ff  ff  ff  ff
+    meter    ff  tt  tt  tt  tt  tt  tt  tt  tt  tt  tt
+    
+  
+ <Done> All properties proved or disproved in 0.400s.
+        Waiting for children to terminate.
+
+ Child process 15110 (property directed reachability (QE)) exited with return code 0
+
+ Process 15110 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.379
+Analysis time       : 0.332
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 377
+Frame sizes                               : 8 1
+Forward propagations                      : 0
+Forward propagations before generalization: 1
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 1079
+Stale activation literals                 : 703
+Total time                                : 0.329
+Forward propagation time                  : 0.023
+Frame strengthening time                  : 0.284
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.035
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.077
+check-sat calls     : 377
+get-value time      : 0.012
+get-value calls     : 23
+get-unsat-core time : 0.002
+get-unsat-core calls: 16
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L39C3]: invalid after 10 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: voiture, excludes2, Sofar
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L39C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/simulation/car_5_e3_11_e1_429.lus:39:3
+         
+         
+

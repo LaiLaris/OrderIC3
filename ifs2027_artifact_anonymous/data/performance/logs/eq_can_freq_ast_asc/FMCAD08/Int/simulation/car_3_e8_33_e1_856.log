@@ -1,0 +1,217 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/simulation/car_3_e8_33_e1_856.lus'.
+
+ Lustre input detected
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: voiture, excludes2, Sofar
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+ Starting new process property directed reachability (QE) with PID 13072
+
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#4 {(= (+ top.res.2.call_2_3@0 (- 9)) 0);
+    (not top.res.call_4@0);
+    (not top.res.inst_voiture_l35c67_voiture.res.glocal_1_3@0);
+    (not top.usr.OK@0);
+    (not (> (+ (* 1 top.res.2.call_2_4@0) (- 1)) 0));
+    (not (> (* 1 top.res.2.call_2_4@0) 0));
+    (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0))}
+block: Is blocking clause relative inductive to R_0?
+ Message received from property directed reachability (QE): Property InvProp[L39C3] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L39C3] true for 1 steps
+
+~P reachable from I: 4, 3
+extract_cex_path: extracting concrete counterexample trace.
+ IC3QE main loop at k=1
+
+ Property InvProp[L39C3] disproved by IC3QE
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.088
+Analysis time       : 0.042
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 9
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 27
+Stale activation literals                 : 1
+Total time                                : 0.039
+Forward propagation time                  : 0.002
+Frame strengthening time                  : 0.016
+Generalization time                       : 0.002
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.005
+check-sat calls     : 9
+get-value time      : 0.002
+get-value calls     : 4
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+ Message received from property directed reachability (QE): Property InvProp[L39C3] false at step 2
+
+<Failure> Property InvProp[L39C3] is invalid by property directed reachability (QE) for k=2 after 0.062s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    m     ff tt tt
+    s     tt ff ff
+    == Outputs ==
+    OK    tt tt ff
+    == Locals ==
+    speed  0  2  4
+    env   tt tt tt
+    
+  Node excludes2 (top[L36C16])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X1       ff tt tt
+    X2       tt ff ff
+    == Outputs ==
+    excludes tt tt tt
+    
+  Node Sofar (top[L36C9])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     tt tt tt
+    == Outputs ==
+    Sofar tt tt tt
+    
+  Node voiture (top[L35C67])
+    == Mode(s) ==
+    
+    == Inputs ==
+    m       ff tt tt
+    s       tt ff ff
+    == Outputs ==
+    toofast ff ff tt
+    stop    ff ff ff
+    bump    ff ff ff
+    dist     0  1  2
+    speed    0  2  4
+    time     0  0  0
+    move    tt tt tt
+    second  ff ff ff
+    meter   ff tt tt
+    
+  
+ <Done> All properties proved or disproved in 0.108s.
+        Waiting for children to terminate.
+
+ Child process 13072 (property directed reachability (QE)) exited with return code 0
+
+ Process 13072 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.088
+Analysis time       : 0.042
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 9
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 27
+Stale activation literals                 : 1
+Total time                                : 0.039
+Forward propagation time                  : 0.002
+Frame strengthening time                  : 0.016
+Generalization time                       : 0.002
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.005
+check-sat calls     : 9
+get-value time      : 0.002
+get-value calls     : 4
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L39C3]: invalid after 2 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: voiture, excludes2, Sofar
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L39C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/simulation/car_3_e8_33_e1_856.lus:39:3
+         
+         
+

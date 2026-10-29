@@ -1,0 +1,2801 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/_6counters_e8_371_e7_304.lus'.
+
+ Lustre input detected
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: int6I, bool6
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#4 {(not top.usr.OK@0);
+    (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+    (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+    (not top.res.inst_bool6_l24c7_bool6.impl.usr.b_1@0);
+    (not top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0);
+    (not
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+ Starting new process property directed reachability (QE) with PID 28278
+
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0)
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.b_1@0)
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)))
+with unsat core to
+(not top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0)
+ind_generalize: Dropped 5 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #4:
+#5 {(not top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0)}
+block: Reduced clause
+(not top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0)
+with ind. gen. to
+(not top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0)
+check_frames: frames k to 1
+
+Frame:
+5
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#6 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+    (not top.usr.OK@0);
+    (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+    (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+    (not
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0
+ (not top.usr.OK@0)
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)))
+with unsat core to
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)))
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+ IC3QE main loop at k=1
+
+ Message received from property directed reachability (QE): Property InvProp[L25C3] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L25C3] true for 1 steps
+
+New clause from inductive generalization of #6:
+#7 {(not
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0))}
+block: Reduced clause
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)))
+with ind. gen. to
+(not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0))
+check_frames: frames k to 1
+
+Frame:
+5
+7
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #6 in forward propagation:
+#8 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+    (not top.usr.OK@0);
+    (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+    (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+    (not
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0))}
+partition_fwd_prop: Checking for forward propagation of clause set
+Deactivating activation literals for clause
+subsume_and_add: clause 7
+fwd_propagate: Checking for inductiveness of clauses in last frame.
+Checking for inductiveness of clauses
+fwd_propagate: Asserting new invariants.
+check_frames: frames k to 1
+
+Frame:
+
+
+Frame:
+7
+check_frames: Does R_2 |= P hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_2 are safe.
+New clause at frontier:
+#10 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0))}
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #10:
+#11 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0
+ top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0
+ (not top.usr.OK@0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0)))
+with unsat core to
+(or
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #11:
+#12 {(not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))}
+block: Reduced clause
+(or
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+with ind. gen. to
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))
+Copied clause #11 for blocking at depth 0:
+#13 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))}
+check_frames: frames k to 1
+
+Frame:
+7
+12
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.087
+Analysis time       : 0.044
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 20
+Frame sizes                               : 2
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 41
+Stale activation literals                 : 30
+Total time                                : 0.041
+Forward propagation time                  : 0.002
+Frame strengthening time                  : 0.019
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.003
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.006
+check-sat calls     : 20
+get-value time      : 0.001
+get-value calls     : 2
+get-unsat-core time : 0.000
+get-unsat-core calls: 4
+
+ IC3QE main loop at k=2
+
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #13:
+#14 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0
+ (not top.usr.OK@0)
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)))
+with unsat core to
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)))
+ind_generalize: Dropped 8 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #14:
+#15 {(not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0))}
+block: Reduced clause
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)))
+with ind. gen. to
+(not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0))
+Copied clause #14 for blocking at depth 0:
+#16 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0))}
+check_frames: frames k to 1
+
+Frame:
+7
+12
+15
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (not
+                                                             top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0)
+
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #16:
+#17 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0
+ top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0
+ (not top.usr.OK@0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0)
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)))
+with unsat core to
+(or
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0))
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ind_generalize: Dropped 9 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #17:
+#18 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0))}
+block: Reduced clause
+(or
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0))
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+with ind. gen. to
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)))
+Copied clause #17 for blocking at depth 0:
+#19 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0))}
+check_frames: frames k to 1
+
+Frame:
+18
+7
+12
+15
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #19:
+#20 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0
+ (not top.usr.OK@0)
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)))
+with unsat core to
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)))
+ind_generalize: Dropped 11 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #20:
+#21 {(not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0))}
+block: Reduced clause
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)))
+with ind. gen. to
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)))
+Copied clause #20 for blocking at depth 0:
+#22 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0))}
+check_frames: frames k to 1
+
+Frame:
+18
+21
+7
+12
+15
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #22:
+#23 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0
+ top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0
+ (not top.usr.OK@0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0)))
+with unsat core to
+(or
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0))
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ind_generalize: Dropped 14 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #23:
+#24 {(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0))}
+block: Reduced clause
+(or
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0))
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+with ind. gen. to
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0))
+Copied clause #23 for blocking at depth 0:
+#25 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0))}
+check_frames: frames k to 1
+
+Frame:
+18
+21
+7
+12
+15
+24
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #25:
+#26 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+       0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0
+ (not top.usr.OK@0)
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)
+ (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0)
+ (not
+  (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0)))
+with unsat core to
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not
+  (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0)))
+ind_generalize: Dropped 17 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #26:
+#27 {(not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+       0))}
+block: Reduced clause
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not
+  (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0)))
+with ind. gen. to
+(not
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0))
+Copied clause #26 for blocking at depth 0:
+#28 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+       0))}
+check_frames: frames k to 1
+
+Frame:
+18
+21
+7
+12
+15
+24
+27
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #28:
+#29 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+      0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0
+ top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0
+ (not top.usr.OK@0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0)))
+with unsat core to
+(or
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ind_generalize: Dropped 17 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #29:
+#30 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)}
+block: Reduced clause
+(or
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+with ind. gen. to
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0))
+Copied clause #29 for blocking at depth 0:
+#31 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+      0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))}
+check_frames: frames k to 1
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #31:
+#32 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+      0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3))
+      0);
+     (not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4))
+       0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0
+ (not top.usr.OK@0)
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)
+ (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0)
+ (not
+  (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)))
+with unsat core to
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not
+  (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)))
+ind_generalize: Dropped 21 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #32:
+#33 {(not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4))
+       0))}
+block: Reduced clause
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not
+  (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)))
+with ind. gen. to
+(not
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0))
+Copied clause #32 for blocking at depth 0:
+#34 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+      0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3))
+      0);
+     (not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4))
+       0))}
+check_frames: frames k to 1
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+33
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+ind_generalize: Dropped 20 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #34:
+#35 {(not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4))
+       0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not
+  (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)))
+with unsat core to
+(or
+ (not
+  (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0))
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0))
+block: Reduced clause
+(or
+ (not
+  (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0))
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0))
+with ind. gen. to
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not
+  (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)))
+check_frames: frames k to 1
+
+Frame:
+35
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+33
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+ind_generalize: Dropped 18 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #31:
+#36 {(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))
+with unsat core to
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))
+block: Reduced clause
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))
+with ind. gen. to
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))
+check_frames: frames k to 1
+
+Frame:
+35
+36
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+33
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+ind_generalize: Dropped 17 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #28:
+#37 {(not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+       0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(not
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0))
+with unsat core to
+(not
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0))
+block: Reduced clause
+(not
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0))
+with ind. gen. to
+(not
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0))
+check_frames: frames k to 1
+
+Frame:
+35
+37
+36
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+33
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+ind_generalize: Dropped 14 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #25:
+#38 {(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0))
+with unsat core to
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0))
+block: Reduced clause
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0))
+with ind. gen. to
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0))
+check_frames: frames k to 1
+
+Frame:
+35
+38
+37
+36
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+33
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+ind_generalize: Dropped 11 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #22:
+#39 {(not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)))
+with unsat core to
+(or
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0))
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0))
+block: Reduced clause
+(or
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0))
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0))
+with ind. gen. to
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0)))
+check_frames: frames k to 1
+
+Frame:
+39
+35
+38
+37
+36
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+33
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #19:
+#40 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3))
+      0);
+     (= 4 0);
+     (= (- 4) 0);
+     (= (- 3) 0);
+     (= 2 0);
+     (= 3 0);
+     (= (- 1) 0);
+     (= (- 2) 0);
+     (= 1 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0));
+     (not (= 0 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0
+ (not top.usr.OK@0)
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)
+ (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0)
+ (= 4 0)
+ (= (- 4) 0)
+ (= (- 3) 0)
+ (= 2 0)
+ (= 3 0)
+ (= (- 1) 0)
+ (= (- 2) 0)
+ (= 1 0)
+ (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0))
+ (not (= 0 0)))
+with unsat core to
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0))
+ (not top.usr.OK@0))
+ind_generalize: Dropped 20 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #40:
+#41 {(not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0))}
+block: Reduced clause
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0))
+ (not top.usr.OK@0))
+with ind. gen. to
+(not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0))
+Copied clause #40 for blocking at depth 0:
+#42 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3))
+      0);
+     (= 4 0);
+     (= (- 4) 0);
+     (= (- 3) 0);
+     (= 2 0);
+     (= 3 0);
+     (= (- 1) 0);
+     (= (- 2) 0);
+     (= 1 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0));
+     (not (= 0 0))}
+check_frames: frames k to 1
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+33
+41
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+ind_generalize: Dropped 20 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #42:
+#43 {(not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0))
+with unsat core to
+(not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0))
+block: Reduced clause
+(not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0))
+with ind. gen. to
+(not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0))
+check_frames: frames k to 1
+
+Frame:
+39
+35
+38
+37
+36
+43
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+33
+41
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+ind_generalize: Dropped 9 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #19:
+#44 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)))
+with unsat core to
+(or
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0))
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+block: Reduced clause
+(or
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0))
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+with ind. gen. to
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0
+ (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0)))
+check_frames: frames k to 1
+
+Frame:
+44
+39
+35
+38
+37
+36
+43
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+33
+41
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+ind_generalize: Dropped 7 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #16:
+#45 {(not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)))
+with unsat core to
+(or
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0))
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0))
+block: Reduced clause
+(or
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0))
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0))
+with ind. gen. to
+(or
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0)))
+check_frames: frames k to 1
+
+Frame:
+44
+45
+39
+35
+38
+37
+36
+43
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+33
+41
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #13:
+#46 {(not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))
+with unsat core to
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))
+block: Reduced clause
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))
+with ind. gen. to
+(not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))
+check_frames: frames k to 1
+
+Frame:
+44
+45
+39
+35
+46
+38
+37
+36
+43
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+33
+41
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0
+ (not top.usr.OK@0)
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0)
+ (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0)
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0)))
+with unsat core to
+(or
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0))
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0))
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #10:
+#47 {(not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0))}
+block: Reduced clause
+(or
+ (not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0))
+ (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0))
+with ind. gen. to
+(not (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0))
+check_frames: frames k to 1
+
+Frame:
+44
+45
+39
+35
+47
+46
+38
+37
+36
+43
+
+Frame:
+18
+30
+21
+7
+12
+15
+24
+27
+33
+41
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_2
+block: Check if all successors of frontier R_2 are safe.
+block: All successors of R_2 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #29 in forward propagation:
+#48 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+      0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))}
+Copied clause #32 in forward propagation:
+#49 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+      0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3))
+      0);
+     (not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4))
+       0))}
+Copied clause #14 in forward propagation:
+#50 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0))}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 30
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.444
+Analysis time       : 0.401
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 853
+Frame sizes                               : 20 10
+Forward propagations                      : 1
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 1
+Activation literals                       : 1306
+Stale activation literals                 : 1237
+Total time                                : 0.398
+Forward propagation time                  : 0.010
+Frame strengthening time                  : 0.366
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.002
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.102
+check-sat calls     : 853
+get-value time      : 0.005
+get-value calls     : 14
+get-unsat-core time : 0.003
+get-unsat-core calls: 42
+
+ IC3QE main loop at k=3
+
+subsume_and_add: clause 33
+subsume_and_add: clause 15
+fwd_propagate: Checking forward propagation of clauses in frame 2.
+subsume_and_add: clause 18
+Clause is subsumed in frame
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_35_p0
+__ic3_clause_47_p0
+__ic3_clause_46_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_36_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 21
+Clause is subsumed in frame
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_35_p0
+__ic3_clause_47_p0
+__ic3_clause_46_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_36_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 7
+Clause is subsumed in frame
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_35_p0
+__ic3_clause_47_p0
+__ic3_clause_46_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_36_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 12
+Clause is subsumed in frame
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_35_p0
+__ic3_clause_47_p0
+__ic3_clause_46_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_36_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 24
+Clause is subsumed in frame
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_35_p0
+__ic3_clause_47_p0
+__ic3_clause_46_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_36_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 27
+Clause is subsumed in frame
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_35_p0
+__ic3_clause_47_p0
+__ic3_clause_46_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_36_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 41
+Clause is subsumed in frame
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_35_p0
+__ic3_clause_47_p0
+__ic3_clause_46_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_36_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 50
+ind_generalize: Dropped 7 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #50:
+#51 {(not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0))}
+Clause is subsumed in frame
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_35_p0
+__ic3_clause_47_p0
+__ic3_clause_46_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_36_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 49
+Clause is subsumed in frame
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_35_p0
+__ic3_clause_47_p0
+__ic3_clause_46_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_36_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 48
+ind_generalize: Dropped 17 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #48:
+#52 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))}
+Clause is subsumed in frame
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_35_p0
+__ic3_clause_47_p0
+__ic3_clause_46_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_36_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 2.
+Copied clause #13 in forward propagation:
+#53 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))}
+Copied clause #31 in forward propagation:
+#54 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+      0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))}
+Copied clause #34 in forward propagation:
+#55 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+      0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3))
+      0);
+     (not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4))
+       0))}
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+Deactivating activation literals for clause
+subsume_and_add: clause 46
+subsume_and_add: clause 36
+subsume_and_add: clause 35
+fwd_propagate: Checking for inductiveness of clauses in last frame.
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+subsume_and_add: clause 54
+subsume_and_add: clause 37
+subsume_and_add: clause 38
+subsume_and_add: clause 39
+subsume_and_add: clause 44
+subsume_and_add: clause 47
+subsume_and_add: clause 45
+subsume_and_add: clause 53
+ind_generalize: Dropped 5 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #53:
+#56 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))}
+subsume_and_add: clause 43
+check_frames: frames k to 1
+
+Frame:
+54
+56
+44
+45
+39
+47
+38
+37
+43
+
+Frame:
+35
+46
+36
+
+Frame:
+30
+15
+33
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_3 are safe.
+block: All successors of R_3 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #29 in forward propagation:
+#57 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+      0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))}
+Copied clause #32 in forward propagation:
+#58 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+      0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3))
+      0);
+     (not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4))
+       0))}
+Copied clause #14 in forward propagation:
+#59 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0))}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 30
+subsume_and_add: clause 33
+subsume_and_add: clause 15
+fwd_propagate: Checking forward propagation of clauses in frame 2.
+subsume_and_add: clause 59
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.592
+Analysis time       : 0.549
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 3
+Restarts                                  : 0
+Solver                                    : 1127
+Frame sizes                               : 15 12 9
+Forward propagations                      : 15
+Forward propagations before generalization: 5
+Forward subsumed clauses                  : 10
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 1
+Activation literals                       : 1634
+Stale activation literals                 : 1558
+Total time                                : 0.546
+Forward propagation time                  : 0.155
+Frame strengthening time                  : 0.366
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.153
+check-sat calls     : 1127
+get-value time      : 0.015
+get-value calls     : 30
+get-unsat-core time : 0.003
+get-unsat-core calls: 42
+
+ IC3QE main loop at k=4
+
+subsume_and_add: clause 58
+Clause is subsumed in frame
+__ic3_clause_59_p0
+__ic3_clause_35_p0
+__ic3_clause_46_p0
+__ic3_clause_36_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 57
+ind_generalize: Dropped 17 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #57:
+#60 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))}
+Clause is subsumed in frame
+__ic3_clause_59_p0
+__ic3_clause_35_p0
+__ic3_clause_46_p0
+__ic3_clause_36_p0
+Deactivating activation literals for clause
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 2.
+Copied clause #34 in forward propagation:
+#61 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+      0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3))
+      0);
+     (not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4))
+       0))}
+Copied clause #31 in forward propagation:
+#62 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+      0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (not (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))}
+Copied clause #13 in forward propagation:
+#63 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))}
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+Deactivating activation literals for clause
+subsume_and_add: clause 35
+subsume_and_add: clause 36
+subsume_and_add: clause 46
+fwd_propagate: Checking forward propagation of clauses in frame 3.
+subsume_and_add: clause 59
+ind_generalize: Dropped 7 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #59:
+#64 {(not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0))}
+Clause is subsumed in frame
+__ic3_clause_54_p0
+__ic3_clause_56_p0
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_47_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 63
+ind_generalize: Dropped 5 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #63:
+#65 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0))}
+Clause is subsumed in frame
+__ic3_clause_54_p0
+__ic3_clause_56_p0
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_47_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 62
+Clause is subsumed in frame
+__ic3_clause_54_p0
+__ic3_clause_56_p0
+__ic3_clause_44_p0
+__ic3_clause_45_p0
+__ic3_clause_39_p0
+__ic3_clause_47_p0
+__ic3_clause_38_p0
+__ic3_clause_37_p0
+__ic3_clause_43_p0
+Deactivating activation literals for clause
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 3.
+Copied clause #10 in forward propagation:
+#66 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0))}
+Copied clause #28 in forward propagation:
+#67 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (not
+      (=
+       (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2))
+       0))}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 54
+subsume_and_add: clause 47
+subsume_and_add: clause 37
+fwd_propagate: Checking for inductiveness of clauses in last frame.
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+subsume_and_add: clause 43
+subsume_and_add: clause 38
+subsume_and_add: clause 44
+subsume_and_add: clause 45
+subsume_and_add: clause 39
+subsume_and_add: clause 67
+subsume_and_add: clause 56
+subsume_and_add: clause 66
+ind_generalize: Dropped 3 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #66:
+#68 {(not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0))}
+check_frames: frames k to 1
+
+Frame:
+56
+44
+67
+68
+45
+39
+38
+43
+
+Frame:
+54
+47
+37
+
+Frame:
+35
+46
+36
+
+Frame:
+30
+15
+33
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_4 are safe.
+New clause at frontier:
+#69 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0));
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 5)) 0)}
+block: Is blocking clause relative inductive to R_3?
+New clause at depth 1 to block #69:
+#70 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0));
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 5)) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0))}
+block: Is blocking clause relative inductive to R_2?
+New clause at depth 2 to block #70:
+#71 {top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0;
+     top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0));
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3))
+      0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 5)) 0);
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0))}
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 3 to block #71:
+#72 {top.res.inst_bool6_l24c7_bool6.impl.usr.c_1@0;
+     (not top.usr.OK@0);
+     (not top.res.inst_bool6_l24c7_bool6.impl.usr.a_1@0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 5) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3)) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 4)) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 3) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 2)) 0);
+     (not
+      (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1)) 0));
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 1))
+      0);
+     (= (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 2) 0);
+     (=
+      (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 3))
+      0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 4) 0);
+     (= (+ (* 1 top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) (- 5)) 0);
+     (not
+      (= (+ (* (- 1) top.res.inst_int6I_l23c7_int6I.impl.usr.time_2@0) 1) 0))}
+block: Is blocking clause relative inductive to R_0?
+~P reachable from I: 72, 71, 70, 69, 3
+extract_cex_path: extracting concrete counterexample trace.
+ Message received from property directed reachability (QE): Property InvProp[L25C3] false at step 5
+
+<Failure> Property InvProp[L25C3] is invalid by property directed reachability (QE) for k=5 after 0.839s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    x  ff ff ff ff ff ff
+    == Outputs ==
+    OK tt tt tt tt tt ff
+    == Locals ==
+    a  ff ff ff ff ff tt
+    b  ff ff ff ff ff ff
+    
+  Node bool6 (top[L24C7])
+    == Mode(s) ==
+    
+    == Inputs ==
+    x   ff ff ff ff ff ff
+    == Outputs ==
+    out ff ff ff ff ff ff
+    == Locals ==
+    a   ff tt ff tt ff tt
+    c   ff ff ff ff ff ff
+    b   ff tt tt tt tt tt
+    
+  Node int6I (top[L23C7])
+    == Mode(s) ==
+    
+    == Inputs ==
+    x    ff ff ff ff ff ff
+    == Outputs ==
+    out  ff ff ff ff ff tt
+    == Locals ==
+    time  0  1  2  3  4  5
+    
+  
+ <Done> All properties proved or disproved in 0.882s.
+        Waiting for children to terminate.
+
+ Child process 28278 (property directed reachability (QE)) exited with return code 0
+
+ Property InvProp[L25C3] disproved by IC3QE
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.867
+Analysis time       : 0.824
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 4
+Restarts                                  : 0
+Solver                                    : 1532
+Frame sizes                               : 17 14 11 8
+Forward propagations                      : 22
+Forward propagations before generalization: 12
+Forward subsumed clauses                  : 15
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 1
+Activation literals                       : 2253
+Stale activation literals                 : 2030
+Total time                                : 0.821
+Forward propagation time                  : 0.391
+Frame strengthening time                  : 0.401
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.006
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.246
+check-sat calls     : 1532
+get-value time      : 0.040
+get-value calls     : 57
+get-unsat-core time : 0.003
+get-unsat-core calls: 42
+
+ Process 28278 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.867
+Analysis time       : 0.824
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 4
+Restarts                                  : 0
+Solver                                    : 1532
+Frame sizes                               : 17 14 11 8
+Forward propagations                      : 22
+Forward propagations before generalization: 12
+Forward subsumed clauses                  : 15
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 1
+Activation literals                       : 2253
+Stale activation literals                 : 2030
+Total time                                : 0.821
+Forward propagation time                  : 0.391
+Frame strengthening time                  : 0.401
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.006
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.246
+check-sat calls     : 1532
+get-value time      : 0.040
+get-value calls     : 57
+get-unsat-core time : 0.003
+get-unsat-core calls: 42
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L25C3]: invalid after 5 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: int6I, bool6
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L25C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/_6counters_e8_371_e7_304.lus:25:3
+         
+         
+

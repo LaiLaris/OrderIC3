@@ -1,0 +1,216 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/simulation/PRODUCER_CONSUMMER_luke_1.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/simulation/PRODUCER_CONSUMMER_luke_1.lus:23:11: 
+          Unguarded pre in expression (pre i)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/simulation/PRODUCER_CONSUMMER_luke_1.lus:24:11: 
+          Unguarded pre in expression (pre b)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/simulation/PRODUCER_CONSUMMER_luke_1.lus:25:11: 
+          Unguarded pre in expression (pre b)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: excludes3, Sofar, PRODUCER_CONSUMMER, First
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+ Starting new process property directed reachability (QE) with PID 60943
+
+ Message received from property directed reachability (QE): Property InvProp[L61C5] true for 0 steps
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.048
+Analysis time       : 0.012
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 2
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 4
+Stale activation literals                 : 0
+Total time                                : 0.010
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.001
+check-sat calls     : 2
+get-value time      : 0.000
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+ Message received from property directed reachability (QE): Property InvProp[L61C5] false at step 1
+
+<Failure> Property InvProp[L61C5] is invalid by property directed reachability (QE) for k=1 after 0.031s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    etat1  tt ff
+    etat2  ff tt
+    etat3  ff ff
+    a_init  1  0
+    == Outputs ==
+    OK     tt ff
+    == Locals ==
+    o1      0  0
+    env    tt tt
+    
+  Node First (top[L58C11])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     1 0
+    == Outputs ==
+    First 1 1
+    
+  Node excludes3 (top[L57C18])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X1       tt ff
+    X2       ff tt
+    X3       ff ff
+    == Outputs ==
+    excludes tt tt
+    
+  Node Sofar (top[L57C11])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     tt tt
+    == Outputs ==
+    Sofar tt tt
+    
+  Node PRODUCER_CONSUMMER (top[L56C27])
+    == Mode(s) ==
+    
+    == Inputs ==
+    etat1  tt ff
+    etat2  ff tt
+    etat3  ff ff
+    a_init  1  0
+    == Outputs ==
+    i       1  1
+    b       0  0
+    a       1  1
+    o1      0  0
+    o2      0  0
+    == Locals ==
+    garde1 ff tt
+    garde2 ff ff
+    garde3 ff ff
+    
+  
+ <Done> All properties proved or disproved in 0.068s.
+        Waiting for children to terminate.
+
+ Child process 60943 (property directed reachability (QE)) exited with return code 0
+
+ Process 60943 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.048
+Analysis time       : 0.012
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 2
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 4
+Stale activation literals                 : 0
+Total time                                : 0.010
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.001
+check-sat calls     : 2
+get-value time      : 0.000
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L61C5]: invalid after 1 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: excludes3, Sofar, PRODUCER_CONSUMMER,
+                                     First
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L61C5]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/simulation/PRODUCER_CONSUMMER_luke_1.lus:61:5
+         
+         
+

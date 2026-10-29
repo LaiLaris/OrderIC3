@@ -1,0 +1,330 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/simulation/car_1.lus'.
+
+ Lustre input detected
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: voiture, excludes2, Sofar
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#4 {(not top.usr.OK@0);
+    (= (+ top.res.2.call_2_3@0 (- 9)) 0);
+    (not top.res.call_5@0);
+    (not top.res.inst_voiture_l43c67_voiture.res.glocal_1_3@0);
+    (not (> (+ (* (- 1) top.res.2.call_2_3@0) (- 1)) 0));
+    (not (> (+ (* (- 1) top.res.2.call_2_4@0) 2) 0));
+    (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+    (not (> (+ (* (- 1) top.res.2.call_2_3@0) 32766) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (= (+ top.res.2.call_2_3@0 (- 9)) 0)
+ (not top.res.call_5@0)
+ (not top.res.inst_voiture_l43c67_voiture.res.glocal_1_3@0)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) (- 1)) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_4@0) 2) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0))
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 32766) 0)))
+with unsat core to
+(or
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) (- 1)) 0))
+ (not top.res.call_5@0)
+ (not top.usr.OK@0))
+ Starting new process property directed reachability (QE) with PID 32547
+
+ Message received from property directed reachability (QE): Property InvProp[L47C3] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L47C3] true for 1 steps
+
+ind_generalize: Dropped 7 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #4:
+#5 {(not (> (+ (* (- 1) top.res.2.call_2_3@0) (- 1)) 0))}
+block: Reduced clause
+(or
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) (- 1)) 0))
+ (not top.res.call_5@0)
+ (not top.usr.OK@0))
+with ind. gen. to
+(not (> (+ (* (- 1) top.res.2.call_2_3@0) (- 1)) 0))
+check_frames: frames k to 1
+
+Frame:
+5
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#6 {top.res.inst_voiture_l43c67_voiture.res.glocal_1_3@0;
+    (not top.usr.OK@0);
+    (not top.res.call_5@0);
+    (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0));
+    (= (+ top.res.2.call_2_3@0 (- 10)) 0);
+    (not (> (* (- 1) top.res.2.call_2_3@0) 0));
+    (not true);
+    (not (> (+ (* (- 1) top.res.2.call_2_3@0) 32767) 0));
+    (not (> (+ (* 1 top.res.2.call_2_3@0) 2) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_voiture_l43c67_voiture.res.glocal_1_3@0
+ (not top.usr.OK@0)
+ (not top.res.call_5@0)
+ (not (> (+ (* (- 1) top.res.2.call_2_5@0) 4) 0))
+ (= (+ top.res.2.call_2_3@0 (- 10)) 0)
+ (not (> (* (- 1) top.res.2.call_2_3@0) 0))
+ (not true)
+ (not (> (+ (* (- 1) top.res.2.call_2_3@0) 32767) 0))
+ (not (> (+ (* 1 top.res.2.call_2_3@0) 2) 0)))
+with unsat core to
+(or
+ (not (> (* (- 1) top.res.2.call_2_3@0) 0))
+ (not top.res.call_5@0)
+ (not top.usr.OK@0))
+ind_generalize: Dropped 8 literals from clause.
+Deactivating activation literals for clause
+ IC3QE main loop at k=1
+
+New clause from inductive generalization of #6:
+#7 {(not (> (* (- 1) top.res.2.call_2_3@0) 0))}
+block: Reduced clause
+(or
+ (not (> (* (- 1) top.res.2.call_2_3@0) 0))
+ (not top.res.call_5@0)
+ (not top.usr.OK@0))
+with ind. gen. to
+(not (> (* (- 1) top.res.2.call_2_3@0) 0))
+check_frames: frames k to 1
+
+Frame:
+5
+7
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.069
+Analysis time       : 0.032
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 28
+Frame sizes                               : 2
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 68
+Stale activation literals                 : 57
+Total time                                : 0.030
+Forward propagation time                  : 0.001
+Frame strengthening time                  : 0.018
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.003
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.005
+check-sat calls     : 28
+get-value time      : 0.001
+get-value calls     : 2
+get-unsat-core time : 0.000
+get-unsat-core calls: 4
+
+ IC3QE main loop at k=2
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.076
+Analysis time       : 0.039
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 39
+Frame sizes                               : 2
+Forward propagations                      : 2
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 74
+Stale activation literals                 : 60
+Total time                                : 0.037
+Forward propagation time                  : 0.004
+Frame strengthening time                  : 0.018
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.003
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.005
+check-sat calls     : 39
+get-value time      : 0.001
+get-value calls     : 2
+get-unsat-core time : 0.000
+get-unsat-core calls: 4
+
+ Message received from property directed reachability (QE): Property InvProp[L47C3] invariant (1-inductive)
+
+<Success> Property InvProp[L47C3] is valid by property directed reachability (QE) after 0.051s.
+
+ <Done> All properties proved or disproved in 0.088s.
+        Waiting for children to terminate.
+
+ Child process 32547 (property directed reachability (QE)) exited with return code 0
+
+ Process 32547 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.076
+Analysis time       : 0.039
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 39
+Frame sizes                               : 2
+Forward propagations                      : 2
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 74
+Stale activation literals                 : 60
+Total time                                : 0.037
+Forward propagation time                  : 0.004
+Frame strengthening time                  : 0.018
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.003
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.005
+check-sat calls     : 39
+get-value time      : 0.001
+get-value calls     : 2
+get-unsat-core time : 0.000
+get-unsat-core calls: 4
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L47C3]: valid (k=1)
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: voiture, excludes2, Sofar
+         - no contracts
+         - no sub-assumptions
+         valid: 'InvProp[L47C3]': /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/simulation/car_1.lus:47:3
+         
+         
+

@@ -1,0 +1,6544 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/two_counters.lus'.
+
+ Lustre input detected
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: intloopcounter, greycounter
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#4 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+    (not top.usr.OK@0);
+    (=
+     (+
+      (*
+       (- 1)
+       top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+      3)
+     0);
+    (=
+     (+
+      (*
+       (- 1)
+       top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+      1)
+     0);
+    (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+ Starting new process property directed reachability (QE) with PID 28502
+
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0))
+with unsat core to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0))
+ind_generalize: Dropped 3 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #4:
+#5 {(=
+     (+
+      (*
+       (- 1)
+       top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+      1)
+     0);
+    (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0))
+with ind. gen. to
+(or
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0))
+check_frames: frames k to 1
+
+Frame:
+5
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#6 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+    top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+    (not top.usr.OK@0);
+    (=
+     (+
+      (*
+       (- 1)
+       top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+      3)
+     0);
+    (not
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0));
+    (not
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0))
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 1))
+   0)))
+with unsat core to
+(or
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0))
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #6:
+#7 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+    (not
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0))}
+block: Reduced clause
+(or
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0))
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+with ind. gen. to
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0)))
+check_frames: frames k to 1
+
+Frame:
+7
+5
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#8 {(not top.usr.OK@0);
+    (=
+     (+
+      (*
+       (- 1)
+       top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+      3)
+     0);
+    (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+    (not
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0));
+    (not
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0));
+    (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+block: Is blocking clause relative inductive to R_0?
+ IC3QE main loop at k=1
+
+ Message received from property directed reachability (QE): Property InvProp[L26C3] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L26C3] true for 1 steps
+
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0))
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 1))
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0))
+with unsat core to
+(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ind_generalize: Dropped 5 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #8:
+#9 {(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+block: Reduced clause
+(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+with ind. gen. to
+(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+check_frames: frames k to 1
+
+Frame:
+7
+5
+9
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #4 in forward propagation:
+#10 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+Copied clause #8 in forward propagation:
+#11 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0));
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+Deactivating activation literals for clause
+subsume_and_add: clause 5
+subsume_and_add: clause 9
+fwd_propagate: Checking for inductiveness of clauses in last frame.
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+ind_generalize: Dropped 2 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #11:
+#13 {(not top.usr.OK@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+fwd_propagate: Asserting new invariants.
+subsume_and_add: clause 7
+check_frames: frames k to 1
+
+Frame:
+7
+
+Frame:
+5
+9
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.066
+Analysis time       : 0.034
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 32
+Frame sizes                               : 3
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 68
+Stale activation literals                 : 53
+Total time                                : 0.031
+Forward propagation time                  : 0.001
+Frame strengthening time                  : 0.016
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.001
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.004
+check-sat calls     : 32
+get-value time      : 0.001
+get-value calls     : 3
+get-unsat-core time : 0.000
+get-unsat-core calls: 6
+
+ IC3QE main loop at k=2
+
+block: Check if all successors of frontier R_2 are safe.
+New clause at frontier:
+#14 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #14:
+#15 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0)}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 2))
+  0))
+with unsat core to
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #15:
+#16 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0)}
+block: Reduced clause
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+with ind. gen. to
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0))
+Copied clause #15 for blocking at depth 0:
+#17 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0)}
+check_frames: frames k to 1
+
+Frame:
+16
+5
+9
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (not top.usr.OK@0)
+                                                             (not
+                                                              top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+                                                             (not
+                                                              (=
+                                                               (+
+                                                                (*
+                                                                 1
+                                                                 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+                                                                (- 1))
+                                                               0))
+                                                             (not
+                                                              top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0))
+
+ind_generalize: Dropped 5 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #17:
+#18 {(=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0)}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 2))
+  0))
+with unsat core to
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 2))
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0))
+block: Reduced clause
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 2))
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0))
+with ind. gen. to
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 2))
+  0))
+check_frames: frames k to 1
+
+Frame:
+7
+18
+
+Frame:
+16
+5
+9
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0))
+with unsat core to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.usr.OK@0)
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ind_generalize: Dropped 2 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #14:
+#19 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.usr.OK@0)
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+with ind. gen. to
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0))
+check_frames: frames k to 1
+
+Frame:
+7
+19
+18
+
+Frame:
+16
+5
+9
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_2
+block: Check if all successors of frontier R_2 are safe.
+block: All successors of R_2 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #4 in forward propagation:
+#20 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+Copied clause #8 in forward propagation:
+#21 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0));
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 5
+subsume_and_add: clause 9
+fwd_propagate: Checking forward propagation of clauses in frame 2.
+subsume_and_add: clause 16
+subsume_and_add: clause 21
+ind_generalize: Dropped 3 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #21:
+#22 {(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+subsume_and_add: clause 20
+ind_generalize: Dropped 2 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #20:
+#23 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+Clause is subsumed in frame
+__ic3_clause_7_p0
+__ic3_clause_16_p0
+__ic3_clause_19_p0
+__ic3_clause_22_p0
+__ic3_clause_18_p0
+Deactivating activation literals for clause
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.106
+Analysis time       : 0.074
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 136
+Frame sizes                               : 6 3
+Forward propagations                      : 1
+Forward propagations before generalization: 1
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 1
+Activation literals                       : 209
+Stale activation literals                 : 179
+Total time                                : 0.071
+Forward propagation time                  : 0.015
+Frame strengthening time                  : 0.039
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.003
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.014
+check-sat calls     : 136
+get-value time      : 0.002
+get-value calls     : 8
+get-unsat-core time : 0.001
+get-unsat-core calls: 12
+
+ IC3QE main loop at k=3
+
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 2.
+Copied clause #6 in forward propagation:
+#24 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0));
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0))}
+Copied clause #15 in forward propagation:
+#25 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0)}
+Copied clause #17 in forward propagation:
+#26 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0)}
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+Deactivating activation literals for clause
+subsume_and_add: clause 7
+subsume_and_add: clause 16
+subsume_and_add: clause 18
+fwd_propagate: Checking for inductiveness of clauses in last frame.
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+subsume_and_add: clause 26
+subsume_and_add: clause 25
+Clause is subsumed in frame
+__ic3_clause_26_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 19
+subsume_and_add: clause 22
+check_frames: frames k to 1
+
+Frame:
+26
+19
+22
+
+Frame:
+7
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_3 are safe.
+New clause at frontier:
+#27 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+block: Is blocking clause relative inductive to R_2?
+New clause at depth 1 to block #27:
+#28 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0));
+     (not
+      (=
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 2))
+  0)
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    0)
+   0))
+ (not
+  (=
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)))
+with unsat core to
+(or
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    0)
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not top.usr.OK@0))
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #28:
+#29 {(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0))}
+block: Reduced clause
+(or
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    0)
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not top.usr.OK@0))
+with ind. gen. to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    0)
+   0)))
+Copied clause #28 for blocking at depth 0:
+#30 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0));
+     (not
+      (=
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+check_frames: frames k to 1
+
+Frame:
+7
+16
+29
+18
+
+Frame:
+5
+9
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_2
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #30:
+#31 {(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (not
+      (=
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+block: Is blocking clause relative inductive to R_2?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not
+  (=
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)))
+with unsat core to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not
+  (=
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)))
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not
+  (=
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)))
+with ind. gen. to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not
+  (=
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)))
+check_frames: frames k to 1
+
+Frame:
+26
+19
+22
+31
+
+Frame:
+7
+16
+29
+18
+
+Frame:
+5
+9
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Is blocking clause relative inductive to R_2?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0))
+with unsat core to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0)))
+ind_generalize: Dropped 3 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #27:
+#32 {(not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0)))
+with ind. gen. to
+(or
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0))
+check_frames: frames k to 1
+
+Frame:
+26
+19
+22
+32
+31
+
+Frame:
+7
+16
+29
+18
+
+Frame:
+5
+9
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_3
+block: Check if all successors of frontier R_3 are safe.
+New clause at frontier:
+#33 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0));
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0))}
+block: Is blocking clause relative inductive to R_2?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0))
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 1))
+   0)))
+with unsat core to
+(or
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0))
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #33:
+#34 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0))}
+block: Reduced clause
+(or
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0))
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+with ind. gen. to
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0)))
+check_frames: frames k to 1
+
+Frame:
+26
+34
+19
+22
+32
+31
+
+Frame:
+7
+16
+29
+18
+
+Frame:
+5
+9
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_3
+block: Check if all successors of frontier R_3 are safe.
+block: All successors of R_3 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #4 in forward propagation:
+#35 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+Copied clause #8 in forward propagation:
+#36 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0));
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 5
+subsume_and_add: clause 9
+fwd_propagate: Checking forward propagation of clauses in frame 2.
+subsume_and_add: clause 36
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.203
+Analysis time       : 0.171
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 3
+Restarts                                  : 0
+Solver                                    : 380
+Frame sizes                               : 12 10 6
+Forward propagations                      : 4
+Forward propagations before generalization: 5
+Forward subsumed clauses                  : 2
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 1
+Activation literals                       : 502
+Stale activation literals                 : 445
+Total time                                : 0.168
+Forward propagation time                  : 0.066
+Frame strengthening time                  : 0.081
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.003
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.043
+check-sat calls     : 380
+get-value time      : 0.005
+get-value calls     : 18
+get-unsat-core time : 0.001
+get-unsat-core calls: 20
+
+ IC3QE main loop at k=4
+
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #36:
+#37 {(not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+subsume_and_add: clause 35
+ind_generalize: Dropped 2 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #35:
+#38 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 2.
+Copied clause #15 in forward propagation:
+#39 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0)}
+Copied clause #17 in forward propagation:
+#40 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0)}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 16
+subsume_and_add: clause 18
+fwd_propagate: Checking forward propagation of clauses in frame 3.
+subsume_and_add: clause 7
+Clause is subsumed in frame
+__ic3_clause_26_p0
+__ic3_clause_34_p0
+__ic3_clause_19_p0
+__ic3_clause_22_p0
+__ic3_clause_32_p0
+__ic3_clause_31_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 38
+Clause is subsumed in frame
+__ic3_clause_26_p0
+__ic3_clause_34_p0
+__ic3_clause_19_p0
+__ic3_clause_22_p0
+__ic3_clause_32_p0
+__ic3_clause_31_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 29
+subsume_and_add: clause 37
+Backward subsumed 1 clauses in R_k
+Deactivating activation literals for clause
+subsume_and_add: clause 40
+Clause is subsumed in frame
+__ic3_clause_26_p0
+__ic3_clause_34_p0
+__ic3_clause_19_p0
+__ic3_clause_29_p0
+__ic3_clause_32_p0
+__ic3_clause_37_p0
+__ic3_clause_31_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 39
+Clause is subsumed in frame
+__ic3_clause_26_p0
+__ic3_clause_34_p0
+__ic3_clause_19_p0
+__ic3_clause_29_p0
+__ic3_clause_32_p0
+__ic3_clause_37_p0
+__ic3_clause_31_p0
+Deactivating activation literals for clause
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 3.
+Copied clause #14 in forward propagation:
+#41 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+Copied clause #28 in forward propagation:
+#42 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0));
+     (not
+      (=
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+Copied clause #30 in forward propagation:
+#43 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0));
+     (not
+      (=
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+Deactivating activation literals for clause
+subsume_and_add: clause 19
+subsume_and_add: clause 29
+subsume_and_add: clause 26
+subsume_and_add: clause 31
+fwd_propagate: Checking for inductiveness of clauses in last frame.
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #43:
+#45 {(not top.usr.OK@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (not
+      (=
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #42:
+#46 {(not top.usr.OK@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (not
+      (=
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+fwd_propagate: Asserting new invariants.
+subsume_and_add: clause 34
+subsume_and_add: clause 32
+subsume_and_add: clause 37
+check_frames: frames k to 1
+
+Frame:
+34
+32
+37
+
+Frame:
+26
+19
+29
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_4 are safe.
+New clause at frontier:
+#47 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (= 2 0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        3)
+       0))}
+block: Is blocking clause relative inductive to R_3?
+New clause at depth 1 to block #47:
+#48 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (= (- 2) 0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 2))
+       0));
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        2)
+       0))}
+block: Is blocking clause relative inductive to R_2?
+block: Check I |= C to get unsat core.
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (not top.usr.OK@0)
+                                                             (not
+                                                              top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+                                                             (not
+                                                              top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+                                                             (not
+                                                              (=
+                                                               (*
+                                                                (- 1)
+                                                                top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+                                                               0)))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (not top.usr.OK@0)
+                                                             (not
+                                                              top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+                                                             (not
+                                                              top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+                                                             (not
+                                                              (=
+                                                               (*
+                                                                (- 1)
+                                                                top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+                                                               0)))
+
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (= (- 2) 0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 2))
+   0))
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    2)
+   0)))
+with unsat core to
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 2))
+   0))
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ind_generalize: Dropped 9 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #48:
+#49 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 2))
+       0))}
+block: Reduced clause
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 2))
+   0))
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+with ind. gen. to
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 2))
+   0)))
+Copied clause #48 for blocking at depth 0:
+#50 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (= (- 2) 0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 2))
+       0));
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        2)
+       0))}
+check_frames: frames k to 1
+
+Frame:
+26
+49
+19
+29
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_3
+ind_generalize: Dropped 9 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #50:
+#51 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        2)
+       0))}
+block: Is blocking clause relative inductive to R_3?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    2)
+   0)))
+with unsat core to
+(or
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    2)
+   0))
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+block: Reduced clause
+(or
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    2)
+   0))
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+with ind. gen. to
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    2)
+   0)))
+check_frames: frames k to 1
+
+Frame:
+34
+51
+32
+37
+
+Frame:
+26
+49
+19
+29
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Is blocking clause relative inductive to R_3?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (= 2 0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    3)
+   0)))
+with unsat core to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    3)
+   0))
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ind_generalize: Dropped 5 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #47:
+#52 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        3)
+       0))}
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    3)
+   0))
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+with ind. gen. to
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    3)
+   0)))
+check_frames: frames k to 1
+
+Frame:
+34
+52
+51
+32
+37
+
+Frame:
+26
+49
+19
+29
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_4
+block: Check if all successors of frontier R_4 are safe.
+New clause at frontier:
+#53 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 3))
+      0)}
+block: Is blocking clause relative inductive to R_3?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 2))
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 3))
+  0))
+with unsat core to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ind_generalize: Dropped 5 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #53:
+#54 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+with ind. gen. to
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0))
+check_frames: frames k to 1
+
+Frame:
+34
+54
+52
+51
+32
+37
+
+Frame:
+26
+49
+19
+29
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_4
+block: Check if all successors of frontier R_4 are safe.
+block: All successors of R_4 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #4 in forward propagation:
+#55 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+Copied clause #8 in forward propagation:
+#56 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0));
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 5
+subsume_and_add: clause 9
+fwd_propagate: Checking forward propagation of clauses in frame 2.
+subsume_and_add: clause 56
+ind_generalize: Dropped 3 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #56:
+#57 {(not top.usr.OK@0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+subsume_and_add: clause 55
+ind_generalize: Dropped 2 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #55:
+#58 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.349
+Analysis time       : 0.317
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 4
+Restarts                                  : 0
+Solver                                    : 758
+Frame sizes                               : 15 13 11 6
+Forward propagations                      : 11
+Forward propagations before generalization: 11
+Forward subsumed clauses                  : 6
+Backward subsumed clauses                 : 1
+Fixpoint at                               : 0
+Inductive blocking clauses                : 3
+Activation literals                       : 940
+Stale activation literals                 : 871
+Total time                                : 0.313
+Forward propagation time                  : 0.161
+Frame strengthening time                  : 0.129
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.003
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.091
+check-sat calls     : 758
+get-value time      : 0.009
+get-value calls     : 28
+get-unsat-core time : 0.002
+get-unsat-core calls: 28
+
+ IC3QE main loop at k=5
+
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 2.
+Copied clause #15 in forward propagation:
+#59 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0)}
+Copied clause #17 in forward propagation:
+#60 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0)}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 16
+subsume_and_add: clause 18
+fwd_propagate: Checking forward propagation of clauses in frame 3.
+subsume_and_add: clause 58
+Clause is subsumed in frame
+__ic3_clause_26_p0
+__ic3_clause_49_p0
+__ic3_clause_19_p0
+__ic3_clause_29_p0
+__ic3_clause_31_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 57
+ind_generalize: Dropped 1 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #57:
+#61 {(not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+subsume_and_add: clause 60
+Clause is subsumed in frame
+__ic3_clause_26_p0
+__ic3_clause_49_p0
+__ic3_clause_19_p0
+__ic3_clause_29_p0
+__ic3_clause_61_p0
+__ic3_clause_31_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 59
+Clause is subsumed in frame
+__ic3_clause_26_p0
+__ic3_clause_49_p0
+__ic3_clause_19_p0
+__ic3_clause_29_p0
+__ic3_clause_61_p0
+__ic3_clause_31_p0
+Deactivating activation literals for clause
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 3.
+Copied clause #30 in forward propagation:
+#62 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0));
+     (not
+      (=
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 26
+subsume_and_add: clause 31
+fwd_propagate: Checking forward propagation of clauses in frame 4.
+subsume_and_add: clause 49
+subsume_and_add: clause 19
+Clause is subsumed in frame
+__ic3_clause_34_p0
+__ic3_clause_49_p0
+__ic3_clause_54_p0
+__ic3_clause_52_p0
+__ic3_clause_51_p0
+__ic3_clause_32_p0
+__ic3_clause_37_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 29
+subsume_and_add: clause 61
+Clause is subsumed in frame
+__ic3_clause_34_p0
+__ic3_clause_49_p0
+__ic3_clause_54_p0
+__ic3_clause_52_p0
+__ic3_clause_51_p0
+__ic3_clause_29_p0
+__ic3_clause_32_p0
+__ic3_clause_37_p0
+Deactivating activation literals for clause
+subsume_and_add: clause 62
+ind_generalize: Dropped 5 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #62:
+#63 {(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (not
+      (=
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 4.
+Copied clause #53 in forward propagation:
+#64 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 3))
+      0)}
+Copied clause #28 in forward propagation:
+#65 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0));
+     (not
+      (=
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+Copied clause #33 in forward propagation:
+#66 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0));
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0))}
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+Deactivating activation literals for clause
+Deactivating activation literals for clause
+subsume_and_add: clause 54
+subsume_and_add: clause 29
+subsume_and_add: clause 34
+fwd_propagate: Checking for inductiveness of clauses in last frame.
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #65:
+#68 {(not top.usr.OK@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (not
+      (=
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+fwd_propagate: Asserting new invariants.
+subsume_and_add: clause 51
+subsume_and_add: clause 63
+subsume_and_add: clause 32
+subsume_and_add: clause 37
+subsume_and_add: clause 49
+subsume_and_add: clause 52
+check_frames: frames k to 1
+
+Frame:
+49
+52
+51
+63
+32
+37
+
+Frame:
+34
+54
+29
+
+Frame:
+26
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_5 |= P hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does R_4 & T |= R_5 hold?
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_5 are safe.
+New clause at frontier:
+#69 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 3))
+      0)}
+block: Is blocking clause relative inductive to R_4?
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (not top.usr.OK@0)
+                                                             (not
+                                                              top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+                                                             (not
+                                                              top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+                                                             (not
+                                                              (=
+                                                               (*
+                                                                (- 1)
+                                                                top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+                                                               0)))
+
+New clause at depth 1 to block #69:
+#70 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 3))
+      0)}
+block: Is blocking clause relative inductive to R_3?
+New clause at depth 2 to block #70:
+#71 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0)}
+block: Is blocking clause relative inductive to R_2?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 2))
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0))
+with unsat core to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ind_generalize: Dropped 9 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #71:
+#72 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+with ind. gen. to
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0))
+Copied clause #71 for blocking at depth 1:
+#73 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0)}
+check_frames: frames k to 1
+
+Frame:
+26
+72
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_3
+ind_generalize: Dropped 8 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #73:
+#74 {(=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0)}
+block: Is blocking clause relative inductive to R_3?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0))
+with unsat core to
+(or
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0))
+block: Reduced clause
+(or
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0))
+with ind. gen. to
+(or
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0))
+Copied clause #73 for blocking at depth 0:
+#75 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0)}
+check_frames: frames k to 1
+
+Frame:
+34
+54
+74
+29
+
+Frame:
+26
+72
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_4
+ind_generalize: Dropped 8 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #75:
+#76 {(=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0)}
+block: Is blocking clause relative inductive to R_4?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0))
+with unsat core to
+(or
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0))
+block: Reduced clause
+(or
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0))
+with ind. gen. to
+(or
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0))
+check_frames: frames k to 1
+
+Frame:
+49
+52
+51
+76
+63
+32
+37
+
+Frame:
+34
+54
+74
+29
+
+Frame:
+26
+72
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_5 |= P hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does R_4 & T |= R_5 hold?
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Is blocking clause relative inductive to R_4?
+New clause at depth 1 to block #69:
+#77 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 3))
+      0)}
+block: Is blocking clause relative inductive to R_3?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 2))
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 3))
+  0))
+with unsat core to
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ind_generalize: Dropped 8 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #77:
+#78 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0)}
+block: Reduced clause
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+with ind. gen. to
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0))
+Copied clause #77 for blocking at depth 0:
+#79 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 3))
+      0)}
+check_frames: frames k to 1
+
+Frame:
+78
+34
+54
+74
+29
+
+Frame:
+26
+72
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_4
+ind_generalize: Dropped 7 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #79:
+#80 {(=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 3))
+      0)}
+block: Is blocking clause relative inductive to R_4?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 3))
+  0))
+with unsat core to
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 3))
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0))
+block: Reduced clause
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 3))
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0))
+with ind. gen. to
+(or
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 3))
+  0))
+check_frames: frames k to 1
+
+Frame:
+49
+52
+51
+76
+63
+80
+32
+37
+
+Frame:
+78
+34
+54
+74
+29
+
+Frame:
+26
+72
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_5 |= P hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does R_4 & T |= R_5 hold?
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Is blocking clause relative inductive to R_4?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 2))
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 3))
+  0))
+with unsat core to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ind_generalize: Dropped 5 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #69:
+#81 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+with ind. gen. to
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0))
+check_frames: frames k to 1
+
+Frame:
+49
+81
+52
+51
+76
+63
+80
+32
+37
+
+Frame:
+78
+34
+54
+74
+29
+
+Frame:
+26
+72
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_5 |= P hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does R_4 & T |= R_5 hold?
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_5
+block: Check if all successors of frontier R_5 are safe.
+New clause at frontier:
+#82 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0));
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0));
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 3))
+      0)}
+block: Is blocking clause relative inductive to R_4?
+New clause at depth 1 to block #82:
+#83 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0));
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0));
+     (not
+      (=
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+block: Is blocking clause relative inductive to R_3?
+New clause at depth 2 to block #83:
+#84 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (*
+       (- 1)
+       top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+      0);
+     (= 2 0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        3)
+       0));
+     (= (- 2) 0);
+     (= 1 0);
+     (= (- 1) 0);
+     (= (- 3) 0);
+     (not true);
+     (not (= 0 0));
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 3))
+       0))}
+block: Is blocking clause relative inductive to R_2?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)
+  0)
+ (=
+  (*
+   (- 1)
+   top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+  0)
+ (= 2 0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    3)
+   0))
+ (= (- 2) 0)
+ (= 1 0)
+ (= (- 1) 0)
+ (= (- 3) 0)
+ (not true)
+ (not (= 0 0))
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 3))
+   0)))
+with unsat core to
+(or
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    3)
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not top.usr.OK@0))
+ind_generalize: Dropped 14 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #84:
+#85 {(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        3)
+       0))}
+block: Reduced clause
+(or
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    3)
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not top.usr.OK@0))
+with ind. gen. to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    3)
+   0)))
+Copied clause #84 for blocking at depth 1:
+#86 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (*
+       (- 1)
+       top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+      0);
+     (= 2 0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        3)
+       0));
+     (= (- 2) 0);
+     (= 1 0);
+     (= (- 1) 0);
+     (= (- 3) 0);
+     (not true);
+     (not (= 0 0));
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 3))
+       0))}
+check_frames: frames k to 1
+
+Frame:
+26
+72
+85
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_3
+ind_generalize: Dropped 14 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #86:
+#87 {(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 3))
+       0))}
+block: Is blocking clause relative inductive to R_3?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 3))
+   0)))
+with unsat core to
+(or
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 3))
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0))
+block: Reduced clause
+(or
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 3))
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0))
+with ind. gen. to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 3))
+   0)))
+Copied clause #86 for blocking at depth 0:
+#88 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (*
+       (- 1)
+       top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+      0);
+     (= 2 0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        3)
+       0));
+     (= (- 2) 0);
+     (= 1 0);
+     (= (- 1) 0);
+     (= (- 3) 0);
+     (not true);
+     (not (= 0 0));
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 3))
+       0))}
+check_frames: frames k to 1
+
+Frame:
+78
+34
+54
+74
+29
+87
+
+Frame:
+26
+72
+85
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_4
+ind_generalize: Dropped 14 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #88:
+#89 {(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 3))
+       0))}
+block: Is blocking clause relative inductive to R_4?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 3))
+   0)))
+with unsat core to
+(or
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 3))
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0))
+block: Reduced clause
+(or
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 3))
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0))
+with ind. gen. to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 3))
+   0)))
+check_frames: frames k to 1
+
+Frame:
+49
+81
+52
+51
+76
+63
+89
+80
+32
+37
+
+Frame:
+78
+34
+54
+74
+29
+87
+
+Frame:
+26
+72
+85
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_5 |= P hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does R_4 & T |= R_5 hold?
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Is blocking clause relative inductive to R_4?
+New clause at depth 1 to block #82:
+#90 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0));
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0));
+     (not
+      (=
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+block: Is blocking clause relative inductive to R_3?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   1)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 1))
+  0)
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 2))
+  0)
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    0)
+   0))
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    0)
+   0))
+ (not
+  (=
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)))
+with unsat core to
+(or
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    0)
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0))
+ind_generalize: Dropped 9 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #90:
+#91 {(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0))}
+block: Reduced clause
+(or
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    0)
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0))
+with ind. gen. to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    0)
+   0)))
+Copied clause #90 for blocking at depth 0:
+#92 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0));
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       2)
+      0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0));
+     (not
+      (=
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+check_frames: frames k to 1
+
+Frame:
+78
+34
+54
+74
+29
+87
+91
+
+Frame:
+26
+72
+85
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_4
+ind_generalize: Dropped 9 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #92:
+#93 {(not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0);
+     (not
+      (=
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0))}
+block: Is blocking clause relative inductive to R_4?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not
+  (=
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)))
+with unsat core to
+(or
+ (not
+  (=
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0))
+block: Reduced clause
+(or
+ (not
+  (=
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0))
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0))
+with ind. gen. to
+(or
+ (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)
+ (not
+  (=
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   0)))
+check_frames: frames k to 1
+
+Frame:
+49
+81
+52
+51
+76
+63
+89
+80
+32
+37
+93
+
+Frame:
+78
+34
+54
+74
+29
+87
+91
+
+Frame:
+26
+72
+85
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_5 |= P hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does R_4 & T |= R_5 hold?
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Is blocking clause relative inductive to R_4?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ (not top.usr.OK@0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   3)
+  0)
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0))
+ (not
+  (=
+   (+
+    (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    (- 1))
+   0))
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 2))
+  0)
+ (=
+  (+
+   (*
+    (- 1)
+    top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   2)
+  0)
+ (=
+  (+
+   (* 1 top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+   (- 3))
+  0))
+with unsat core to
+(or
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0))
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+ind_generalize: Dropped 7 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #82:
+#94 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0))}
+block: Reduced clause
+(or
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0))
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)
+with ind. gen. to
+(or
+ top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0
+ (not
+  (=
+   (+
+    (*
+     (- 1)
+     top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+    1)
+   0)))
+check_frames: frames k to 1
+
+Frame:
+94
+49
+81
+52
+51
+76
+63
+89
+80
+32
+37
+93
+
+Frame:
+78
+34
+54
+74
+29
+87
+91
+
+Frame:
+26
+72
+85
+31
+
+Frame:
+16
+18
+
+Frame:
+5
+9
+check_frames: Does R_5 |= P hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does I |= C for C in R_5 hold?
+check_frames: Does R_4 & T |= R_5 hold?
+check_frames: Does R_4 |= P hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does I |= C for C in R_4 hold?
+check_frames: Does R_3 & T |= R_4 hold?
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_5
+block: Check if all successors of frontier R_5 are safe.
+block: All successors of R_5 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #4 in forward propagation:
+#95 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+Copied clause #8 in forward propagation:
+#96 {(not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0);
+     (not
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0));
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 5
+subsume_and_add: clause 9
+fwd_propagate: Checking forward propagation of clauses in frame 2.
+subsume_and_add: clause 96
+ind_generalize: Dropped 3 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #96:
+#97 {(not top.usr.OK@0);
+     (not
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0));
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+subsume_and_add: clause 95
+ind_generalize: Dropped 2 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #95:
+#98 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0)}
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.690
+Analysis time       : 0.658
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 5
+Restarts                                  : 0
+Solver                                    : 1637
+Frame sizes                               : 27 25 23 19 12
+Forward propagations                      : 23
+Forward propagations before generalization: 17
+Forward subsumed clauses                  : 11
+Backward subsumed clauses                 : 1
+Fixpoint at                               : 0
+Inductive blocking clauses                : 4
+Activation literals                       : 1910
+Stale activation literals                 : 1753
+Total time                                : 0.655
+Forward propagation time                  : 0.283
+Frame strengthening time                  : 0.345
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.004
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.217
+check-sat calls     : 1637
+get-value time      : 0.023
+get-value calls     : 49
+get-unsat-core time : 0.003
+get-unsat-core calls: 52
+
+ IC3QE main loop at k=6
+
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 2.
+Copied clause #15 in forward propagation:
+#99 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+     top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+     (not top.usr.OK@0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       3)
+      0);
+     (=
+      (+
+       (*
+        (- 1)
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       1)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 1))
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       0)
+      0);
+     (=
+      (+
+       (*
+        1
+        top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+       (- 2))
+      0)}
+Copied clause #17 in forward propagation:
+#100 {top.res.inst_greycounter_l23c7_greycounter.impl.usr.a_2@0;
+      top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0;
+      (not top.usr.OK@0);
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        3)
+       0);
+      (=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        1)
+       0);
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0);
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0);
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 2))
+       0)}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 16
+subsume_and_add: clause 18
+fwd_propagate: Checking forward propagation of clauses in frame 3.
+subsume_and_add: clause 98
+subsume_and_add: clause 97
+ind_generalize: Dropped 1 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #97:
+#101 {(not
+       (=
+        (+
+         (*
+          1
+          top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+         (- 1))
+        0));
+      (not top.res.inst_greycounter_l23c7_greycounter.impl.usr.b_2@0)}
+subsume_and_add: clause 100
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #100:
+#102 {(=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        3)
+       0);
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0);
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0);
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 2))
+       0)}
+Backward subsumed 1 clauses in R_k
+Deactivating activation literals for clause
+subsume_and_add: clause 99
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #99:
+#103 {(=
+       (+
+        (*
+         (- 1)
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        3)
+       0);
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 1))
+       0);
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        0)
+       0);
+      (=
+       (+
+        (*
+         1
+         top.res.inst_intloopcounter_l24c7_intloopcounter.impl.usr.time_1@0)
+        (- 2))
+       0)}
+Clause is subsumed in frame
+__ic3_clause_72_p0
+__ic3_clause_98_p0
+__ic3_clause_102_p0
+__ic3_clause_85_p0
+__ic3_clause_101_p0
+__ic3_clause_31_p0
+Deactivating activation literals for clause
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_3 |= P hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does I |= C for C in R_3 hold?
+check_frames: Does R_2 & T |= R_3 hold?
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.764
+Analysis time       : 0.731
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 6
+Restarts                                  : 0
+Solver                                    : 1778
+Frame sizes                               : 27 25 23 19 12
+Forward propagations                      : 31
+Forward propagations before generalization: 21
+Forward subsumed clauses                  : 12
+Backward subsumed clauses                 : 2
+Fixpoint at                               : 3
+Inductive blocking clauses                : 4
+Activation literals                       : 2071
+Stale activation literals                 : 1908
+Total time                                : 0.728
+Forward propagation time                  : 0.353
+Frame strengthening time                  : 0.345
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.008
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.244
+check-sat calls     : 1778
+get-value time      : 0.025
+get-value calls     : 51
+get-unsat-core time : 0.003
+get-unsat-core calls: 52
+
+ Message received from property directed reachability (QE): Property InvProp[L26C3] invariant (1-inductive)
+
+<Success> Property InvProp[L26C3] is valid by property directed reachability (QE) after 0.758s.
+
+ <Done> All properties proved or disproved in 0.790s.
+        Waiting for children to terminate.
+
+ Child process 28502 (property directed reachability (QE)) exited with return code 0
+
+ Process 28502 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.764
+Analysis time       : 0.731
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 6
+Restarts                                  : 0
+Solver                                    : 1778
+Frame sizes                               : 27 25 23 19 12
+Forward propagations                      : 31
+Forward propagations before generalization: 21
+Forward subsumed clauses                  : 12
+Backward subsumed clauses                 : 2
+Fixpoint at                               : 3
+Inductive blocking clauses                : 4
+Activation literals                       : 2071
+Stale activation literals                 : 1908
+Total time                                : 0.728
+Forward propagation time                  : 0.353
+Frame strengthening time                  : 0.345
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.008
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.244
+check-sat calls     : 1778
+get-value time      : 0.025
+get-value calls     : 51
+get-unsat-core time : 0.003
+get-unsat-core calls: 52
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L26C3]: valid (k=1)
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: intloopcounter, greycounter
+         - no contracts
+         - no sub-assumptions
+         valid: 'InvProp[L26C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/two_counters.lus:26:3
+         
+         
+

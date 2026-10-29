@@ -1,0 +1,354 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/MESI_1.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/MESI_1.lus:22:16: 
+          Unguarded pre in expression (pre invalid_me)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/MESI_1.lus:23:16: 
+          Unguarded pre in expression (pre exclusive_me)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/MESI_1.lus:24:16: 
+          Unguarded pre in expression (pre shared_me)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/MESI_1.lus:25:16: 
+          Unguarded pre in expression (pre invalid_me)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: mesi, excludes4, Sofar
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#4 {(not top.usr.OK@0);
+    (not top.res.call_8@0);
+    (not (> (* 1 top.res.2.call_5_0@0) 0));
+    (not (> (+ (* 1 top.res.2.call_5_0@0) (- 3)) 0));
+    (not (> (* 1 top.res.2.call_5_1@0) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_8@0)
+ (not (> (* 1 top.res.2.call_5_0@0) 0))
+ (not (> (+ (* 1 top.res.2.call_5_0@0) (- 3)) 0))
+ (not (> (* 1 top.res.2.call_5_1@0) 0)))
+with unsat core to
+(or
+ (not (> (* 1 top.res.2.call_5_1@0) 0))
+ (not (> (+ (* 1 top.res.2.call_5_0@0) (- 3)) 0))
+ (not top.res.call_8@0)
+ (not top.usr.OK@0))
+ind-gen literal frequency priority for clause #4:
+original: {
+(not (> (* 1 top.res.2.call_5_1@0) 0)) [freq=0.000, ast=6]
+(not (> (+ (* 1 top.res.2.call_5_0@0) (- 3)) 0)) [freq=0.000, ast=9]
+(not top.res.call_8@0) [freq=0.000, ast=2]
+(not top.usr.OK@0) [freq=0.000, ast=2]
+}
+reordered by freq+ast-asc: {
+(not top.res.call_8@0) [freq=0.000, ast=2]
+(not top.usr.OK@0) [freq=0.000, ast=2]
+(not (> (* 1 top.res.2.call_5_1@0) 0)) [freq=0.000, ast=6]
+(not (> (+ (* 1 top.res.2.call_5_0@0) (- 3)) 0)) [freq=0.000, ast=9]
+}
+ Starting new process property directed reachability (QE) with PID 10764
+
+ Message received from property directed reachability (QE): Property InvProp[L66C5] true for 0 steps
+
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #4:
+#5 {(not (> (+ (* 1 top.res.2.call_5_0@0) (- 3)) 0))}
+block: Reduced clause
+(or
+ (not (> (* 1 top.res.2.call_5_1@0) 0))
+ (not (> (+ (* 1 top.res.2.call_5_0@0) (- 3)) 0))
+ (not top.res.call_8@0)
+ (not top.usr.OK@0))
+with ind. gen. to
+(not (> (+ (* 1 top.res.2.call_5_0@0) (- 3)) 0))
+check_frames: frames k to 1
+
+Frame:
+5
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#6 {(not top.usr.OK@0);
+    (not top.res.call_8@0);
+    (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0));
+    (not (> (+ (* 1 top.res.2.call_5_0@0) (- 2)) 0));
+    (not (> (+ (* (- 1) top.res.2.call_5_0@0) 4) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_8@0)
+ (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))
+ (not (> (+ (* 1 top.res.2.call_5_0@0) (- 2)) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_0@0) 4) 0)))
+with unsat core to
+(or
+ (not (> (+ (* 1 top.res.2.call_5_0@0) (- 2)) 0))
+ (not top.res.call_8@0)
+ (not top.usr.OK@0))
+ind-gen literal frequency priority for clause #6:
+original: {
+(not (> (+ (* 1 top.res.2.call_5_0@0) (- 2)) 0)) [freq=0.000, ast=9]
+(not top.res.call_8@0) [freq=0.000, ast=2]
+(not top.usr.OK@0) [freq=0.000, ast=2]
+}
+reordered by freq+ast-asc: {
+(not top.res.call_8@0) [freq=0.000, ast=2]
+(not top.usr.OK@0) [freq=0.000, ast=2]
+(not (> (+ (* 1 top.res.2.call_5_0@0) (- 2)) 0)) [freq=0.000, ast=9]
+}
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #6:
+#7 {(not (> (+ (* 1 top.res.2.call_5_0@0) (- 2)) 0))}
+block: Reduced clause
+(or
+ (not (> (+ (* 1 top.res.2.call_5_0@0) (- 2)) 0))
+ (not top.res.call_8@0)
+ (not top.usr.OK@0))
+with ind. gen. to
+(not (> (+ (* 1 top.res.2.call_5_0@0) (- 2)) 0))
+check_frames: frames k to 1
+
+Frame:
+5
+7
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+ IC3QE main loop at k=1
+
+ Message received from property directed reachability (QE): Property InvProp[L66C5] true for 1 steps
+
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.068
+Analysis time       : 0.029
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 28
+Frame sizes                               : 2
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 51
+Stale activation literals                 : 40
+Total time                                : 0.027
+Forward propagation time                  : 0.001
+Frame strengthening time                  : 0.015
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.002
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.005
+check-sat calls     : 28
+get-value time      : 0.001
+get-value calls     : 2
+get-unsat-core time : 0.000
+get-unsat-core calls: 4
+
+ IC3QE main loop at k=2
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.075
+Analysis time       : 0.036
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 39
+Frame sizes                               : 2
+Forward propagations                      : 2
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 57
+Stale activation literals                 : 43
+Total time                                : 0.034
+Forward propagation time                  : 0.005
+Frame strengthening time                  : 0.015
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.002
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.006
+check-sat calls     : 39
+get-value time      : 0.001
+get-value calls     : 2
+get-unsat-core time : 0.000
+get-unsat-core calls: 4
+
+ Message received from property directed reachability (QE): Property InvProp[L66C5] invariant (1-inductive)
+
+<Success> Property InvProp[L66C5] is valid by property directed reachability (QE) after 0.051s.
+
+ <Done> All properties proved or disproved in 0.090s.
+        Waiting for children to terminate.
+
+ Child process 10764 (property directed reachability (QE)) exited with return code 0
+
+ Process 10764 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.075
+Analysis time       : 0.036
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 39
+Frame sizes                               : 2
+Forward propagations                      : 2
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 57
+Stale activation literals                 : 43
+Total time                                : 0.034
+Forward propagation time                  : 0.005
+Frame strengthening time                  : 0.015
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.002
+IndGen calls                              : 0
+IndGen input literals                     : 0
+IndGen output literals                    : 0
+IndGen initial queries                    : 0
+IndGen relative queries                   : 0
+IndGen initial SAT rejections             : 0
+IndGen relative SAT rejections            : 0
+IndGen accepted deletions                 : 0
+IndGen history updates                    : 0
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.006
+check-sat calls     : 39
+get-value time      : 0.001
+get-value calls     : 2
+get-unsat-core time : 0.000
+get-unsat-core calls: 4
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L66C5]: valid (k=1)
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: mesi, excludes4, Sofar
+         - no contracts
+         - no sub-assumptions
+         valid: 'InvProp[L66C5]': /home/artifact/kind2-exp/OrderIC3_Auto/runs/ifs2027_safe385_measurement/prepared/dataset/FMCAD08/Int/memory2/MESI_1.lus:66:5
+         
+         
+

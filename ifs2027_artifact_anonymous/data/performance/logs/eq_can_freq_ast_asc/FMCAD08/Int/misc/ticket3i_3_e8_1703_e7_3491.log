@@ -1,0 +1,268 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:26:9: 
+          Unguarded pre in expression (pre p1)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:27:9: 
+          Unguarded pre in expression (pre p1)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:27:24: 
+          Unguarded pre in expression (pre s)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:28:9: 
+          Unguarded pre in expression (pre p1)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:29:9: 
+          Unguarded pre in expression (pre p2)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:30:9: 
+          Unguarded pre in expression (pre p2)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:30:24: 
+          Unguarded pre in expression (pre s)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:31:9: 
+          Unguarded pre in expression (pre p2)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:32:9: 
+          Unguarded pre in expression (pre p3)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:33:9: 
+          Unguarded pre in expression (pre p3)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:33:24: 
+          Unguarded pre in expression (pre s)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:34:9: 
+          Unguarded pre in expression (pre p3)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: ticket3i, excludes9, Sofar
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+ Starting new process property directed reachability (QE) with PID 5317
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.080
+Analysis time       : 0.016
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 2
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 4
+Stale activation literals                 : 0
+Total time                                : 0.013
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.002
+check-sat calls     : 2
+get-value time      : 0.000
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+ Message received from property directed reachability (QE): Property InvProp[L87C3] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L87C3] false at step 1
+
+<Failure> Property InvProp[L87C3] is invalid by property directed reachability (QE) for k=1 after 0.041s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    e1      ff ff
+    e2      ff ff
+    e3      ff ff
+    e4      ff ff
+    e5      ff tt
+    e6      ff ff
+    e7      ff ff
+    e8      tt ff
+    e9      ff ff
+    init_a1  0  0
+    init_a2  0  0
+    init_a3  0  0
+    init_t  -1  0
+    == Outputs ==
+    OK      tt ff
+    == Locals ==
+    t       -1 -1
+    env     ff tt
+    
+  Node excludes9 (top[L80C18])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X1       ff ff
+    X2       ff ff
+    X3       ff ff
+    X4       ff ff
+    X5       ff tt
+    X6       ff ff
+    X7       ff ff
+    X8       tt ff
+    X9       ff ff
+    == Outputs ==
+    excludes tt tt
+    
+  Node Sofar (top[L80C11])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     ff tt
+    == Outputs ==
+    Sofar ff tt
+    
+  Node ticket3i (top[L78C9])
+    == Mode(s) ==
+    
+    == Inputs ==
+    e1              ff ff
+    e2              ff ff
+    e3              ff ff
+    e4              ff ff
+    e5              ff tt
+    e6              ff ff
+    e7              ff ff
+    e8              tt ff
+    e9              ff ff
+    init_a1          0  0
+    init_a2          0  0
+    init_a3          0  0
+    init_t          -1  0
+    == Outputs ==
+    p1               0  0
+    p2               0  0
+    p3               0  0
+    t               -1 -1
+    s               -1 -1
+    a1               0  0
+    a2               0  0
+    a3               0  0
+    erreur_ticket3i ff ff
+    == Locals ==
+    g1              tt tt
+    g2              ff ff
+    g4              tt tt
+    g5              ff ff
+    g6              ff ff
+    g7              tt tt
+    g8              ff ff
+    g9              ff ff
+    g3              ff ff
+    
+  
+ <Done> All properties proved or disproved in 0.106s.
+        Waiting for children to terminate.
+
+ Child process 5317 (property directed reachability (QE)) exited with return code 0
+
+ Process 5317 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.080
+Analysis time       : 0.016
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 2
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 4
+Stale activation literals                 : 0
+Total time                                : 0.013
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.002
+check-sat calls     : 2
+get-value time      : 0.000
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L87C3]: invalid after 1 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: ticket3i, excludes9, Sofar
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L87C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/ticket3i_3_e8_1703_e7_3491.lus:87:3
+         
+         
+

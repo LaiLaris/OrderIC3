@@ -1,0 +1,77 @@
+{
+  "passed": true,
+  "test_date": "2026-10-29",
+  "full_clean_install_tested": true,
+  "environment": "Ubuntu Base 24.04.4 amd64; rootless user/mount/PID namespaces",
+  "shared_host_kernel": true,
+  "host_python_or_ocaml_packages_reused": false,
+  "host_shared_library_directories_mounted": false,
+  "network_bootstrap": "Host DNS configuration and CA certificate bundle supplied; dependencies downloaded inside the rootfs.",
+  "rootfs_sha256": "c1e67ef7b17a6300e136118bd1dc04725009cb376c1aad10abcf8cd453628d58",
+  "python": "3.12.3",
+  "matplotlib": "3.6.3",
+  "z3": "Z3 version 4.8.12 - 64 bit",
+  "runtime": {
+    "environment": "fresh Ubuntu 24.04.4 rootfs, user namespace",
+    "python": "3.12.3",
+    "host_python_or_opam_reused": false,
+    "z3": "Z3 version 4.8.12 - 64 bit",
+    "checksums_passed": true,
+    "retained_analysis_passed": true,
+    "performance": {
+      "runs": 4,
+      "statuses": [
+        "Unsafe",
+        "Unsafe",
+        "Unsafe",
+        "Unsafe"
+      ],
+      "exports": 0
+    },
+    "invariant_structure": {
+      "runs": 4,
+      "statuses": [
+        "Safe",
+        "Safe",
+        "Safe",
+        "Safe"
+      ],
+      "exports": 4
+    }
+  },
+  "source_build": {
+    "source_build_passed": true,
+    "compiler": "OCaml 4.14.0",
+    "dune": "3.20.2",
+    "rebuilt_binary_sha256": "e5a9cc826547487c0df49764cb58d5ecf50a887970bf7052bae9ae854cdb89ae",
+    "runs": 4,
+    "statuses": [
+      "Safe",
+      "Safe",
+      "Safe",
+      "Safe"
+    ],
+    "invariant_exports": 4,
+    "host_compiler_or_installed_ocaml_packages_reused": false
+  },
+  "numerical_equivalence": {
+    "passed": true,
+    "numeric_fields_compared": 22329,
+    "relative_tolerance": 1e-11,
+    "absolute_tolerance": 1e-08,
+    "files": [
+      "generated/wall_metrics.json",
+      "generated/performance_tables.json",
+      "generated/invariant_structure/results.json",
+      "generated/representation/summary.json",
+      "generated/invariant_structure/per_model.csv"
+    ]
+  },
+  "total_smoke_runs": 12,
+  "total_invariant_exports": 8,
+  "post_build_frozen_file_verification": true,
+  "rootless_package_configuration": "fakeroot used to configure package ownership for unmapped supplementary groups; apt-get check passed.",
+  "historical_data_replaced": false,
+  "full_benchmark_suite_rerun": false,
+  "source_scope": "Complete frozen measurement source; historical performance source reconstruction remains subject to its documented provenance limitation."
+}

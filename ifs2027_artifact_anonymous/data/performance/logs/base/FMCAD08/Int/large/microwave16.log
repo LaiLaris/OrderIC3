@@ -1,0 +1,237 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave16.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave16.lus:334:24: 
+          Unguarded pre in expression (pre rlt__Arrow)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave16.lus:386:25: 
+          Unguarded pre in expression (pre rlt__Arrow1)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave16.lus:388:25: 
+          Unguarded pre in expression (pre rlt__Arrow2)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave16.lus:427:25: 
+          Unguarded pre in expression (pre rlt__Arrow3)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave16.lus:430:25: 
+          Unguarded pre in expression (pre rlt__Arrow4)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave16.lus:979:25: 
+          Unguarded pre in expression (pre rlt__Arrow5)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top' (no subsystems)
+
+ 4 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+ Starting new process property directed reachability (QE) with PID 45067
+
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 0 steps
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 0 steps
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L1478C3] true for 0 steps
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 1 steps
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 1 steps
+
+ IC3QE main loop at k=1
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 1 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L1478C3] true for 1 steps
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.115
+Analysis time       : 0.030
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 5
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 8
+Stale activation literals                 : 1
+Total time                                : 0.028
+Forward propagation time                  : 0.004
+Frame strengthening time                  : 0.001
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.005
+check-sat calls     : 5
+get-value time      : 0.000
+get-value calls     : 0
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+ IC3QE main loop at k=2
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] invariant (1-inductive)
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] invariant (1-inductive)
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] invariant (1-inductive)
+
+<Success> Generated candidate property SubRange[L17C1] is valid by property directed reachability (QE) after 0.062s.
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.126
+Analysis time       : 0.042
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 12
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 14
+Stale activation literals                 : 4
+Total time                                : 0.040
+Forward propagation time                  : 0.012
+Frame strengthening time                  : 0.001
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.008
+check-sat calls     : 12
+get-value time      : 0.000
+get-value calls     : 0
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+ Message received from property directed reachability (QE): Property InvProp[L1478C3] invariant (1-inductive)
+
+<Success> Property InvProp[L1478C3] is valid by property directed reachability (QE) after 0.072s.
+
+ <Done> All properties proved or disproved in 0.157s.
+        Waiting for children to terminate.
+
+ Child process 45067 (property directed reachability (QE)) exited with return code 0
+
+ Process 45067 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.126
+Analysis time       : 0.042
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 12
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 14
+Stale activation literals                 : 4
+Total time                                : 0.040
+Forward propagation time                  : 0.012
+Frame strengthening time                  : 0.001
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.008
+check-sat calls     : 12
+get-value time      : 0.000
+get-value calls     : 0
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L1478C3]: valid (k=1)
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top' (no subsystems)
+         - no contracts
+         - no sub-assumptions
+         valid: 'InvProp[L1478C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave16.lus:1478:3
+         
+         
+

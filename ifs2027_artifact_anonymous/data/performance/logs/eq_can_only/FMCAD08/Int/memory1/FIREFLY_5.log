@@ -1,0 +1,349 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:31:11: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:31:30: 
+          Unguarded pre in expression (pre dirty)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:31:46: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:31:63: 
+          Unguarded pre in expression (pre exclusive)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:32:11: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:32:30: 
+          Unguarded pre in expression (pre dirty)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:33:11: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:33:30: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:33:41: 
+          Unguarded pre in expression (pre exclusive)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:34:11: 
+          Unguarded pre in expression (pre exclusive)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:35:11: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:36:11: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:36:30: 
+          Unguarded pre in expression (pre dirty)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:36:46: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:36:63: 
+          Unguarded pre in expression (pre exclusive)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:37:11: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:37:30: 
+          Unguarded pre in expression (pre dirty)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:38:11: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:38:30: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:38:41: 
+          Unguarded pre in expression (pre exclusive)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: firefly, excludes8, Sofar
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+ Starting new process property directed reachability (QE) with PID 53749
+
+New clause at frontier:
+#4 {(not top.res.call_24@0);
+    (not top.usr.OK@0);
+    (not (> (+ (* (- 1) top.res.2.call_21_1@0) (- 1)) 0));
+    (not (> (* 1 top.res.2.call_21_2@0) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.res.call_24@0)
+ (not top.usr.OK@0)
+ (not (> (+ (* (- 1) top.res.2.call_21_1@0) (- 1)) 0))
+ (not (> (* 1 top.res.2.call_21_2@0) 0)))
+with unsat core to
+(or
+ (not (> (* 1 top.res.2.call_21_2@0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_21_1@0) (- 1)) 0))
+ (not top.usr.OK@0)
+ (not top.res.call_24@0))
+ind_generalize: Dropped 3 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #4:
+#5 {(not (> (+ (* (- 1) top.res.2.call_21_1@0) (- 1)) 0))}
+block: Reduced clause
+(or
+ (not (> (* 1 top.res.2.call_21_2@0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_21_1@0) (- 1)) 0))
+ (not top.usr.OK@0)
+ (not top.res.call_24@0))
+with ind. gen. to
+(not (> (+ (* (- 1) top.res.2.call_21_1@0) (- 1)) 0))
+ Message received from property directed reachability (QE): Property InvProp[L87C5] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L87C5] true for 1 steps
+
+check_frames: frames k to 1
+
+Frame:
+5
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#6 {(not top.res.call_24@0);
+    (not top.usr.OK@0);
+    (not (> (* (- 1) top.res.2.call_21_1@0) 0));
+    (not (> (+ (* (- 1) top.res.2.call_21_1@0) 1) 0));
+    (not (> (+ (* 1 top.res.2.call_21_1@0) 2) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.res.call_24@0)
+ (not top.usr.OK@0)
+ (not (> (* (- 1) top.res.2.call_21_1@0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_21_1@0) 1) 0))
+ (not (> (+ (* 1 top.res.2.call_21_1@0) 2) 0)))
+with unsat core to
+(or
+ (not (> (* (- 1) top.res.2.call_21_1@0) 0))
+ (not top.usr.OK@0)
+ (not top.res.call_24@0))
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+ IC3QE main loop at k=1
+
+New clause from inductive generalization of #6:
+#7 {(not (> (* (- 1) top.res.2.call_21_1@0) 0))}
+block: Reduced clause
+(or
+ (not (> (* (- 1) top.res.2.call_21_1@0) 0))
+ (not top.usr.OK@0)
+ (not top.res.call_24@0))
+with ind. gen. to
+(not (> (* (- 1) top.res.2.call_21_1@0) 0))
+check_frames: frames k to 1
+
+Frame:
+5
+7
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.114
+Analysis time       : 0.053
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 30
+Frame sizes                               : 2
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 55
+Stale activation literals                 : 44
+Total time                                : 0.050
+Forward propagation time                  : 0.002
+Frame strengthening time                  : 0.027
+Generalization time                       : 0.003
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.003
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.008
+check-sat calls     : 30
+get-value time      : 0.002
+get-value calls     : 2
+get-unsat-core time : 0.000
+get-unsat-core calls: 4
+
+ IC3QE main loop at k=2
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.121
+Analysis time       : 0.060
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 41
+Frame sizes                               : 2
+Forward propagations                      : 2
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 61
+Stale activation literals                 : 47
+Total time                                : 0.057
+Forward propagation time                  : 0.006
+Frame strengthening time                  : 0.027
+Generalization time                       : 0.003
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.003
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.009
+check-sat calls     : 41
+get-value time      : 0.002
+get-value calls     : 2
+get-unsat-core time : 0.000
+get-unsat-core calls: 4
+
+ Message received from property directed reachability (QE): Property InvProp[L87C5] invariant (1-inductive)
+
+<Success> Property InvProp[L87C5] is valid by property directed reachability (QE) after 0.082s.
+
+ <Done> All properties proved or disproved in 0.143s.
+        Waiting for children to terminate.
+
+ Child process 53749 (property directed reachability (QE)) exited with return code 0
+
+ Process 53749 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.121
+Analysis time       : 0.060
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 41
+Frame sizes                               : 2
+Forward propagations                      : 2
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 61
+Stale activation literals                 : 47
+Total time                                : 0.057
+Forward propagation time                  : 0.006
+Frame strengthening time                  : 0.027
+Generalization time                       : 0.003
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.003
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.009
+check-sat calls     : 41
+get-value time      : 0.002
+get-value calls     : 2
+get-unsat-core time : 0.000
+get-unsat-core calls: 4
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L87C5]: valid (k=1)
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: firefly, excludes8, Sofar
+         - no contracts
+         - no sub-assumptions
+         valid: 'InvProp[L87C5]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory1/FIREFLY_5.lus:87:5
+         
+         
+

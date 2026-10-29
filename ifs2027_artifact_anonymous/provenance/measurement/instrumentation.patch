@@ -1,0 +1,107 @@
+--- paper/IC3.ml
++++ measurement/IC3.ml
+@@ -52,6 +52,42 @@
+       + List.fold_left
+           (fun acc arg -> acc + literal_ast_complexity arg)
+           0 args
++
++(* Measurement only: no change to deletion or solver acceptance conditions. *)
++let measurement_initial_queries = ref 0
++let measurement_relative_queries = ref 0
++let measurement_indgen_calls = ref 0
++let measurement_support = ref []
++let measurement_export_index = ref 0
++let measurement_term term =
++  `Assoc [("term", `String (Format.asprintf "%a" Term.pp_print_term term));
++          ("ast_nodes", `Int (literal_ast_complexity term))]
++let measurement_export invariant properties =
++  match Sys.getenv_opt "KIND2_MEASUREMENT_DIR" with
++  | None -> ()
++  | Some directory ->
++    incr measurement_export_index;
++    let clauses = List.map (fun c ->
++      let literals = C.literals_of_clause c in
++      `Assoc [("id", `Int (C.id_of_clause c));
++              ("literal_count", `Int (List.length literals));
++              ("literal_ast_sum", `Int (List.fold_left
++                 (fun n l -> n + literal_ast_complexity l) 0 literals));
++              ("clause", measurement_term (C.term_of_clause c));
++              ("literals", `List (List.map measurement_term literals))])
++      !measurement_support in
++    let certificate = Term.mk_and (invariant :: properties) in
++    Yojson.Basic.to_file
++      (Filename.concat directory
++        (Printf.sprintf "invariant_%03d.json" !measurement_export_index))
++      (`Assoc [("schema", `String "ic3-final-support-v1");
++               ("support_clauses", `List clauses);
++               ("support_term", measurement_term invariant);
++               ("properties", `List (List.map measurement_term properties));
++               ("certificate_term", measurement_term certificate);
++               ("indgen_calls", `Int !measurement_indgen_calls);
++               ("indgen_initial_queries", `Int !measurement_initial_queries);
++               ("indgen_relative_queries", `Int !measurement_relative_queries)])
+ 
+ let ind_gen_literal_frequency : float Term.TermHashtbl.t =
+   Term.TermHashtbl.create 251
+@@ -629,6 +665,7 @@
+ let ind_generalize
+     ?(already_in_target_frame = fun _ -> false)
+     solver prop_set frame clause literals =
++  incr measurement_indgen_calls;
+   let skip_trivial_false_literals literals =
+     match
+       List.filter
+@@ -799,14 +836,14 @@
+ 
+         if 
+           
+-          SMTSolver.check_sat_assuming_tf 
++          (incr measurement_relative_queries; SMTSolver.check_sat_assuming_tf 
+             solver
+             
+             (* Check P[x] & R[x] & C[x] & T[x,x'] |= C[x'] *)
+             (C.actlit_p0_of_prop_set solver prop_set ::
+                clause'_actlit_p0 ::
+                clause'_actlit_n1 ::
+-               frame)
++               frame))
+ 
+         then
+           
+@@ -825,11 +862,11 @@
+ 
+       if
+         
+-        SMTSolver.check_sat_assuming_tf 
++        (incr measurement_initial_queries; SMTSolver.check_sat_assuming_tf 
+           solver
+ 
+           (* Check I |= C *)
+-          ([clause'_actlit_n0; C.actlit_of_frame 0])
++          ([clause'_actlit_n0; C.actlit_of_frame 0]))
+ 
+       then
+         
+@@ -2487,9 +2524,11 @@
+             Stat.set (List.length frames |> succ) Stat.ic3_fwd_fixpoint;
+             
+             (* Extract inductive invariant *)
+-            let ind_inv = 
+-              (List.fold_left 
+-                 (fun a c -> List.map C.term_of_clause (F.values c) @ a) 
++            measurement_support :=
++              List.fold_left (fun a c -> F.values c @ a) fwd frames_tl;
++            let ind_inv =
++              (List.fold_left
++                 (fun a c -> List.map C.term_of_clause (F.values c) @ a)
+                  (List.map C.term_of_clause fwd)
+                  (frames_tl))
+               |> Term.mk_and
+@@ -3009,6 +3048,7 @@
+             (* Certificate = 1-inductive invariant in conjunction of the
+                properties *)
+             let cert = 1, Term.mk_and (ind_inv :: List.map snd props) in
++            measurement_export ind_inv (List.map snd props);
+             
+             (* Send out valid properties *)
+             List.iter

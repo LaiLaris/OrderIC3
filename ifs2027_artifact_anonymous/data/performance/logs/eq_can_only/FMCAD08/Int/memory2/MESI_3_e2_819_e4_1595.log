@@ -1,0 +1,2634 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MESI_3_e2_819_e4_1595.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MESI_3_e2_819_e4_1595.lus:23:16: 
+          Unguarded pre in expression (pre invalid_me)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MESI_3_e2_819_e4_1595.lus:24:16: 
+          Unguarded pre in expression (pre exclusive_me)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MESI_3_e2_819_e4_1595.lus:25:16: 
+          Unguarded pre in expression (pre shared_me)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MESI_3_e2_819_e4_1595.lus:26:16: 
+          Unguarded pre in expression (pre invalid_me)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: mesi, excludes4, Sofar, Abs
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+ Starting new process property directed reachability (QE) with PID 64351
+
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+ Message received from property directed reachability (QE): Property InvProp[L62C3] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L62C3] true for 1 steps
+
+New clause at frontier:
+#4 {(not top.usr.OK@0);
+    (not top.res.call_7@0);
+    (not
+     (>
+      (+
+       (* (- 1) top.res.2.call_5_0@0)
+       (* (- 1) top.res.2.call_5_1@0)
+       (* (- 1) top.res.2.call_5_2@0)
+       (* 1 top.res.2.call_5_3@0)
+       (- 3))
+      0));
+    (not (> (+ (* (- 1) top.res.2.call_5_0@0) 0) 0));
+    (not (> (+ (* (- 1) top.res.2.call_5_1@0) 0) 0));
+    (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0));
+    (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not (> (+ (* (- 1) top.res.2.call_5_0@0) 0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_1@0) 0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0)))
+with unsat core to
+(or
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_0@0) 0) 0))
+ (not top.res.call_7@0))
+ IC3QE main loop at k=1
+
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #4:
+#5 {(not (> (+ (* (- 1) top.res.2.call_5_0@0) 0) 0))}
+block: Reduced clause
+(or
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_0@0) 0) 0))
+ (not top.res.call_7@0))
+with ind. gen. to
+(not (> (+ (* (- 1) top.res.2.call_5_0@0) 0) 0))
+check_frames: frames k to 1
+
+Frame:
+5
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#6 {(not top.usr.OK@0);
+    (not top.res.call_7@0);
+    (not
+     (>
+      (+
+       (* 1 top.res.2.call_5_0@0)
+       (* 1 top.res.2.call_5_1@0)
+       (* 1 top.res.2.call_5_2@0)
+       (* 1 top.res.2.call_5_3@0)
+       (- 3))
+      0));
+    (not true);
+    (not (> (* 1 top.res.2.call_5_2@0) 0));
+    (not
+     (>
+      (+
+       (* 1 top.res.2.call_5_0@0)
+       (* 1 top.res.2.call_5_1@0)
+       (* 1 top.res.2.call_5_2@0)
+       (* 1 top.res.2.call_5_3@0))
+      0));
+    (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not true)
+ (not (> (* 1 top.res.2.call_5_2@0) 0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0))
+   0))
+ (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0)))
+with unsat core to
+(or (not (> (* 1 top.res.2.call_5_2@0) 0)) (not top.res.call_7@0))
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #6:
+#7 {(not (> (* 1 top.res.2.call_5_2@0) 0))}
+block: Reduced clause
+(or (not (> (* 1 top.res.2.call_5_2@0) 0)) (not top.res.call_7@0))
+with ind. gen. to
+(not (> (* 1 top.res.2.call_5_2@0) 0))
+check_frames: frames k to 1
+
+Frame:
+5
+7
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#8 {(not top.usr.OK@0);
+    (not top.res.call_7@0);
+    (not true);
+    (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0));
+    (not
+     (>
+      (+
+       (* (- 1) top.res.2.call_5_0@0)
+       (* (- 1) top.res.2.call_5_1@0)
+       (* (- 1) top.res.2.call_5_2@0)
+       (* (- 1) top.res.2.call_5_3@0)
+       (- 1))
+      0));
+    (not (> (* 1 top.res.2.call_5_3@0) 0));
+    (not
+     (>
+      (+
+       (* (- 1) top.res.2.call_5_0@0)
+       (* (- 1) top.res.2.call_5_1@0)
+       (* (- 1) top.res.2.call_5_2@0)
+       (* (- 1) top.res.2.call_5_3@0)
+       1)
+      0));
+    (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not true)
+ (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    (- 1))
+   0))
+ (not (> (* 1 top.res.2.call_5_3@0) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    1)
+   0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0)))
+with unsat core to
+(or
+ (not (> (* 1 top.res.2.call_5_3@0) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    (- 1))
+   0))
+ (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))
+ (not top.res.call_7@0)
+ (not top.usr.OK@0))
+ind_generalize: Dropped 7 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #8:
+#9 {(not
+     (>
+      (+
+       (* (- 1) top.res.2.call_5_0@0)
+       (* (- 1) top.res.2.call_5_1@0)
+       (* (- 1) top.res.2.call_5_2@0)
+       (* (- 1) top.res.2.call_5_3@0)
+       (- 1))
+      0))}
+block: Reduced clause
+(or
+ (not (> (* 1 top.res.2.call_5_3@0) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    (- 1))
+   0))
+ (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))
+ (not top.res.call_7@0)
+ (not top.usr.OK@0))
+with ind. gen. to
+(not
+ (>
+  (+
+   (* (- 1) top.res.2.call_5_0@0)
+   (* (- 1) top.res.2.call_5_1@0)
+   (* (- 1) top.res.2.call_5_2@0)
+   (* (- 1) top.res.2.call_5_3@0)
+   (- 1))
+  0))
+check_frames: frames k to 1
+
+Frame:
+5
+7
+9
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#10 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0));
+     (not true);
+     (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0));
+     (not (> (* 1 top.res.2.call_5_3@0) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        1)
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        2)
+       0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not true)
+ (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))
+ (not (> (* 1 top.res.2.call_5_3@0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    1)
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    2)
+   0)))
+with unsat core to
+(or
+ (not (> (* 1 top.res.2.call_5_3@0) 0))
+ (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not top.res.call_7@0)
+ (not top.usr.OK@0))
+ind_generalize: Dropped 8 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #10:
+#11 {(not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0))}
+block: Reduced clause
+(or
+ (not (> (* 1 top.res.2.call_5_3@0) 0))
+ (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not top.res.call_7@0)
+ (not top.usr.OK@0))
+with ind. gen. to
+(not
+ (>
+  (+
+   (* (- 1) top.res.2.call_5_0@0)
+   (* (- 1) top.res.2.call_5_1@0)
+   (* (- 1) top.res.2.call_5_2@0)
+   (* 1 top.res.2.call_5_3@0)
+   (- 3))
+  0))
+check_frames: frames k to 1
+
+Frame:
+11
+5
+7
+9
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#12 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not true);
+     (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0));
+     (not (> (* 1 top.res.2.call_5_3@0) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        2)
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 5))
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0))
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not true)
+ (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))
+ (not (> (* 1 top.res.2.call_5_3@0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    2)
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 5))
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0))
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0)))
+with unsat core to
+(or
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 5))
+   0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0))
+ (not top.res.call_7@0))
+ind_generalize: Dropped 9 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #12:
+#13 {(not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 5))
+       0))}
+block: Reduced clause
+(or
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 5))
+   0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0))
+ (not top.res.call_7@0))
+with ind. gen. to
+(not
+ (>
+  (+
+   (* 1 top.res.2.call_5_0@0)
+   (* 1 top.res.2.call_5_1@0)
+   (* 1 top.res.2.call_5_2@0)
+   (* 1 top.res.2.call_5_3@0)
+   (- 5))
+  0))
+check_frames: frames k to 1
+
+Frame:
+11
+5
+7
+9
+13
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#14 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0));
+     (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0));
+     (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        2)
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 5))
+       0));
+     (not (> (* 1 top.res.2.call_5_0@0) 0));
+     (not (> (* 1 top.res.2.call_5_1@0) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        6)
+       0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0))
+ (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    2)
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 5))
+   0))
+ (not (> (* 1 top.res.2.call_5_0@0) 0))
+ (not (> (* 1 top.res.2.call_5_1@0) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    6)
+   0)))
+with unsat core to
+(or
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not (> (* 1 top.res.2.call_5_0@0) 0))
+ (not top.res.call_7@0))
+ind_generalize: Dropped 11 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #14:
+#15 {(not (> (* 1 top.res.2.call_5_0@0) 0))}
+block: Reduced clause
+(or
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not (> (* 1 top.res.2.call_5_0@0) 0))
+ (not top.res.call_7@0))
+with ind. gen. to
+(not (> (* 1 top.res.2.call_5_0@0) 0))
+check_frames: frames k to 1
+
+Frame:
+11
+5
+7
+9
+13
+15
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#16 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0));
+     (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0));
+     (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        2)
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        6)
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0));
+     (not (> (+ (* 1 top.res.2.call_5_1@0) 1) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_0@0) 1) 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0))
+ (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    2)
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    6)
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not (> (+ (* 1 top.res.2.call_5_1@0) 1) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_0@0) 1) 0)))
+with unsat core to
+(or
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not top.res.call_7@0))
+ind_generalize: Dropped 11 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #16:
+#17 {(not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0))}
+block: Reduced clause
+(or
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not top.res.call_7@0))
+with ind. gen. to
+(not
+ (>
+  (+
+   (* 1 top.res.2.call_5_0@0)
+   (* 1 top.res.2.call_5_1@0)
+   (* (- 1) top.res.2.call_5_2@0)
+   (* 1 top.res.2.call_5_3@0)
+   (- 3))
+  0))
+check_frames: frames k to 1
+
+Frame:
+11
+5
+7
+9
+13
+15
+17
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#18 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0));
+     (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        2)
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        6)
+       0));
+     (not (> (+ (* 1 top.res.2.call_5_1@0) 1) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_0@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 3))
+       0));
+     (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    2)
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    6)
+   0))
+ (not (> (+ (* 1 top.res.2.call_5_1@0) 1) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_0@0) 1) 0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0)))
+with unsat core to
+(or
+ (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0)))
+ind_generalize: Dropped 12 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #18:
+#19 {(not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0))}
+block: Reduced clause
+(or
+ (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0)))
+with ind. gen. to
+(not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0))
+check_frames: frames k to 1
+
+Frame:
+11
+5
+7
+9
+13
+15
+17
+19
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.196
+Analysis time       : 0.147
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 129
+Frame sizes                               : 8
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 277
+Stale activation literals                 : 254
+Total time                                : 0.144
+Forward propagation time                  : 0.004
+Frame strengthening time                  : 0.119
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.003
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.046
+check-sat calls     : 129
+get-value time      : 0.004
+get-value calls     : 8
+get-unsat-core time : 0.002
+get-unsat-core calls: 16
+
+ IC3QE main loop at k=2
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #8 in forward propagation:
+#20 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not true);
+     (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 1))
+       0));
+     (not (> (* 1 top.res.2.call_5_3@0) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        1)
+       0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0))}
+Copied clause #6 in forward propagation:
+#21 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0));
+     (not true);
+     (not (> (* 1 top.res.2.call_5_2@0) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0))
+       0));
+     (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))}
+Copied clause #18 in forward propagation:
+#22 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0));
+     (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        2)
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        6)
+       0));
+     (not (> (+ (* 1 top.res.2.call_5_1@0) 1) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_0@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 3))
+       0));
+     (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0))}
+Copied clause #4 in forward propagation:
+#23 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0));
+     (not (> (+ (* (- 1) top.res.2.call_5_0@0) 0) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_1@0) 0) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0));
+     (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0))}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 9
+subsume_and_add: clause 7
+subsume_and_add: clause 19
+subsume_and_add: clause 5
+fwd_propagate: Checking for inductiveness of clauses in last frame.
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+Checking for inductiveness of clauses
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #23:
+#25 {(not (> (+ (* (- 1) top.res.2.call_5_1@0) 0) 0))}
+ind_generalize: Dropped 10 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #22:
+#26 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 3))
+       0))}
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #21:
+#27 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0))}
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #20:
+#28 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 1))
+       0));
+     (not (> (* 1 top.res.2.call_5_3@0) 0))}
+fwd_propagate: Asserting new invariants.
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (not
+                                                             (>
+                                                              (+
+                                                               (*
+                                                                1
+                                                                top.res.2.call_5_0@0)
+                                                               (*
+                                                                1
+                                                                top.res.2.call_5_1@0)
+                                                               (*
+                                                                1
+                                                                top.res.2.call_5_2@0)
+                                                               (*
+                                                                1
+                                                                top.res.2.call_5_3@0)
+                                                               (- 5))
+                                                              0))
+
+subsume_and_add: clause 17
+subsume_and_add: clause 11
+check_frames: frames k to 1
+
+Frame:
+11
+17
+
+Frame:
+5
+7
+9
+19
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_2 are safe.
+New clause at frontier:
+#29 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not true);
+     (not (> (* 1 top.res.2.call_5_2@0) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 1))
+       0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        1)
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0))}
+block: Is blocking clause relative inductive to R_1?
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (not
+                                                             (>
+                                                              (*
+                                                               1
+                                                               top.res.2.call_5_0@0)
+                                                              0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (not
+                                                             (>
+                                                              (+
+                                                               (*
+                                                                (- 1)
+                                                                top.res.2.call_5_1@0)
+                                                               0)
+                                                              0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (not top.usr.OK@0)
+                                                             (not
+                                                              top.res.call_7@0)
+                                                             (not
+                                                              (>
+                                                               (+
+                                                                (*
+                                                                 1
+                                                                 top.res.2.call_5_0@0)
+                                                                (*
+                                                                 1
+                                                                 top.res.2.call_5_1@0)
+                                                                (*
+                                                                 (- 1)
+                                                                 top.res.2.call_5_2@0)
+                                                                (*
+                                                                 (- 1)
+                                                                 top.res.2.call_5_3@0)
+                                                                (- 3))
+                                                               0)))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (not top.usr.OK@0)
+                                                             (not
+                                                              top.res.call_7@0)
+                                                             (not
+                                                              (>
+                                                               (+
+                                                                (*
+                                                                 1
+                                                                 top.res.2.call_5_0@0)
+                                                                (*
+                                                                 1
+                                                                 top.res.2.call_5_1@0)
+                                                                (*
+                                                                 1
+                                                                 top.res.2.call_5_2@0)
+                                                                (*
+                                                                 1
+                                                                 top.res.2.call_5_3@0)
+                                                                (- 3))
+                                                               0)))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (not top.usr.OK@0)
+                                                             (not
+                                                              top.res.call_7@0)
+                                                             (not
+                                                              (>
+                                                               (+
+                                                                (*
+                                                                 (- 1)
+                                                                 top.res.2.call_5_0@0)
+                                                                (*
+                                                                 (- 1)
+                                                                 top.res.2.call_5_1@0)
+                                                                (*
+                                                                 (- 1)
+                                                                 top.res.2.call_5_2@0)
+                                                                (*
+                                                                 (- 1)
+                                                                 top.res.2.call_5_3@0)
+                                                                (- 1))
+                                                               0))
+                                                             (not
+                                                              (>
+                                                               (*
+                                                                1
+                                                                top.res.2.call_5_3@0)
+                                                               0)))
+
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not true)
+ (not (> (* 1 top.res.2.call_5_2@0) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    (- 1))
+   0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    1)
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0)))
+with unsat core to
+(or
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    (- 1))
+   0))
+ (not (> (* 1 top.res.2.call_5_2@0) 0))
+ (not top.res.call_7@0))
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #29:
+#30 {(not (> (* 1 top.res.2.call_5_2@0) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 1))
+       0))}
+block: Reduced clause
+(or
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    (- 1))
+   0))
+ (not (> (* 1 top.res.2.call_5_2@0) 0))
+ (not top.res.call_7@0))
+with ind. gen. to
+(or
+ (not (> (* 1 top.res.2.call_5_2@0) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    (- 1))
+   0)))
+check_frames: frames k to 1
+
+Frame:
+11
+30
+17
+
+Frame:
+5
+7
+9
+19
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_2
+block: Check if all successors of frontier R_2 are safe.
+New clause at frontier:
+#31 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not (> (+ (* (- 1) top.res.2.call_5_0@0) 1) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 3))
+       0));
+     (not (> (* 1 top.res.2.call_5_1@0) 0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not (> (+ (* (- 1) top.res.2.call_5_0@0) 1) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not (> (* 1 top.res.2.call_5_1@0) 0)))
+with unsat core to
+(or
+ (not (> (* 1 top.res.2.call_5_1@0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not top.res.call_7@0))
+ind_generalize: Dropped 8 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #31:
+#32 {(not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0))}
+block: Reduced clause
+(or
+ (not (> (* 1 top.res.2.call_5_1@0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not top.res.call_7@0))
+with ind. gen. to
+(or
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0)))
+check_frames: frames k to 1
+
+Frame:
+11
+32
+30
+17
+
+Frame:
+5
+7
+9
+19
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_2
+block: Check if all successors of frontier R_2 are safe.
+New clause at frontier:
+#33 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0));
+     (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not (> (+ (* (- 1) top.res.2.call_5_0@0) 1) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not (> (* 1 top.res.2.call_5_1@0) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0))
+ (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not (> (+ (* (- 1) top.res.2.call_5_0@0) 1) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not (> (* 1 top.res.2.call_5_1@0) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0)))
+with unsat core to
+(or
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0)))
+ind_generalize: Dropped 9 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #33:
+#34 {(not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0))}
+block: Reduced clause
+(or
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0)))
+with ind. gen. to
+(not
+ (>
+  (+
+   (* (- 1) top.res.2.call_5_0@0)
+   (* 1 top.res.2.call_5_1@0)
+   (* (- 1) top.res.2.call_5_2@0)
+   (* 1 top.res.2.call_5_3@0)
+   (- 3))
+  0))
+check_frames: frames k to 1
+
+Frame:
+11
+32
+30
+17
+34
+
+Frame:
+5
+7
+9
+19
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_2
+block: Check if all successors of frontier R_2 are safe.
+New clause at frontier:
+#35 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        2)
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not (> (+ (* (- 1) top.res.2.call_5_0@0) 1) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not (> (* 1 top.res.2.call_5_1@0) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 3))
+       0));
+     (not (> (+ (* 1 top.res.2.call_5_2@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    2)
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not (> (+ (* (- 1) top.res.2.call_5_0@0) 1) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not (> (* 1 top.res.2.call_5_1@0) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not (> (+ (* 1 top.res.2.call_5_2@0) 1) 0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0)))
+with unsat core to
+(or
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not (> (* 1 top.res.2.call_5_1@0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0))
+ (not top.res.call_7@0)
+ (not top.usr.OK@0))
+ind_generalize: Dropped 10 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #35:
+#36 {(not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 3))
+       0))}
+block: Reduced clause
+(or
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not (> (* 1 top.res.2.call_5_1@0) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0))
+ (not top.res.call_7@0)
+ (not top.usr.OK@0))
+with ind. gen. to
+(not
+ (>
+  (+
+   (* (- 1) top.res.2.call_5_0@0)
+   (* 1 top.res.2.call_5_1@0)
+   (* 1 top.res.2.call_5_2@0)
+   (* (- 1) top.res.2.call_5_3@0)
+   (- 3))
+  0))
+check_frames: frames k to 1
+
+Frame:
+11
+32
+30
+17
+34
+36
+
+Frame:
+5
+7
+9
+19
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_2
+block: Check if all successors of frontier R_2 are safe.
+New clause at frontier:
+#37 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not (> (+ (* (- 1) top.res.2.call_5_0@0) 0) 0));
+     (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        2)
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not (> (+ (* 1 top.res.2.call_5_1@0) 1) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not (> (+ (* 1 top.res.2.call_5_2@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        4)
+       0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (not top.res.call_7@0)
+ (not (> (+ (* (- 1) top.res.2.call_5_0@0) 0) 0))
+ (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    2)
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not (> (+ (* 1 top.res.2.call_5_1@0) 1) 0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not (> (+ (* 1 top.res.2.call_5_2@0) 1) 0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* (- 1) top.res.2.call_5_3@0)
+    4)
+   0))
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not
+  (>
+   (+
+    (* 1 top.res.2.call_5_0@0)
+    (* (- 1) top.res.2.call_5_1@0)
+    (* (- 1) top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    4)
+   0)))
+with unsat core to
+(or
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_0@0) 0) 0))
+ (not top.res.call_7@0))
+ind_generalize: Dropped 11 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #37:
+#38 {(not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0))}
+block: Reduced clause
+(or
+ (not
+  (>
+   (+
+    (* (- 1) top.res.2.call_5_0@0)
+    (* 1 top.res.2.call_5_1@0)
+    (* 1 top.res.2.call_5_2@0)
+    (* 1 top.res.2.call_5_3@0)
+    (- 3))
+   0))
+ (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0))
+ (not (> (+ (* (- 1) top.res.2.call_5_0@0) 0) 0))
+ (not top.res.call_7@0))
+with ind. gen. to
+(not
+ (>
+  (+
+   (* (- 1) top.res.2.call_5_0@0)
+   (* 1 top.res.2.call_5_1@0)
+   (* 1 top.res.2.call_5_2@0)
+   (* 1 top.res.2.call_5_3@0)
+   (- 3))
+  0))
+check_frames: frames k to 1
+
+Frame:
+11
+32
+30
+17
+34
+36
+38
+
+Frame:
+5
+7
+9
+19
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_2
+block: Check if all successors of frontier R_2 are safe.
+block: All successors of R_2 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.360
+Analysis time       : 0.311
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 0
+Solver                                    : 353
+Frame sizes                               : 11 7
+Forward propagations                      : 4
+Forward propagations before generalization: 4
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 6
+Activation literals                       : 580
+Stale activation literals                 : 544
+Total time                                : 0.308
+Forward propagation time                  : 0.081
+Frame strengthening time                  : 0.203
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.005
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.119
+check-sat calls     : 353
+get-value time      : 0.011
+get-value calls     : 19
+get-unsat-core time : 0.002
+get-unsat-core calls: 26
+
+ IC3QE main loop at k=3
+
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #8 in forward propagation:
+#39 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not true);
+     (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 1))
+       0));
+     (not (> (* 1 top.res.2.call_5_3@0) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        1)
+       0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0))}
+Copied clause #6 in forward propagation:
+#40 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0));
+     (not true);
+     (not (> (* 1 top.res.2.call_5_2@0) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0))
+       0));
+     (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0))}
+Copied clause #4 in forward propagation:
+#41 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0));
+     (not (> (+ (* (- 1) top.res.2.call_5_0@0) 0) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_1@0) 0) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0));
+     (not (> (+ (* 1 top.res.2.call_5_3@0) 1) 0))}
+Copied clause #18 in forward propagation:
+#42 {(not top.usr.OK@0);
+     (not top.res.call_7@0);
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 0) 0));
+     (not (> (+ (* 1 top.res.2.call_5_0@0) 1) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_2@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        2)
+       0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        6)
+       0));
+     (not (> (+ (* 1 top.res.2.call_5_1@0) 1) 0));
+     (not (> (+ (* (- 1) top.res.2.call_5_0@0) 1) 0));
+     (not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 3))
+       0));
+     (not (> (+ (* (- 1) top.res.2.call_5_3@0) 0) 0));
+     (not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        4)
+       0))}
+partition_fwd_prop: Checking for forward propagation of clause set
+subsume_and_add: clause 9
+subsume_and_add: clause 7
+subsume_and_add: clause 5
+subsume_and_add: clause 19
+fwd_propagate: Checking forward propagation of clauses in frame 2.
+subsume_and_add: clause 42
+ind_generalize: Dropped 12 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #42:
+#43 {(not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 3))
+       0))}
+subsume_and_add: clause 41
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #41:
+#44 {(not (> (+ (* (- 1) top.res.2.call_5_1@0) 0) 0))}
+subsume_and_add: clause 40
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #40:
+#45 {(not
+      (>
+       (+
+        (* 1 top.res.2.call_5_0@0)
+        (* 1 top.res.2.call_5_1@0)
+        (* 1 top.res.2.call_5_2@0)
+        (* 1 top.res.2.call_5_3@0)
+        (- 3))
+       0))}
+subsume_and_add: clause 39
+ind_generalize: Dropped 6 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #39:
+#46 {(not
+      (>
+       (+
+        (* (- 1) top.res.2.call_5_0@0)
+        (* (- 1) top.res.2.call_5_1@0)
+        (* (- 1) top.res.2.call_5_2@0)
+        (* (- 1) top.res.2.call_5_3@0)
+        (- 1))
+       0));
+     (not (> (* 1 top.res.2.call_5_3@0) 0))}
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.427
+Analysis time       : 0.378
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 3
+Restarts                                  : 0
+Solver                                    : 477
+Frame sizes                               : 11 7
+Forward propagations                      : 15
+Forward propagations before generalization: 8
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 2
+Inductive blocking clauses                : 6
+Activation literals                       : 707
+Stale activation literals                 : 659
+Total time                                : 0.375
+Forward propagation time                  : 0.144
+Frame strengthening time                  : 0.203
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.008
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.150
+check-sat calls     : 477
+get-value time      : 0.013
+get-value calls     : 23
+get-unsat-core time : 0.002
+get-unsat-core calls: 26
+
+ Message received from property directed reachability (QE): Property InvProp[L62C3] invariant (1-inductive)
+
+<Success> Property InvProp[L62C3] is valid by property directed reachability (QE) after 0.385s.
+
+ <Done> All properties proved or disproved in 0.434s.
+        Waiting for children to terminate.
+
+ Child process 64351 (property directed reachability (QE)) exited with return code 0
+
+ Process 64351 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.427
+Analysis time       : 0.378
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 3
+Restarts                                  : 0
+Solver                                    : 477
+Frame sizes                               : 11 7
+Forward propagations                      : 15
+Forward propagations before generalization: 8
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 2
+Inductive blocking clauses                : 6
+Activation literals                       : 707
+Stale activation literals                 : 659
+Total time                                : 0.375
+Forward propagation time                  : 0.144
+Frame strengthening time                  : 0.203
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.008
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.150
+check-sat calls     : 477
+get-value time      : 0.013
+get-value calls     : 23
+get-unsat-core time : 0.002
+get-unsat-core calls: 26
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L62C3]: valid (k=1)
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: mesi, excludes4, Sofar, Abs
+         - no contracts
+         - no sub-assumptions
+         valid: 'InvProp[L62C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MESI_3_e2_819_e4_1595.lus:62:3
+         
+         
+

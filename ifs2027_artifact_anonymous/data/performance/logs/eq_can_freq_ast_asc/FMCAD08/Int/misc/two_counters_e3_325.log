@@ -1,0 +1,291 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/two_counters_e3_325.lus'.
+
+ Lustre input detected
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: intloopcounter, greycounter
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#4 {top.res.inst_greycounter_l19c7_greycounter.impl.usr.b_2@0;
+    (not top.usr.OK@0);
+    (not top.res.inst_greycounter_l19c7_greycounter.impl.usr.a_2@0);
+    (not
+     (=
+      (+
+       top.res.inst_intloopcounter_l20c7_intloopcounter.impl.usr.time_1@0
+       (- 3))
+      0));
+    (not true)}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.res.inst_greycounter_l19c7_greycounter.impl.usr.b_2@0
+ (not top.usr.OK@0)
+ (not top.res.inst_greycounter_l19c7_greycounter.impl.usr.a_2@0)
+ (not
+  (=
+   (+
+    top.res.inst_intloopcounter_l20c7_intloopcounter.impl.usr.time_1@0
+    (- 3))
+   0))
+ (not true))
+with unsat core to
+(or
+ (not top.res.inst_greycounter_l19c7_greycounter.impl.usr.a_2@0)
+ (not
+  (=
+   (+
+    top.res.inst_intloopcounter_l20c7_intloopcounter.impl.usr.time_1@0
+    (- 3))
+   0)))
+ind-gen literal frequency priority for clause #4:
+original: {
+(not top.res.inst_greycounter_l19c7_greycounter.impl.usr.a_2@0) [freq=0.000, ast=2]
+(not
+ (=
+  (+
+   top.res.inst_intloopcounter_l20c7_intloopcounter.impl.usr.time_1@0
+   (- 3))
+  0)) [freq=0.000, ast=7]
+}
+reordered by freq+ast-asc: {
+(not top.res.inst_greycounter_l19c7_greycounter.impl.usr.a_2@0) [freq=0.000, ast=2]
+(not
+ (=
+  (+
+   top.res.inst_intloopcounter_l20c7_intloopcounter.impl.usr.time_1@0
+   (- 3))
+  0)) [freq=0.000, ast=7]
+}
+ Starting new process property directed reachability (QE) with PID 296631
+
+ Message received from property directed reachability (QE): Property InvProp[L23C3] true for 0 steps
+
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #4:
+#5 {(not
+     (=
+      (+
+       top.res.inst_intloopcounter_l20c7_intloopcounter.impl.usr.time_1@0
+       (- 3))
+      0))}
+block: Reduced clause
+(or
+ (not top.res.inst_greycounter_l19c7_greycounter.impl.usr.a_2@0)
+ (not
+  (=
+   (+
+    top.res.inst_intloopcounter_l20c7_intloopcounter.impl.usr.time_1@0
+    (- 3))
+   0)))
+with ind. gen. to
+(not
+ (=
+  (+
+   top.res.inst_intloopcounter_l20c7_intloopcounter.impl.usr.time_1@0
+   (- 3))
+  0))
+check_frames: frames k to 1
+
+Frame:
+5
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#6 {top.res.inst_greycounter_l19c7_greycounter.impl.usr.b_2@0;
+    (not top.usr.OK@0);
+    (=
+     (+
+      top.res.inst_intloopcounter_l20c7_intloopcounter.impl.usr.time_1@0
+      (- 3))
+     0);
+    (not top.res.inst_greycounter_l19c7_greycounter.impl.usr.a_2@0)}
+block: Is blocking clause relative inductive to R_0?
+~P reachable from I: 6, 3
+extract_cex_path: extracting concrete counterexample trace.
+ IC3QE main loop at k=1
+
+ Message received from property directed reachability (QE): Property InvProp[L23C3] true for 1 steps
+
+ Property InvProp[L23C3] disproved by IC3QE
+
+ Message received from property directed reachability (QE): Property InvProp[L23C3] false at step 2
+
+<Failure> Property InvProp[L23C3] is invalid by property directed reachability (QE) for k=2 after 0.042s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    x  ff ff ff
+    == Outputs ==
+    OK tt tt ff
+    == Locals ==
+    b  ff ff tt
+    d  ff ff ff
+    
+  Node intloopcounter (top[L20C7])
+    == Mode(s) ==
+    
+    == Inputs ==
+    x    ff ff ff
+    == Outputs ==
+    out  ff ff ff
+    == Locals ==
+    time  0 -1 -2
+    
+  Node greycounter (top[L19C7])
+    == Mode(s) ==
+    
+    == Inputs ==
+    x   ff ff ff
+    == Outputs ==
+    out ff ff tt
+    == Locals ==
+    a   ff tt tt
+    b   ff ff tt
+    
+  
+ <Done> All properties proved or disproved in 0.085s.
+        Waiting for children to terminate.
+
+ Child process 296631 (property directed reachability (QE)) exited with return code 0
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.076
+Analysis time       : 0.032
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 17
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 38
+Stale activation literals                 : 16
+Total time                                : 0.029
+Forward propagation time                  : 0.001
+Frame strengthening time                  : 0.015
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.002
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.004
+check-sat calls     : 17
+get-value time      : 0.002
+get-value calls     : 5
+get-unsat-core time : 0.000
+get-unsat-core calls: 2
+
+ Process 296631 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.076
+Analysis time       : 0.032
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 17
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 38
+Stale activation literals                 : 16
+Total time                                : 0.029
+Forward propagation time                  : 0.001
+Frame strengthening time                  : 0.015
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.002
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.004
+check-sat calls     : 17
+get-value time      : 0.002
+get-value calls     : 5
+get-unsat-core time : 0.000
+get-unsat-core calls: 2
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L23C3]: invalid after 2 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: intloopcounter, greycounter
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L23C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/misc/two_counters_e3_325.lus:23:3
+         
+         
+

@@ -1,0 +1,66 @@
+{
+  "name": "eq_can_freq_ast_asc_all786_timeout300_paper_artifact_clean",
+  "binary": {
+    "path": "/home/artifact/kind2-exp/OrderIC3_Auto/runs/eq_can_freq_ast_asc_all786_timeout300_paper_artifact_clean/bin/kind2",
+    "repo": "/home/artifact/kind2-3.0.0-OrderIC3",
+    "ic3_source_path": "/home/artifact/kind2-exp/OrderIC3_Auto/runs/20260812_113911_int93_skipped_four_strategies_timeout300/source_snapshot/IC3.ml"
+  },
+  "dataset": {
+    "path_file": "/home/artifact/kind2-exp/OrderIC3_Auto/datasets/lus_path_907_int_786.txt",
+    "root": "/home/artifact/kind2-exp/kind2-benchmark"
+  },
+  "baseline": "base",
+  "reuse_variants": {},
+  "run": {
+    "timeout_seconds": 300,
+    "max_workers": 1,
+    "cleanup_kind2_between_variants": true,
+    "common_args": [
+      "--enable",
+      "IC3QE",
+      "-vv",
+      "--color",
+      "false",
+      "--timeout",
+      "300"
+    ],
+    "metrics": [
+      "frame_sizes",
+      "total_time",
+      "k",
+      "solver"
+    ]
+  },
+  "variants": [
+    {
+      "name": "base",
+      "args": []
+    },
+    {
+      "name": "eq_can_only",
+      "args": [
+        "--ic3qe_ge_eq_can"
+      ]
+    },
+    {
+      "name": "freq_ast_asc",
+      "args": [
+        "--ic3qe_freq_sort",
+        "--ic3qe_ast_complexity",
+        "--ic3qe_ast_complexity_order",
+        "asc"
+      ]
+    },
+    {
+      "name": "eq_can_freq_ast_asc",
+      "args": [
+        "--ic3qe_ge_eq_can",
+        "--ic3qe_freq_sort",
+        "--ic3qe_ast_complexity",
+        "--ic3qe_ast_complexity_order",
+        "asc"
+      ]
+    }
+  ],
+  "artifact_source_run_id": "eq_can_freq_ast_asc_all786_timeout300_rerun"
+}

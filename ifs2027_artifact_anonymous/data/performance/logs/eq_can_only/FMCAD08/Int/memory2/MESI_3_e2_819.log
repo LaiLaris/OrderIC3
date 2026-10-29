@@ -1,0 +1,246 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MESI_3_e2_819.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MESI_3_e2_819.lus:23:16: 
+          Unguarded pre in expression (pre invalid_me)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MESI_3_e2_819.lus:24:16: 
+          Unguarded pre in expression (pre exclusive_me)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MESI_3_e2_819.lus:25:16: 
+          Unguarded pre in expression (pre shared_me)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MESI_3_e2_819.lus:26:16: 
+          Unguarded pre in expression (pre invalid_me)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: mesi, excludes4, Sofar, Abs
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+ Starting new process property directed reachability (QE) with PID 64287
+
+ Message received from property directed reachability (QE): Property InvProp[L62C3] true for 0 steps
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.078
+Analysis time       : 0.026
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 2
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 4
+Stale activation literals                 : 0
+Total time                                : 0.023
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.005
+check-sat calls     : 2
+get-value time      : 0.001
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+ Message received from property directed reachability (QE): Property InvProp[L62C3] false at step 1
+
+<Failure> Property InvProp[L62C3] is invalid by property directed reachability (QE) for k=1 after 0.042s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    etat_me1     ff tt
+    etat_me2     ff ff
+    etat_me3     ff ff
+    etat_me4     ff ff
+    == Outputs ==
+    OK           tt ff
+    == Locals ==
+    env          tt tt
+    modified_me   0  0
+    exclusive_me  0  0
+    shared_me     0 -2
+    invalid_me    3  2
+    
+  Node Abs (top[L60C33])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X   3 2
+    == Outputs ==
+    Abs 3 2
+    
+  Node Abs (top[L60C18])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X    0 -2
+    == Outputs ==
+    Abs  0  2
+    
+  Node Abs (top[L59C35])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X   0 0
+    == Outputs ==
+    Abs 0 0
+    
+  Node mesi (top[L57C9])
+    == Mode(s) ==
+    
+    == Inputs ==
+    etat_me1     ff tt
+    etat_me2     ff ff
+    etat_me3     ff ff
+    etat_me4     ff ff
+    == Outputs ==
+    modified_me   0  0
+    exclusive_me  0  0
+    shared_me     0 -2
+    invalid_me    3  2
+    == Locals ==
+    garde_me1    ff tt
+    garde_me2    ff ff
+    garde_me3    ff ff
+    garde_me4    ff tt
+    
+  Node Abs (top[L59C18])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X   0 0
+    == Outputs ==
+    Abs 0 0
+    
+  Node excludes4 (top[L58C18])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X1       ff tt
+    X2       ff ff
+    X3       ff ff
+    X4       ff ff
+    == Outputs ==
+    excludes tt tt
+    
+  Node Sofar (top[L58C11])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     tt tt
+    == Outputs ==
+    Sofar tt tt
+    
+  
+ <Done> All properties proved or disproved in 0.094s.
+        Waiting for children to terminate.
+
+ Child process 64287 (property directed reachability (QE)) exited with return code 0
+
+ Process 64287 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.078
+Analysis time       : 0.026
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 2
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 4
+Stale activation literals                 : 0
+Total time                                : 0.023
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.005
+check-sat calls     : 2
+get-value time      : 0.001
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L62C3]: invalid after 1 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: mesi, excludes4, Sofar, Abs
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L62C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MESI_3_e2_819.lus:62:3
+         
+         
+

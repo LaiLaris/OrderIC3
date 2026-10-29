@@ -1,0 +1,355 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MOESI_2_e2_1599_e3_1658.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MOESI_2_e2_1599_e3_1658.lus:18:16: 
+          Unguarded pre in expression (pre invalid_mo)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MOESI_2_e2_1599_e3_1658.lus:19:16: 
+          Unguarded pre in expression (pre exclusive_mo)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MOESI_2_e2_1599_e3_1658.lus:20:16: 
+          Unguarded pre in expression (pre shared_mo)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MOESI_2_e2_1599_e3_1658.lus:20:34: 
+          Unguarded pre in expression (pre owned_mo)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MOESI_2_e2_1599_e3_1658.lus:21:16: 
+          Unguarded pre in expression (pre invalid_mo)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: moesi, excludes4, Sofar
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#4 {(not top.usr.OK@0);
+    (=
+     (+
+      (* (- 1) top.res.2.call_6_0@0)
+      (* (- 1) top.res.2.call_6_1@0)
+      (* (- 1) top.res.2.call_6_2@0)
+      (* (- 1) top.res.2.call_6_3@0)
+      (* (- 1) top.res.2.call_6_4@0)
+      (* 1 top.res.glocal_9@0)
+      0)
+     0);
+    (not top.res.call_8@0);
+    (not
+     (> (+ (* 1 top.res.2.call_6_2@0) (* 1 top.res.2.call_6_4@0) (- 1)) 0));
+    (not (> 1 0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (not top.usr.OK@0)
+ (=
+  (+
+   (* (- 1) top.res.2.call_6_0@0)
+   (* (- 1) top.res.2.call_6_1@0)
+   (* (- 1) top.res.2.call_6_2@0)
+   (* (- 1) top.res.2.call_6_3@0)
+   (* (- 1) top.res.2.call_6_4@0)
+   (* 1 top.res.glocal_9@0)
+   0)
+  0)
+ (not top.res.call_8@0)
+ (not (> (+ (* 1 top.res.2.call_6_2@0) (* 1 top.res.2.call_6_4@0) (- 1)) 0))
+ (not (> 1 0)))
+with unsat core to
+(or
+ (not (> (+ (* 1 top.res.2.call_6_2@0) (* 1 top.res.2.call_6_4@0) (- 1)) 0))
+ (=
+  (+
+   (* (- 1) top.res.2.call_6_0@0)
+   (* (- 1) top.res.2.call_6_1@0)
+   (* (- 1) top.res.2.call_6_2@0)
+   (* (- 1) top.res.2.call_6_3@0)
+   (* (- 1) top.res.2.call_6_4@0)
+   (* 1 top.res.glocal_9@0)
+   0)
+  0))
+ind_generalize: Dropped 4 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #4:
+#5 {(=
+     (+
+      (* (- 1) top.res.2.call_6_0@0)
+      (* (- 1) top.res.2.call_6_1@0)
+      (* (- 1) top.res.2.call_6_2@0)
+      (* (- 1) top.res.2.call_6_3@0)
+      (* (- 1) top.res.2.call_6_4@0)
+      (* 1 top.res.glocal_9@0)
+      0)
+     0)}
+block: Reduced clause
+(or
+ (not (> (+ (* 1 top.res.2.call_6_2@0) (* 1 top.res.2.call_6_4@0) (- 1)) 0))
+ (=
+  (+
+   (* (- 1) top.res.2.call_6_0@0)
+   (* (- 1) top.res.2.call_6_1@0)
+   (* (- 1) top.res.2.call_6_2@0)
+   (* (- 1) top.res.2.call_6_3@0)
+   (* (- 1) top.res.2.call_6_4@0)
+   (* 1 top.res.glocal_9@0)
+   0)
+  0))
+with ind. gen. to
+(=
+ (+
+  (* (- 1) top.res.2.call_6_0@0)
+  (* (- 1) top.res.2.call_6_1@0)
+  (* (- 1) top.res.2.call_6_2@0)
+  (* (- 1) top.res.2.call_6_3@0)
+  (* (- 1) top.res.2.call_6_4@0)
+  (* 1 top.res.glocal_9@0)
+  0)
+ 0)
+check_frames: frames k to 1
+
+Frame:
+5
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#6 {(not top.usr.OK@0);
+    (not top.res.call_8@0);
+    (=
+     (+
+      (* (- 1) top.res.2.call_6_0@0)
+      (* 1 top.res.2.call_6_1@0)
+      (* (- 1) top.res.2.call_6_2@0)
+      (* (- 1) top.res.2.call_6_3@0)
+      (* (- 1) top.res.2.call_6_4@0)
+      (* 1 top.res.glocal_9@0))
+     0);
+    (not (> (* 1 top.res.2.call_6_3@0) 0));
+    (not (> 2 0));
+    (not
+     (=
+      (+
+       (* 1 top.res.2.call_6_0@0)
+       (* 1 top.res.2.call_6_1@0)
+       (* 1 top.res.2.call_6_2@0)
+       (* 1 top.res.2.call_6_3@0)
+       (* 1 top.res.2.call_6_4@0)
+       (* (- 1) top.res.glocal_9@0))
+      0))}
+block: Is blocking clause relative inductive to R_0?
+~P reachable from I: 6, 3
+extract_cex_path: extracting concrete counterexample trace.
+ Starting new process property directed reachability (QE) with PID 43608
+
+ Message received from property directed reachability (QE): Property InvProp[L64C3] true for 0 steps
+
+ IC3QE main loop at k=1
+
+ Message received from property directed reachability (QE): Property InvProp[L64C3] true for 1 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L64C3] false at step 2
+
+<Failure> Property InvProp[L64C3] is invalid by property directed reachability (QE) for k=2 after 0.051s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    init_invalid_mo  5  0  0
+    etat_mo1        ff ff tt
+    etat_mo2        ff ff ff
+    etat_mo3        tt ff ff
+    etat_mo4        ff tt ff
+    == Outputs ==
+    OK              tt tt ff
+    == Locals ==
+    modified_mo      0  0  0
+    exclusive_mo     0  1  0
+    shared_mo        0  0  0
+    invalid_mo       5  4  3
+    owned_mo         0  0  0
+    env             tt tt tt
+    
+  Node excludes4 (top[L59C18])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X1       ff ff tt
+    X2       ff ff ff
+    X3       tt ff ff
+    X4       ff tt ff
+    == Outputs ==
+    excludes tt tt tt
+    
+  Node Sofar (top[L59C11])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     tt tt tt
+    == Outputs ==
+    Sofar tt tt tt
+    
+  Node moesi (top[L58C9])
+    == Mode(s) ==
+    
+    == Inputs ==
+    init_invalid_mo  5  0  0
+    etat_mo1        ff ff tt
+    etat_mo2        ff ff ff
+    etat_mo3        tt ff ff
+    etat_mo4        ff tt ff
+    == Outputs ==
+    modified_mo      0  0  0
+    exclusive_mo     0  1  0
+    shared_mo        0  0  0
+    invalid_mo       5  4  3
+    owned_mo         0  0  0
+    erreur_mo       ff ff ff
+    == Locals ==
+    garde_mo1       ff tt tt
+    garde_mo2       ff ff tt
+    garde_mo3       ff ff ff
+    garde_mo4       ff tt tt
+    
+  
+ <Done> All properties proved or disproved in 0.090s.
+        Waiting for children to terminate.
+
+ Child process 43608 (property directed reachability (QE)) exited with return code 0
+
+ Property InvProp[L64C3] disproved by IC3QE
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.072
+Analysis time       : 0.032
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 17
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 42
+Stale activation literals                 : 16
+Total time                                : 0.030
+Forward propagation time                  : 0.001
+Frame strengthening time                  : 0.018
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.002
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.005
+check-sat calls     : 17
+get-value time      : 0.002
+get-value calls     : 5
+get-unsat-core time : 0.000
+get-unsat-core calls: 2
+
+ Process 43608 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.072
+Analysis time       : 0.032
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 0
+Solver                                    : 17
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 42
+Stale activation literals                 : 16
+Total time                                : 0.030
+Forward propagation time                  : 0.001
+Frame strengthening time                  : 0.018
+Generalization time                       : 0.001
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.002
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.005
+check-sat calls     : 17
+get-value time      : 0.002
+get-value calls     : 5
+get-unsat-core time : 0.000
+get-unsat-core calls: 2
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L64C3]: invalid after 2 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: moesi, excludes4, Sofar
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L64C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/MOESI_2_e2_1599_e3_1658.lus:64:3
+         
+         
+

@@ -1,0 +1,649 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave28.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave28.lus:241:24: 
+          Unguarded pre in expression (pre rlt__Arrow)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave28.lus:293:25: 
+          Unguarded pre in expression (pre rlt__Arrow1)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave28.lus:295:25: 
+          Unguarded pre in expression (pre rlt__Arrow2)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave28.lus:305:25: 
+          Unguarded pre in expression (pre rlt__Arrow3)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave28.lus:308:25: 
+          Unguarded pre in expression (pre rlt__Arrow4)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave28.lus:816:25: 
+          Unguarded pre in expression (pre rlt__Arrow5)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top' (no subsystems)
+
+ 4 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+ Starting new process property directed reachability (QE) with PID 18304
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 0 steps
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 0 steps
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L1285C3] true for 0 steps
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 1 steps
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 1 steps
+
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+ IC3QE main loop at k=1
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 1 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L1285C3] true for 1 steps
+
+ Problem contains real or machine integer valued variables, switching off approximate QE
+
+ Restarting IC3QE with properties SubRange[L17C1] SubRange[L17C1] SubRange[L17C1] InvProp[L1285C3]
+
+ IC3QE main loop at k=1
+
+Declaring state variables: top.usr.KP_START@0, top.usr.KP_CLEAR@0, top.usr.KP_0@0, top.usr.KP_1@0,
+top.usr.KP_2@0, top.usr.KP_3@0, top.usr.KP_4@0, top.usr.KP_5@0,
+top.usr.KP_6@0, top.usr.KP_7@0, top.usr.KP_8@0, top.usr.KP_9@0,
+top.usr.DOOR_CLOSED@0, top.res.oracle_4, top.res.oracle_5, top.res.oracle_6,
+top.res.oracle_7, top.res.oracle_8, top.res.oracle_9, top.usr.OK@0,
+top.res.init_flag@0, top.impl.usr.STEPS_TO_COOK@0,
+top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0,
+top.impl.usr.KP_01@0, top.impl.usr.KP_11@0, top.impl.usr.KP_21@0,
+top.impl.usr.KP_31@0, top.impl.usr.KP_41@0, top.impl.usr.KP_51@0,
+top.impl.usr.KP_61@0, top.impl.usr.KP_71@0, top.impl.usr.KP_81@0,
+top.impl.usr.KP_91@0,
+top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step@0,
+top.impl.usr.microwave_microwave_KEYPAD_PROCESSING_DISPLAY_LEFT_DIGIT_DIGIT_TO_DISPLAY@0,
+top.impl.usr.microwave_microwave_KEYPAD_PROCESSING_DISPLAY_MIDDLE_DIGIT_DIGIT_TO_DISPLAY@0,
+top.impl.usr.microwave_microwave_KEYPAD_PROCESSING_DISPLAY_RIGHT_DIGIT_DIGIT_TO_DISPLAY@0,
+top.impl.usr.chart_microwave_mode_logic____wakeup___@0,
+top.impl.usr.chart_microwave_mode_logic_rlt_evtInitStep@0,
+top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0,
+top.impl.usr.chart_microwave_mode_logic_mode@0,
+top.impl.usr.chart_microwave_mode_logic_steps_remaining@0,
+top.impl.usr.microwave_microwave_mode_logic_mode@0, top.res.subrange_1@0,
+top.res.subrange_2@0,
+top.res.subrange_3@0
+
+Defining predicates
+New clause at frontier:
+#5 {(= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0);
+    (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4);
+    (let
+     ((X1
+       (div
+        (+
+         top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+         (*
+          (- 60)
+          (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+        10)))
+     (let
+      ((X2
+        (=
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60))
+          (* (- 10) X1))
+         0)))
+      X2));
+    (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+    (not top.res.subrange_3@0);
+    (not top.res.subrange_2@0);
+    (not top.res.subrange_1@0);
+    (not top.usr.OK@0);
+    (not
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3));
+    (not (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0));
+    (not
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      2));
+    (not
+     (>=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      1))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)
+ (let
+  ((X1
+    (div
+     (+
+      top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+      (*
+       (- 60)
+       (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+     10)))
+  (let
+   ((X2
+     (=
+      (+
+       top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+       (*
+        (- 60)
+        (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60))
+       (* (- 10) X1))
+      0)))
+   X2))
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ (not (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2))
+ (not
+  (>= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 1)))
+with unsat core to
+(or
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2))
+ (not (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)))
+ind-gen literal frequency priority for clause #5:
+original: {
+(not
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)) [freq=0.000, ast=4]
+(not top.impl.usr.chart_microwave_mode_logic____wakeup___@0) [freq=0.000, ast=2]
+(not
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2)) [freq=0.000, ast=4]
+(not (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)) [freq=0.000, ast=4]
+}
+reordered by freq+ast-asc: {
+(not top.impl.usr.chart_microwave_mode_logic____wakeup___@0) [freq=0.000, ast=2]
+(not
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)) [freq=0.000, ast=4]
+(not
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2)) [freq=0.000, ast=4]
+(not (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)) [freq=0.000, ast=4]
+}
+ind_generalize: Dropped 10 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #5:
+#6 {(not (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0));
+    (not
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      2))}
+block: Reduced clause
+(or
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2))
+ (not (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)))
+with ind. gen. to
+(or
+ (not (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2)))
+check_frames: frames k to 1
+
+Frame:
+6
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#7 {(= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0);
+    (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4);
+    (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0);
+    (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+    (not top.res.subrange_3@0);
+    (not top.res.subrange_2@0);
+    (not top.res.subrange_1@0);
+    (not top.usr.OK@0);
+    (not
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3));
+    (not
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      2));
+    (not
+     (>=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      1));
+    (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3);
+    (let
+     ((X1
+       (+
+        (- 1)
+        top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+        (*
+         (- 60)
+         (div
+          (+ (- 1) top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+          60)))))
+     (let
+      ((X2
+        (+
+         top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+         (*
+          (- 60)
+          (div
+           (+
+            (- 1)
+            top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+           60))
+         (* (- 10) (div X1 10)))))
+      (= X2 1)))}
+block: Is blocking clause relative inductive to R_0?
+~P reachable from I: 7, 4
+extract_cex_path: extracting concrete counterexample trace.
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+ Property SubRange[L17C1] not disproved by IC3QE
+
+ Property SubRange[L17C1] not disproved by IC3QE
+
+ Property SubRange[L17C1] not disproved by IC3QE
+
+ Property InvProp[L1285C3] disproved by IC3QE
+
+ Restarting IC3QE with properties SubRange[L17C1] SubRange[L17C1] SubRange[L17C1]
+
+ Message received from property directed reachability (QE): Property InvProp[L1285C3] false at step 2
+
+<Failure> Property InvProp[L1285C3] is invalid by property directed reachability (QE) for k=2 after 0.374s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    KP_START                                                                    ff
+                                                                    tt tt
+    KP_CLEAR                                                                    tt
+                                                                    ff ff
+    KP_0                                                                        ff
+                                                                    ff ff
+    KP_1                                                                        ff
+                                                                    ff tt
+    KP_2                                                                        ff
+                                                                    tt ff
+    KP_3                                                                        ff
+                                                                    tt tt
+    KP_4                                                                        ff
+                                                                    tt tt
+    KP_5                                                                        ff
+                                                                    tt tt
+    KP_6                                                                        tt
+                                                                    tt tt
+    KP_7                                                                        tt
+                                                                    tt tt
+    KP_8                                                                        ff
+                                                                    tt tt
+    KP_9                                                                        ff
+                                                                    tt tt
+    DOOR_CLOSED                                                                 ff
+                                                                    tt tt
+    == Outputs ==
+    OK                                                                          tt
+                                                                    tt ff
+    == Locals ==
+    RIGHT_DIGIT                                                                  0
+                                                                     2  1
+    microwave_microwave_TIME_ON_DISPLAY_SECONDS_TO_TENS__REMAINDER               0
+                                                                     2  1
+    chart_microwave_mode_logic_steps_remaining                                   0
+                                                                     2  1
+    chart_microwave_mode_logic____wakeup___                                     tt
+                                                                    tt tt
+    rlt_eval_microwave_mode_logic_ON_rlt_state_6_outports_steps_remaining        0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_fired_4                                ff
+                                                                    ff ff
+    chart_microwave_mode_logic_clear_off                                         1
+                                                                     0  0
+    CLEAR_PRESSED                                                               tt
+                                                                    ff ff
+    rlt_eval_microwave_mode_logic_ON_rlt_complete_1                             ff
+                                                                    ff ff
+    rlt_eval_microwave_mode_logic_ON_rlt_fired_1                                ff
+                                                                    ff ff
+    rlt_eval_microwave_mode_logic_rlt_state_1_outports_steps_remaining           0
+                                                                     2  2
+    STEPS_TO_COOK                                                                0
+                                                                     2  0
+    rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock            tt
+                                                                    tt ff
+    enable                                                                      tt
+                                                                    tt ff
+    microwave_microwave_mode_logic_mode                                          1
+                                                                     2  2
+    chart_microwave_mode_logic_mode                                              1
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_fired_6                                ff
+                                                                    ff ff
+    chart_microwave_mode_logic_door_closed                                       0
+                                                                     1  1
+    rlt_eval_microwave_mode_logic_ON_rlt_complete_2                             ff
+                                                                    ff ff
+    rlt_eval_microwave_mode_logic_ON_rlt_fired_5                                ff
+                                                                    tt tt
+    rlt_eval_microwave_mode_logic_ON_rlt_state_7_states___root                   0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_state_6_states___root                   0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_state_4_states___root                   0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_fired_2                                ff
+                                                                    ff ff
+    chart_microwave_mode_logic_start                                             0
+                                                                     1  0
+    START_PRESSED                                                               ff
+                                                                    tt ff
+    rlt_eval_microwave_mode_logic_ON_rlt_state_2_states___root                   0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_state_1_states___root                   0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_rlt_state_3_states___root                      0
+                                                                     2  2
+    rlt_enter_microwave_mode_logic_ON_rlt_state_4_states___root                  3
+                                                                     2  2
+    rlt_enter_microwave_mode_logic_ON_rlt_state_2_states___root                  1
+                                                                     2  2
+    rlt_enter_microwave_mode_logic_ON_rlt_state_1_states___root                  1
+                                                                     1  2
+    rlt_eval_microwave_mode_logic_rlt_state_2_states___root                      0
+                                                                     0  2
+    rlt_eval_microwave_mode_logic_rlt_fired_1                                   ff
+                                                                    tt ff
+    rlt_eval_microwave_mode_logic_rlt_fired_0                                   ff
+                                                                    tt ff
+    chart_microwave_mode_logic_begin_state_states___root                         0
+                                                                     4  2
+    chart_microwave_mode_logic_final_state_states___root                         4
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_state_11_states___root                  0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_state_10_states___root                  0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_state_9_states___root                   0
+                                                                     1  1
+    rlt_enter_microwave_mode_logic_rlt_state_2_states___root                     4
+                                                                     4  4
+    chart_microwave_mode_logic_rlt_evtInitStep                                  tt
+                                                                    ff ff
+    rlt_enter_microwave_mode_logic_ON_rlt_fired_1                               ff
+                                                                    tt ff
+    rlt_enter_microwave_mode_logic_ON_rlt_fired_0                               tt
+                                                                    tt ff
+    rlt_enter_microwave_mode_logic_ON_rlt_fired_2                               tt
+                                                                    ff ff
+    rlt_eval_microwave_mode_logic_ON_rlt_state_3_states___root                   0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_state_11_outports_mode                  0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_state_8_outports_mode                   0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_state_4_outports_mode                   0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_ON_rlt_state_3_outports_mode                   0
+                                                                     2  2
+    rlt_eval_microwave_mode_logic_rlt_state_3_outports_mode                      0
+                                                                     2  2
+    rlt_enter_microwave_mode_logic_ON_rlt_state_2_outports_mode                  0
+                                                                     2  2
+    chart_microwave_mode_logic_begin_state_outports_mode                         0
+                                                                     1  2
+    rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step        tt
+                                                                    ff tt
+    microwave_microwave_KEYPAD_PROCESSING_DISPLAY_LEFT_DIGIT_DIGIT_TO_DISPLAY    0
+                                                                     0  0
+    KP_01                                                                       ff
+                                                                    ff ff
+    KP_11                                                                       ff
+                                                                    ff tt
+    KP_21                                                                       ff
+                                                                    tt ff
+    KP_31                                                                       ff
+                                                                    tt tt
+    KP_41                                                                       ff
+                                                                    tt tt
+    KP_51                                                                       ff
+                                                                    tt tt
+    KP_61                                                                       tt
+                                                                    tt tt
+    KP_71                                                                       tt
+                                                                    tt tt
+    KP_81                                                                       ff
+                                                                    tt tt
+    KP_91                                                                       ff
+                                                                    tt tt
+    microwave_microwave_KEYPAD_PROCESSING_DISPLAY_MIDDLE_DIGIT_DIGIT_TO_DISPLAY  0
+                                                                     0  0
+    microwave_microwave_KEYPAD_PROCESSING_DISPLAY_RIGHT_DIGIT_DIGIT_TO_DISPLAY   0
+                                                                     2  2
+    chart_microwave_mode_logic_begin_state_outports_steps_remaining              0
+                                                                     0  2
+    
+  
+ <Done> All properties proved or disproved in 0.452s.
+        Waiting for children to terminate.
+
+ Child process 18304 (property directed reachability (QE)) exited with return code 0
+
+ IC3QE main loop at k=1
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.440
+Analysis time       : 0.362
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 2
+Solver                                    : 28
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 88
+Stale activation literals                 : 41
+Total time                                : 0.360
+Forward propagation time                  : 0.007
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.084
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.006
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.025
+check-sat calls     : 28
+get-value time      : 0.004
+get-value calls     : 6
+get-unsat-core time : 0.000
+get-unsat-core calls: 2
+
+ IC3QE main loop at k=2
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.450
+Analysis time       : 0.371
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 2
+Solver                                    : 35
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 94
+Stale activation literals                 : 44
+Total time                                : 0.369
+Forward propagation time                  : 0.013
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.084
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.006
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.027
+check-sat calls     : 35
+get-value time      : 0.004
+get-value calls     : 6
+get-unsat-core time : 0.000
+get-unsat-core calls: 2
+
+ Process 18304 terminating
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] invariant (1-inductive)
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] invariant (1-inductive)
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] invariant (1-inductive)
+
+<Success> Generated candidate property SubRange[L17C1] is valid by property directed reachability (QE) after 0.482s.
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.450
+Analysis time       : 0.371
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 2
+Solver                                    : 35
+Frame sizes                               : 0
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 0
+Activation literals                       : 94
+Stale activation literals                 : 44
+Total time                                : 0.369
+Forward propagation time                  : 0.013
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.084
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.006
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.027
+check-sat calls     : 35
+get-value time      : 0.004
+get-value calls     : 6
+get-unsat-core time : 0.000
+get-unsat-core calls: 2
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L1285C3]: invalid after 2 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top' (no subsystems)
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L1285C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave28.lus:1285:3
+         
+         
+

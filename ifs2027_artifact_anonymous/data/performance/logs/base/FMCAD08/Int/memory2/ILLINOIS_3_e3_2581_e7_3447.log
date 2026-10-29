@@ -1,0 +1,277 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:28:9: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:28:28: 
+          Unguarded pre in expression (pre dirty)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:28:44: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:28:61: 
+          Unguarded pre in expression (pre exclusive)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:29:9: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:29:28: 
+          Unguarded pre in expression (pre dirty)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:30:9: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:30:28: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:30:39: 
+          Unguarded pre in expression (pre exclusive)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:31:9: 
+          Unguarded pre in expression (pre exclusive)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:32:9: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:33:9: 
+          Unguarded pre in expression (pre invalid)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:34:9: 
+          Unguarded pre in expression (pre dirty)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:35:9: 
+          Unguarded pre in expression (pre shared)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:36:9: 
+          Unguarded pre in expression (pre exclusive)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: illinois, excludes9, Sofar, First
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+ Starting new process property directed reachability (QE) with PID 44189
+
+ Message received from property directed reachability (QE): Property InvProp[L80C3] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L80C3] false at step 1
+
+<Failure> Property InvProp[L80C3] is invalid by property directed reachability (QE) for k=1 after 0.041s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    e1           tt tt
+    e2           ff ff
+    e3           ff ff
+    e4           ff ff
+    e5           ff ff
+    e6           ff ff
+    e7           ff ff
+    e8           ff ff
+    e9           ff ff
+    init_invalid  0  1
+    == Outputs ==
+    OK           tt ff
+    == Locals ==
+    invalid       1  0
+    dirty         0  0
+    exclusive     0  1
+    shared        0  0
+    env          ff tt
+    
+  Node First (top[L78C56])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     0 1
+    == Outputs ==
+    First 0 0
+    
+  Node excludes9 (top[L76C18])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X1       tt tt
+    X2       ff ff
+    X3       ff ff
+    X4       ff ff
+    X5       ff ff
+    X6       ff ff
+    X7       ff ff
+    X8       ff ff
+    X9       ff ff
+    == Outputs ==
+    excludes tt tt
+    
+  Node Sofar (top[L76C11])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     ff tt
+    == Outputs ==
+    Sofar ff tt
+    
+  Node illinois (top[L75C9])
+    == Mode(s) ==
+    
+    == Inputs ==
+    e1           tt tt
+    e2           ff ff
+    e3           ff ff
+    e4           ff ff
+    e5           ff ff
+    e6           ff ff
+    e7           ff ff
+    e8           ff ff
+    e9           ff ff
+    init_invalid  0  1
+    == Outputs ==
+    invalid       1  0
+    dirty         0  0
+    exclusive     0  1
+    shared        0  0
+    == Locals ==
+    g2           ff ff
+    g4           ff ff
+    g1           ff tt
+    g3           ff ff
+    g5           ff ff
+    g6           ff tt
+    g8           ff ff
+    g9           ff ff
+    g7           ff ff
+    
+  
+ <Done> All properties proved or disproved in 0.116s.
+        Waiting for children to terminate.
+
+ Child process 44189 (property directed reachability (QE)) exited with return code 0
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.097
+Analysis time       : 0.022
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 2
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 4
+Stale activation literals                 : 0
+Total time                                : 0.019
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.002
+check-sat calls     : 2
+get-value time      : 0.001
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+ Process 44189 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.097
+Analysis time       : 0.022
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 2
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 4
+Stale activation literals                 : 0
+Total time                                : 0.019
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.002
+check-sat calls     : 2
+get-value time      : 0.001
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L80C3]: invalid after 1 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: illinois, excludes9, Sofar, First
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L80C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/memory2/ILLINOIS_3_e3_2581_e7_3447.lus:80:3
+         
+         
+

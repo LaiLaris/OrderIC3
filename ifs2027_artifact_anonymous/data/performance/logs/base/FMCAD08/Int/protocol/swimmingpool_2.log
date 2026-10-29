@@ -1,0 +1,248 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/protocol/swimmingpool_2.lus'.
+
+ Lustre input detected
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top'
+             subsystems
+               | concrete: swimingpool, excludes6, Sofar, First
+
+ 1 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+ Starting new process property directed reachability (QE) with PID 26681
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.058
+Analysis time       : 0.015
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 2
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 4
+Stale activation literals                 : 0
+Total time                                : 0.013
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.001
+check-sat calls     : 2
+get-value time      : 0.000
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+ Message received from property directed reachability (QE): Property InvProp[L94C5] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L94C5] false at step 1
+
+<Failure> Property InvProp[L94C5] is invalid by property directed reachability (QE) for k=1 after 0.031s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    e1      ff tt
+    e2      ff ff
+    e3      ff ff
+    e4      ff ff
+    e5      ff ff
+    e6      ff ff
+    init_p1  1  0
+    init_p2  0  0
+    == Outputs ==
+    OK      tt ff
+    == Locals ==
+    x1       0  1
+    env     tt tt
+    
+  Node First (top[L92C85])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     0 0
+    == Outputs ==
+    First 0 0
+    
+  Node First (top[L92C59])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     1 0
+    == Outputs ==
+    First 1 1
+    
+  Node First (top[L92C40])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     0 0
+    == Outputs ==
+    First 0 0
+    
+  Node First (top[L92C16])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     1 0
+    == Outputs ==
+    First 1 1
+    
+  Node excludes6 (top[L91C18])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X1       ff tt
+    X2       ff ff
+    X3       ff ff
+    X4       ff ff
+    X5       ff ff
+    X6       ff ff
+    == Outputs ==
+    excludes tt tt
+    
+  Node Sofar (top[L91C11])
+    == Mode(s) ==
+    
+    == Inputs ==
+    X     tt tt
+    == Outputs ==
+    Sofar tt tt
+    
+  Node swimingpool (top[L90C9])
+    == Mode(s) ==
+    
+    == Inputs ==
+    e1      ff tt
+    e2      ff ff
+    e3      ff ff
+    e4      ff ff
+    e5      ff ff
+    e6      ff ff
+    init_p1  1  0
+    init_p2  0  0
+    == Outputs ==
+    x1       0  1
+    x2       0  0
+    x3       0  0
+    x4       0  0
+    x5       0  0
+    x6       1  0
+    x7       0  0
+    p1       1  1
+    p2       0  0
+    == Locals ==
+    g1      ff tt
+    g3      ff ff
+    g2      ff ff
+    g5      ff ff
+    g4      ff ff
+    g6      ff ff
+    
+  
+ <Done> All properties proved or disproved in 0.074s.
+        Waiting for children to terminate.
+
+ Child process 26681 (property directed reachability (QE)) exited with return code 0
+
+ Process 26681 terminating
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 0.058
+Analysis time       : 0.015
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 0
+Restarts                                  : 0
+Solver                                    : 2
+Frame sizes                               : 
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 4
+Stale activation literals                 : 0
+Total time                                : 0.013
+Forward propagation time                  : 0.000
+Frame strengthening time                  : 0.000
+Generalization time                       : 0.000
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.000
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.001
+check-sat calls     : 2
+get-value time      : 0.000
+get-value calls     : 1
+get-unsat-core time : 0.000
+get-unsat-core calls: 0
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L94C5]: invalid after 1 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top'
+                       subsystems
+                         | concrete: swimingpool, excludes6, Sofar, First
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L94C5]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/protocol/swimmingpool_2.lus:94:5
+         
+         
+

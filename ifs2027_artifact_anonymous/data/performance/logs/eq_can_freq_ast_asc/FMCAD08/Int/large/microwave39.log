@@ -1,0 +1,3172 @@
+ kind2 v3.0.0
+
+ Creating Input system from  input file '/home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave39.lus'.
+
+ Lustre input detected
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave39.lus:190:24: 
+          Unguarded pre in expression (pre rlt__Arrow)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave39.lus:229:25: 
+          Unguarded pre in expression (pre rlt__Arrow1)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave39.lus:231:25: 
+          Unguarded pre in expression (pre rlt__Arrow2)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave39.lus:238:25: 
+          Unguarded pre in expression (pre rlt__Arrow3)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave39.lus:241:25: 
+          Unguarded pre in expression (pre rlt__Arrow4)
+
+<Warning> Parser warning at /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave39.lus:738:25: 
+          Unguarded pre in expression (pre rlt__Arrow5)
+
+ Input System built
+
+ Running in parallel mode: - property directed reachability (QE)
+
+ Messaging initialized in supervisor.
+
+
+
+================================================================================
+Analyzing top
+  with First top: 'top' (no subsystems)
+
+ 4 properties.
+
+ Starting child processes.
+
+main: Declare state variables and define predicates
+main: Assert guarded initial state
+bmc_checks: Check for zero-step counterexample
+main: Assert unguarded transition relation
+bmc_checks: Check for one-step counterexample
+ Starting new process property directed reachability (QE) with PID 18618
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 0 steps
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 0 steps
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 0 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L1148C3] true for 0 steps
+
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+ IC3QE main loop at k=1
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 1 steps
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 1 steps
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] true for 1 steps
+
+ Message received from property directed reachability (QE): Property InvProp[L1148C3] true for 1 steps
+
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+ Problem contains real or machine integer valued variables, switching off approximate QE
+
+ Restarting IC3QE with properties SubRange[L17C1] SubRange[L17C1] SubRange[L17C1] InvProp[L1148C3]
+
+ IC3QE main loop at k=1
+
+Declaring state variables: top.usr.KP_START@0, top.usr.KP_CLEAR@0, top.usr.KP_0@0, top.usr.KP_1@0,
+top.usr.KP_2@0, top.usr.KP_3@0, top.usr.KP_4@0, top.usr.KP_5@0,
+top.usr.KP_6@0, top.usr.KP_7@0, top.usr.KP_8@0, top.usr.KP_9@0,
+top.usr.DOOR_CLOSED@0, top.res.oracle_4, top.res.oracle_5, top.res.oracle_6,
+top.res.oracle_7, top.res.oracle_8, top.res.oracle_9, top.usr.OK@0,
+top.res.init_flag@0, top.impl.usr.STEPS_TO_COOK@0,
+top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0,
+top.impl.usr.KP_01@0, top.impl.usr.KP_11@0, top.impl.usr.KP_21@0,
+top.impl.usr.KP_31@0, top.impl.usr.KP_41@0, top.impl.usr.KP_51@0,
+top.impl.usr.KP_61@0, top.impl.usr.KP_71@0, top.impl.usr.KP_81@0,
+top.impl.usr.KP_91@0,
+top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step@0,
+top.impl.usr.microwave_microwave_KEYPAD_PROCESSING_DISPLAY_LEFT_DIGIT_DIGIT_TO_DISPLAY@0,
+top.impl.usr.microwave_microwave_KEYPAD_PROCESSING_DISPLAY_MIDDLE_DIGIT_DIGIT_TO_DISPLAY@0,
+top.impl.usr.microwave_microwave_KEYPAD_PROCESSING_DISPLAY_RIGHT_DIGIT_DIGIT_TO_DISPLAY@0,
+top.impl.usr.chart_microwave_mode_logic____wakeup___@0,
+top.impl.usr.chart_microwave_mode_logic_rlt_evtInitStep@0,
+top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0,
+top.impl.usr.chart_microwave_mode_logic_mode@0,
+top.impl.usr.chart_microwave_mode_logic_steps_remaining@0,
+top.impl.usr.microwave_microwave_mode_logic_mode@0, top.res.subrange_1@0,
+top.res.subrange_2@0,
+top.res.subrange_3@0
+
+Defining predicates
+New clause at frontier:
+#5 {top.usr.KP_START@0;
+    top.usr.KP_9@0;
+    top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0;
+    (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4);
+    (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2);
+    (let
+     ((X1
+       (div
+        (+
+         top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+         (*
+          (- 60)
+          (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+        10)))
+     (let
+      ((X2
+        (=
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60))
+          (* (- 10) X1))
+         9)))
+      X2));
+    (not
+     top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step@0);
+    (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+    (not top.res.subrange_3@0);
+    (not top.res.subrange_2@0);
+    (not top.res.subrange_1@0);
+    (not top.usr.OK@0);
+    (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+    (not
+     (>=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      1));
+    (not
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3));
+    (not
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_START@0
+ top.usr.KP_9@0
+ top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2)
+ (let
+  ((X1
+    (div
+     (+
+      top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+      (*
+       (- 60)
+       (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+     10)))
+  (let
+   ((X2
+     (=
+      (+
+       top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+       (*
+        (- 60)
+        (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60))
+       (* (- 10) X1))
+      9)))
+   X2))
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step@0)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (>= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 1))
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)))
+with unsat core to
+(or
+ top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ top.usr.KP_START@0)
+ind-gen literal frequency priority for clause #5:
+original: {
+top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0 [freq=0.000, ast=1]
+(not
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)) [freq=0.000, ast=4]
+top.usr.KP_START@0 [freq=0.000, ast=1]
+}
+reordered by freq+ast-asc: {
+top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0 [freq=0.000, ast=1]
+top.usr.KP_START@0 [freq=0.000, ast=1]
+(not
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)) [freq=0.000, ast=4]
+}
+ind_generalize: Dropped 14 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #5:
+#6 {top.usr.KP_START@0;
+    (not
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3))}
+block: Reduced clause
+(or
+ top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ top.usr.KP_START@0)
+with ind. gen. to
+(or
+ top.usr.KP_START@0
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)))
+check_frames: frames k to 1
+
+Frame:
+6
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#7 {top.usr.KP_START@0;
+    top.usr.KP_9@0;
+    top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0;
+    top.impl.usr.chart_microwave_mode_logic____wakeup___@0;
+    (not top.usr.KP_1@0);
+    (not top.usr.KP_2@0);
+    (not top.usr.KP_3@0);
+    (not top.usr.KP_4@0);
+    (not top.usr.KP_5@0);
+    (not top.usr.KP_6@0);
+    (not top.usr.KP_7@0);
+    (not top.usr.KP_8@0);
+    (<=
+     top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+     3);
+    (let
+     ((X1
+       (div
+        (+
+         top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+         (*
+          (- 60)
+          (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+        10)))
+     (let
+      ((X2
+        (=
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60))
+          (* (- 10) X1))
+         9)))
+      X2));
+    (not
+     top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step@0);
+    (not top.res.subrange_3@0);
+    (not top.res.subrange_2@0);
+    (not top.res.subrange_1@0);
+    (not top.usr.OK@0);
+    (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+    (not top.impl.usr.chart_microwave_mode_logic_rlt_evtInitStep@0);
+    (not
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_START@0
+ top.usr.KP_9@0
+ top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0
+ top.impl.usr.chart_microwave_mode_logic____wakeup___@0
+ (not top.usr.KP_1@0)
+ (not top.usr.KP_2@0)
+ (not top.usr.KP_3@0)
+ (not top.usr.KP_4@0)
+ (not top.usr.KP_5@0)
+ (not top.usr.KP_6@0)
+ (not top.usr.KP_7@0)
+ (not top.usr.KP_8@0)
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (let
+  ((X1
+    (div
+     (+
+      top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+      (*
+       (- 60)
+       (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+     10)))
+  (let
+   ((X2
+     (=
+      (+
+       top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+       (*
+        (- 60)
+        (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60))
+       (* (- 10) X1))
+      9)))
+   X2))
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not top.impl.usr.chart_microwave_mode_logic_rlt_evtInitStep@0)
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)))
+with unsat core to
+top.impl.usr.chart_microwave_mode_logic____wakeup___@0
+ind_generalize: Dropped 21 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #7:
+#8 {top.impl.usr.chart_microwave_mode_logic____wakeup___@0}
+block: Reduced clause
+top.impl.usr.chart_microwave_mode_logic____wakeup___@0
+with ind. gen. to
+top.impl.usr.chart_microwave_mode_logic____wakeup___@0
+check_frames: frames k to 1
+
+Frame:
+6
+8
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#9 {top.usr.KP_START@0;
+    top.usr.KP_9@0;
+    top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0;
+    (not top.usr.KP_0@0);
+    (not top.usr.KP_1@0);
+    (not top.usr.KP_2@0);
+    (not top.usr.KP_3@0);
+    (not top.usr.KP_4@0);
+    (not top.usr.KP_5@0);
+    (not top.usr.KP_6@0);
+    (not top.usr.KP_7@0);
+    (not top.usr.KP_8@0);
+    (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4);
+    (<=
+     top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+     3);
+    (let
+     ((X1
+       (div
+        (+
+         top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+         (*
+          (- 60)
+          (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+        10)))
+     (let
+      ((X2
+        (=
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60))
+          (* (- 10) X1))
+         9)))
+      X2));
+    (not
+     top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step@0);
+    (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+    (not top.res.subrange_3@0);
+    (not top.res.subrange_2@0);
+    (not top.res.subrange_1@0);
+    (not top.usr.OK@0);
+    (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_START@0
+ top.usr.KP_9@0
+ top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0
+ (not top.usr.KP_0@0)
+ (not top.usr.KP_1@0)
+ (not top.usr.KP_2@0)
+ (not top.usr.KP_3@0)
+ (not top.usr.KP_4@0)
+ (not top.usr.KP_5@0)
+ (not top.usr.KP_6@0)
+ (not top.usr.KP_7@0)
+ (not top.usr.KP_8@0)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (let
+  ((X1
+    (div
+     (+
+      top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+      (*
+       (- 60)
+       (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+     10)))
+  (let
+   ((X2
+     (=
+      (+
+       top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+       (*
+        (- 60)
+        (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60))
+       (* (- 10) X1))
+      9)))
+   X2))
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step@0)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0)))
+with unsat core to
+top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0
+ind_generalize: Dropped 21 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #9:
+#10 {top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0}
+block: Reduced clause
+top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0
+with ind. gen. to
+top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0
+check_frames: frames k to 1
+
+Frame:
+6
+10
+8
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#11 {top.usr.KP_9@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.usr.KP_0@0);
+     (not top.impl.usr.KP_91@0);
+     (not top.impl.usr.KP_01@0);
+     (not top.usr.KP_START@0);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (>=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       1));
+     (not
+      (<=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       3));
+     (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0);
+     (let
+      ((X1
+        (+
+         (- 1)
+         top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+         (*
+          (- 60)
+          (div
+           (+
+            (- 1)
+            top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+           60)))))
+      (let
+       ((X2
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div
+            (+
+             (- 1)
+             top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+            60))
+          (* (- 10) (div X1 10)))))
+       (= X2 10)));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       2))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_9@0
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (not top.usr.KP_0@0)
+ (not top.impl.usr.KP_91@0)
+ (not top.impl.usr.KP_01@0)
+ (not top.usr.KP_START@0)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (>= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 1))
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (let
+  ((X1
+    (+
+     (- 1)
+     top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+     (*
+      (- 60)
+      (div
+       (+ (- 1) top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+       60)))))
+  (let
+   ((X2
+     (+
+      top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+      (*
+       (- 60)
+       (div
+        (+ (- 1) top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+        60))
+      (* (- 10) (div X1 10)))))
+   (= X2 10)))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2)))
+with unsat core to
+(or
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (not top.impl.usr.KP_91@0)
+ top.usr.KP_9@0)
+ind-gen literal frequency priority for clause #11:
+original: {
+(<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0) [freq=0.000, ast=3]
+(not top.impl.usr.KP_91@0) [freq=0.000, ast=2]
+top.usr.KP_9@0 [freq=0.000, ast=1]
+}
+reordered by freq+ast-asc: {
+top.usr.KP_9@0 [freq=0.000, ast=1]
+(not top.impl.usr.KP_91@0) [freq=0.000, ast=2]
+(<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0) [freq=0.000, ast=3]
+}
+ind_generalize: Dropped 17 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #11:
+#12 {top.usr.KP_9@0; (not top.impl.usr.KP_91@0)}
+block: Reduced clause
+(or
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (not top.impl.usr.KP_91@0)
+ top.usr.KP_9@0)
+with ind. gen. to
+(or top.usr.KP_9@0 (not top.impl.usr.KP_91@0))
+check_frames: frames k to 1
+
+Frame:
+6
+12
+10
+8
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#13 {top.usr.KP_9@0;
+     top.impl.usr.KP_11@0;
+     top.impl.usr.KP_91@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.usr.KP_1@0);
+     (not top.usr.KP_2@0);
+     (not top.usr.KP_3@0);
+     (not top.usr.KP_4@0);
+     (not top.usr.KP_5@0);
+     (not top.usr.KP_6@0);
+     (not top.usr.KP_7@0);
+     (not top.usr.KP_START@0);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      2);
+     (let
+      ((X1
+        (div
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+         10)))
+      (let
+       ((X2
+         (=
+          (+
+           top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+           (*
+            (- 60)
+            (div
+             top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+             60))
+           (* (- 10) X1))
+          9)))
+       X2));
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (>=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       1));
+     (not
+      (<=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       3))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_9@0
+ top.impl.usr.KP_11@0
+ top.impl.usr.KP_91@0
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (not top.usr.KP_1@0)
+ (not top.usr.KP_2@0)
+ (not top.usr.KP_3@0)
+ (not top.usr.KP_4@0)
+ (not top.usr.KP_5@0)
+ (not top.usr.KP_6@0)
+ (not top.usr.KP_7@0)
+ (not top.usr.KP_START@0)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2)
+ (let
+  ((X1
+    (div
+     (+
+      top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+      (*
+       (- 60)
+       (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+     10)))
+  (let
+   ((X2
+     (=
+      (+
+       top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+       (*
+        (- 60)
+        (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60))
+       (* (- 10) X1))
+      9)))
+   X2))
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (>= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 1))
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)))
+with unsat core to
+(or (not top.usr.KP_1@0) top.impl.usr.KP_11@0)
+ind-gen literal frequency priority for clause #13:
+original: {
+(not top.usr.KP_1@0) [freq=0.000, ast=2]
+top.impl.usr.KP_11@0 [freq=0.000, ast=1]
+}
+reordered by freq+ast-asc: {
+top.impl.usr.KP_11@0 [freq=0.000, ast=1]
+(not top.usr.KP_1@0) [freq=0.000, ast=2]
+}
+ind_generalize: Dropped 21 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #13:
+#14 {top.impl.usr.KP_11@0; (not top.usr.KP_1@0)}
+block: Reduced clause
+(or (not top.usr.KP_1@0) top.impl.usr.KP_11@0)
+with ind. gen. to
+(or top.impl.usr.KP_11@0 (not top.usr.KP_1@0))
+check_frames: frames k to 1
+
+Frame:
+6
+12
+10
+14
+8
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#15 {top.usr.KP_9@0;
+     top.impl.usr.KP_01@0;
+     top.impl.usr.KP_91@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.usr.KP_0@0);
+     (not top.usr.KP_4@0);
+     (not top.usr.KP_5@0);
+     (not top.usr.KP_7@0);
+     (not top.usr.KP_8@0);
+     (not top.impl.usr.KP_11@0);
+     (not top.usr.KP_START@0);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (>=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       1));
+     (not
+      (<=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       3));
+     (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0);
+     (let
+      ((X1
+        (+
+         (- 1)
+         top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+         (*
+          (- 60)
+          (div
+           (+
+            (- 1)
+            top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+           60)))))
+      (let
+       ((X2
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div
+            (+
+             (- 1)
+             top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+            60))
+          (* (- 10) (div X1 10)))))
+       (= X2 10)));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       2))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_9@0
+ top.impl.usr.KP_01@0
+ top.impl.usr.KP_91@0
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (not top.usr.KP_0@0)
+ (not top.usr.KP_4@0)
+ (not top.usr.KP_5@0)
+ (not top.usr.KP_7@0)
+ (not top.usr.KP_8@0)
+ (not top.impl.usr.KP_11@0)
+ (not top.usr.KP_START@0)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (>= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 1))
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (let
+  ((X1
+    (+
+     (- 1)
+     top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+     (*
+      (- 60)
+      (div
+       (+ (- 1) top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+       60)))))
+  (let
+   ((X2
+     (+
+      top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+      (*
+       (- 60)
+       (div
+        (+ (- 1) top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+        60))
+      (* (- 10) (div X1 10)))))
+   (= X2 10)))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2)))
+with unsat core to
+(or
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (not top.usr.KP_0@0)
+ top.impl.usr.KP_01@0)
+ind-gen literal frequency priority for clause #15:
+original: {
+(<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0) [freq=0.000, ast=3]
+(not top.usr.KP_0@0) [freq=0.000, ast=2]
+top.impl.usr.KP_01@0 [freq=0.000, ast=1]
+}
+reordered by freq+ast-asc: {
+top.impl.usr.KP_01@0 [freq=0.000, ast=1]
+(not top.usr.KP_0@0) [freq=0.000, ast=2]
+(<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0) [freq=0.000, ast=3]
+}
+ind_generalize: Dropped 22 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #15:
+#16 {top.impl.usr.KP_01@0; (not top.usr.KP_0@0)}
+block: Reduced clause
+(or
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (not top.usr.KP_0@0)
+ top.impl.usr.KP_01@0)
+with ind. gen. to
+(or top.impl.usr.KP_01@0 (not top.usr.KP_0@0))
+check_frames: frames k to 1
+
+Frame:
+6
+12
+10
+16
+14
+8
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#17 {top.usr.KP_0@0;
+     top.usr.KP_1@0;
+     top.usr.KP_9@0;
+     top.impl.usr.KP_21@0;
+     top.impl.usr.KP_91@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.usr.KP_2@0);
+     (not top.usr.KP_3@0);
+     (not top.usr.KP_4@0);
+     (not top.usr.KP_5@0);
+     (not top.usr.KP_6@0);
+     (not top.usr.KP_7@0);
+     (not top.usr.KP_8@0);
+     (not top.usr.KP_START@0);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (>=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       1));
+     (not
+      (<=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       3));
+     (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0);
+     (let
+      ((X1
+        (+
+         (- 1)
+         top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+         (*
+          (- 60)
+          (div
+           (+
+            (- 1)
+            top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+           60)))))
+      (let
+       ((X2
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div
+            (+
+             (- 1)
+             top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+            60))
+          (* (- 10) (div X1 10)))))
+       (= X2 10)));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       2))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_0@0
+ top.usr.KP_1@0
+ top.usr.KP_9@0
+ top.impl.usr.KP_21@0
+ top.impl.usr.KP_91@0
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (not top.usr.KP_2@0)
+ (not top.usr.KP_3@0)
+ (not top.usr.KP_4@0)
+ (not top.usr.KP_5@0)
+ (not top.usr.KP_6@0)
+ (not top.usr.KP_7@0)
+ (not top.usr.KP_8@0)
+ (not top.usr.KP_START@0)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (>= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 1))
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (let
+  ((X1
+    (+
+     (- 1)
+     top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+     (*
+      (- 60)
+      (div
+       (+ (- 1) top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+       60)))))
+  (let
+   ((X2
+     (+
+      top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+      (*
+       (- 60)
+       (div
+        (+ (- 1) top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+        60))
+      (* (- 10) (div X1 10)))))
+   (= X2 10)))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2)))
+with unsat core to
+(or
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (not top.usr.KP_2@0)
+ top.impl.usr.KP_21@0)
+ind-gen literal frequency priority for clause #17:
+original: {
+(<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0) [freq=0.000, ast=3]
+(not top.usr.KP_2@0) [freq=0.000, ast=2]
+top.impl.usr.KP_21@0 [freq=0.000, ast=1]
+}
+reordered by freq+ast-asc: {
+top.impl.usr.KP_21@0 [freq=0.000, ast=1]
+(not top.usr.KP_2@0) [freq=0.000, ast=2]
+(<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0) [freq=0.000, ast=3]
+}
+ind_generalize: Dropped 25 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #17:
+#18 {top.impl.usr.KP_21@0; (not top.usr.KP_2@0)}
+block: Reduced clause
+(or
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (not top.usr.KP_2@0)
+ top.impl.usr.KP_21@0)
+with ind. gen. to
+(or top.impl.usr.KP_21@0 (not top.usr.KP_2@0))
+check_frames: frames k to 1
+
+Frame:
+6
+12
+10
+16
+14
+18
+8
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#19 {top.usr.KP_0@0;
+     top.usr.KP_1@0;
+     top.usr.KP_9@0;
+     top.impl.usr.KP_61@0;
+     top.impl.usr.KP_91@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.usr.KP_3@0);
+     (not top.usr.KP_4@0);
+     (not top.usr.KP_5@0);
+     (not top.usr.KP_6@0);
+     (not top.usr.KP_7@0);
+     (not top.usr.KP_8@0);
+     (not top.impl.usr.KP_51@0);
+     (not top.impl.usr.KP_41@0);
+     (not top.impl.usr.KP_31@0);
+     (not top.impl.usr.KP_21@0);
+     (not top.usr.KP_START@0);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (>=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       1));
+     (not
+      (<=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       3));
+     (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0);
+     (let
+      ((X1
+        (+
+         (- 1)
+         top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+         (*
+          (- 60)
+          (div
+           (+
+            (- 1)
+            top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+           60)))))
+      (let
+       ((X2
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div
+            (+
+             (- 1)
+             top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+            60))
+          (* (- 10) (div X1 10)))))
+       (= X2 10)));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       2))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_0@0
+ top.usr.KP_1@0
+ top.usr.KP_9@0
+ top.impl.usr.KP_61@0
+ top.impl.usr.KP_91@0
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (not top.usr.KP_3@0)
+ (not top.usr.KP_4@0)
+ (not top.usr.KP_5@0)
+ (not top.usr.KP_6@0)
+ (not top.usr.KP_7@0)
+ (not top.usr.KP_8@0)
+ (not top.impl.usr.KP_51@0)
+ (not top.impl.usr.KP_41@0)
+ (not top.impl.usr.KP_31@0)
+ (not top.impl.usr.KP_21@0)
+ (not top.usr.KP_START@0)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (>= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 1))
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (let
+  ((X1
+    (+
+     (- 1)
+     top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+     (*
+      (- 60)
+      (div
+       (+ (- 1) top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+       60)))))
+  (let
+   ((X2
+     (+
+      top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+      (*
+       (- 60)
+       (div
+        (+ (- 1) top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+        60))
+      (* (- 10) (div X1 10)))))
+   (= X2 10)))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2)))
+with unsat core to
+(or
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (not top.usr.KP_6@0)
+ top.impl.usr.KP_61@0)
+ind-gen literal frequency priority for clause #19:
+original: {
+(<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0) [freq=0.000, ast=3]
+(not top.usr.KP_6@0) [freq=0.000, ast=2]
+top.impl.usr.KP_61@0 [freq=0.000, ast=1]
+}
+reordered by freq+ast-asc: {
+top.impl.usr.KP_61@0 [freq=0.000, ast=1]
+(not top.usr.KP_6@0) [freq=0.000, ast=2]
+(<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0) [freq=0.000, ast=3]
+}
+ind_generalize: Dropped 28 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #19:
+#20 {top.impl.usr.KP_61@0; (not top.usr.KP_6@0)}
+block: Reduced clause
+(or
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (not top.usr.KP_6@0)
+ top.impl.usr.KP_61@0)
+with ind. gen. to
+(or top.impl.usr.KP_61@0 (not top.usr.KP_6@0))
+check_frames: frames k to 1
+
+Frame:
+6
+12
+10
+16
+14
+18
+20
+8
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#21 {top.usr.KP_0@0;
+     top.usr.KP_1@0;
+     top.usr.KP_2@0;
+     top.usr.KP_9@0;
+     top.impl.usr.KP_91@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.impl.usr.KP_61@0);
+     (not top.usr.KP_START@0);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (>=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       1));
+     (not
+      (<=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       3));
+     (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0);
+     (let
+      ((X1
+        (+
+         (- 1)
+         top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+         (*
+          (- 60)
+          (div
+           (+
+            (- 1)
+            top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+           60)))))
+      (let
+       ((X2
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div
+            (+
+             (- 1)
+             top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+            60))
+          (* (- 10) (div X1 10)))))
+       (= X2 10)));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       2))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_0@0
+ top.usr.KP_1@0
+ top.usr.KP_2@0
+ top.usr.KP_9@0
+ top.impl.usr.KP_91@0
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (not top.impl.usr.KP_61@0)
+ (not top.usr.KP_START@0)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (>= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 1))
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (let
+  ((X1
+    (+
+     (- 1)
+     top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+     (*
+      (- 60)
+      (div
+       (+ (- 1) top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+       60)))))
+  (let
+   ((X2
+     (+
+      top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+      (*
+       (- 60)
+       (div
+        (+ (- 1) top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+        60))
+      (* (- 10) (div X1 10)))))
+   (= X2 10)))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 2)))
+with unsat core to
+(or
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ (not
+  (>= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 1))
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0))
+ind-gen literal frequency priority for clause #21:
+original: {
+(<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0) [freq=0.000, ast=3]
+(not
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)) [freq=0.466, ast=4]
+(not
+ (>= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 1)) [freq=0.000, ast=4]
+(not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0)) [freq=0.000, ast=4]
+(= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3) [freq=0.000, ast=3]
+(not
+ top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0) [freq=0.000, ast=2]
+}
+reordered by freq+ast-asc: {
+(not
+ top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0) [freq=0.000, ast=2]
+(<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0) [freq=0.000, ast=3]
+(= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3) [freq=0.000, ast=3]
+(not
+ (>= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 1)) [freq=0.000, ast=4]
+(not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0)) [freq=0.000, ast=4]
+(not
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)) [freq=0.466, ast=4]
+}
+ind_generalize: Dropped 19 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #21:
+#22 {(not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (<=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       3))}
+block: Reduced clause
+(or
+ (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0)
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+ (not
+  (>= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 1))
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0))
+with ind. gen. to
+(or
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)))
+check_frames: frames k to 1
+
+Frame:
+6
+12
+10
+16
+14
+18
+20
+8
+22
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#23 {top.usr.KP_0@0;
+     top.usr.KP_1@0;
+     top.usr.KP_9@0;
+     top.impl.usr.KP_91@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.impl.usr.KP_61@0);
+     (not top.impl.usr.KP_21@0);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4);
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (let
+      ((X1
+        (div
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+         10)))
+      (let
+       ((X2
+         (=
+          (+
+           top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+           (*
+            (- 60)
+            (div
+             top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+             60))
+           (* (- 10) X1))
+          9)))
+       X2));
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_0@0
+ top.usr.KP_1@0
+ top.usr.KP_9@0
+ top.impl.usr.KP_91@0
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (not top.impl.usr.KP_61@0)
+ (not top.impl.usr.KP_21@0)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (let
+  ((X1
+    (div
+     (+
+      top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+      (*
+       (- 60)
+       (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+     10)))
+  (let
+   ((X2
+     (=
+      (+
+       top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+       (*
+        (- 60)
+        (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60))
+       (* (- 10) X1))
+      9)))
+   X2))
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0)))
+with unsat core to
+(or
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4))
+ind-gen literal frequency priority for clause #23:
+original: {
+(not top.impl.usr.chart_microwave_mode_logic____wakeup___@0) [freq=0.000, ast=2]
+(<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3) [freq=0.000, ast=3]
+(= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4) [freq=0.000, ast=3]
+}
+reordered by freq+ast-asc: {
+(not top.impl.usr.chart_microwave_mode_logic____wakeup___@0) [freq=0.000, ast=2]
+(<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3) [freq=0.000, ast=3]
+(= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4) [freq=0.000, ast=3]
+}
+ind_generalize: Dropped 14 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #23:
+#24 {(=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4);
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3)}
+block: Reduced clause
+(or
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4))
+with ind. gen. to
+(or
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3))
+check_frames: frames k to 1
+
+Frame:
+6
+12
+10
+16
+14
+18
+20
+8
+24
+22
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#25 {top.usr.KP_0@0;
+     top.usr.KP_1@0;
+     top.usr.KP_2@0;
+     top.usr.KP_6@0;
+     top.usr.KP_9@0;
+     top.impl.usr.KP_81@0;
+     top.impl.usr.KP_91@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.usr.KP_8@0);
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       4))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_0@0
+ top.usr.KP_1@0
+ top.usr.KP_2@0
+ top.usr.KP_6@0
+ top.usr.KP_9@0
+ top.impl.usr.KP_81@0
+ top.impl.usr.KP_91@0
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (not top.usr.KP_8@0)
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)))
+with unsat core to
+(or (not top.usr.KP_8@0) top.impl.usr.KP_81@0)
+ind-gen literal frequency priority for clause #25:
+original: {
+(not top.usr.KP_8@0) [freq=0.000, ast=2]
+top.impl.usr.KP_81@0 [freq=0.000, ast=1]
+}
+reordered by freq+ast-asc: {
+top.impl.usr.KP_81@0 [freq=0.000, ast=1]
+(not top.usr.KP_8@0) [freq=0.000, ast=2]
+}
+ind_generalize: Dropped 15 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #25:
+#26 {top.impl.usr.KP_81@0; (not top.usr.KP_8@0)}
+block: Reduced clause
+(or (not top.usr.KP_8@0) top.impl.usr.KP_81@0)
+with ind. gen. to
+(or top.impl.usr.KP_81@0 (not top.usr.KP_8@0))
+check_frames: frames k to 1
+
+Frame:
+6
+12
+10
+16
+14
+18
+20
+26
+8
+24
+22
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#27 {top.usr.KP_0@0;
+     top.usr.KP_1@0;
+     top.usr.KP_8@0;
+     top.usr.KP_9@0;
+     top.impl.usr.KP_31@0;
+     top.impl.usr.KP_91@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.usr.KP_3@0);
+     (not top.usr.KP_4@0);
+     (not top.usr.KP_5@0);
+     (not top.impl.usr.KP_61@0);
+     (not top.impl.usr.KP_21@0);
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       4))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_0@0
+ top.usr.KP_1@0
+ top.usr.KP_8@0
+ top.usr.KP_9@0
+ top.impl.usr.KP_31@0
+ top.impl.usr.KP_91@0
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (not top.usr.KP_3@0)
+ (not top.usr.KP_4@0)
+ (not top.usr.KP_5@0)
+ (not top.impl.usr.KP_61@0)
+ (not top.impl.usr.KP_21@0)
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)))
+with unsat core to
+(or (not top.usr.KP_3@0) top.impl.usr.KP_31@0)
+ind-gen literal frequency priority for clause #27:
+original: {
+(not top.usr.KP_3@0) [freq=0.000, ast=2]
+top.impl.usr.KP_31@0 [freq=0.000, ast=1]
+}
+reordered by freq+ast-asc: {
+top.impl.usr.KP_31@0 [freq=0.000, ast=1]
+(not top.usr.KP_3@0) [freq=0.000, ast=2]
+}
+ind_generalize: Dropped 18 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #27:
+#28 {top.impl.usr.KP_31@0; (not top.usr.KP_3@0)}
+block: Reduced clause
+(or (not top.usr.KP_3@0) top.impl.usr.KP_31@0)
+with ind. gen. to
+(or top.impl.usr.KP_31@0 (not top.usr.KP_3@0))
+check_frames: frames k to 1
+
+Frame:
+6
+12
+10
+16
+14
+18
+28
+20
+26
+8
+24
+22
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#29 {top.usr.KP_0@0;
+     top.usr.KP_1@0;
+     top.usr.KP_2@0;
+     top.usr.KP_3@0;
+     top.usr.KP_6@0;
+     top.usr.KP_8@0;
+     top.usr.KP_9@0;
+     top.impl.usr.KP_41@0;
+     top.impl.usr.KP_91@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.usr.KP_4@0);
+     (not top.usr.KP_5@0);
+     (not top.usr.KP_7@0);
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       4))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_0@0
+ top.usr.KP_1@0
+ top.usr.KP_2@0
+ top.usr.KP_3@0
+ top.usr.KP_6@0
+ top.usr.KP_8@0
+ top.usr.KP_9@0
+ top.impl.usr.KP_41@0
+ top.impl.usr.KP_91@0
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (not top.usr.KP_4@0)
+ (not top.usr.KP_5@0)
+ (not top.usr.KP_7@0)
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)))
+with unsat core to
+(or (not top.usr.KP_4@0) top.impl.usr.KP_41@0)
+ind-gen literal frequency priority for clause #29:
+original: {
+(not top.usr.KP_4@0) [freq=0.000, ast=2]
+top.impl.usr.KP_41@0 [freq=0.000, ast=1]
+}
+reordered by freq+ast-asc: {
+top.impl.usr.KP_41@0 [freq=0.000, ast=1]
+(not top.usr.KP_4@0) [freq=0.000, ast=2]
+}
+ind_generalize: Dropped 19 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #29:
+#30 {top.impl.usr.KP_41@0; (not top.usr.KP_4@0)}
+block: Reduced clause
+(or (not top.usr.KP_4@0) top.impl.usr.KP_41@0)
+with ind. gen. to
+(or top.impl.usr.KP_41@0 (not top.usr.KP_4@0))
+check_frames: frames k to 1
+
+Frame:
+6
+12
+10
+16
+14
+18
+28
+30
+20
+26
+8
+24
+22
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#31 {top.usr.KP_0@0;
+     top.usr.KP_4@0;
+     top.usr.KP_6@0;
+     top.usr.KP_9@0;
+     top.impl.usr.KP_51@0;
+     top.impl.usr.KP_91@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.usr.KP_3@0);
+     (not top.usr.KP_5@0);
+     (not top.usr.KP_7@0);
+     (not top.impl.usr.KP_81@0);
+     (not top.impl.usr.KP_31@0);
+     (not top.impl.usr.KP_21@0);
+     (not top.impl.usr.KP_11@0);
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       4))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_0@0
+ top.usr.KP_4@0
+ top.usr.KP_6@0
+ top.usr.KP_9@0
+ top.impl.usr.KP_51@0
+ top.impl.usr.KP_91@0
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (not top.usr.KP_3@0)
+ (not top.usr.KP_5@0)
+ (not top.usr.KP_7@0)
+ (not top.impl.usr.KP_81@0)
+ (not top.impl.usr.KP_31@0)
+ (not top.impl.usr.KP_21@0)
+ (not top.impl.usr.KP_11@0)
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)))
+with unsat core to
+(or (not top.usr.KP_5@0) top.impl.usr.KP_51@0)
+ind-gen literal frequency priority for clause #31:
+original: {
+(not top.usr.KP_5@0) [freq=0.000, ast=2]
+top.impl.usr.KP_51@0 [freq=0.000, ast=1]
+}
+reordered by freq+ast-asc: {
+top.impl.usr.KP_51@0 [freq=0.000, ast=1]
+(not top.usr.KP_5@0) [freq=0.000, ast=2]
+}
+ind_generalize: Dropped 20 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #31:
+#32 {top.impl.usr.KP_51@0; (not top.usr.KP_5@0)}
+block: Reduced clause
+(or (not top.usr.KP_5@0) top.impl.usr.KP_51@0)
+with ind. gen. to
+(or top.impl.usr.KP_51@0 (not top.usr.KP_5@0))
+check_frames: frames k to 1
+
+Frame:
+6
+12
+10
+16
+14
+18
+28
+30
+32
+20
+26
+8
+24
+22
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+New clause at frontier:
+#33 {top.usr.KP_START@0;
+     top.usr.KP_0@0;
+     top.usr.KP_1@0;
+     top.usr.KP_2@0;
+     top.usr.KP_3@0;
+     top.usr.KP_4@0;
+     top.usr.KP_5@0;
+     top.usr.KP_6@0;
+     top.usr.KP_8@0;
+     top.usr.KP_9@0;
+     top.impl.usr.KP_71@0;
+     top.impl.usr.KP_91@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.usr.KP_7@0);
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       4));
+     (<=
+      (+
+       top.impl.usr.microwave_microwave_KEYPAD_PROCESSING_DISPLAY_RIGHT_DIGIT_DIGIT_TO_DISPLAY@0
+       (*
+        6
+        top.impl.usr.microwave_microwave_KEYPAD_PROCESSING_DISPLAY_MIDDLE_DIGIT_DIGIT_TO_DISPLAY@0))
+      (- 1))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ top.usr.KP_START@0
+ top.usr.KP_0@0
+ top.usr.KP_1@0
+ top.usr.KP_2@0
+ top.usr.KP_3@0
+ top.usr.KP_4@0
+ top.usr.KP_5@0
+ top.usr.KP_6@0
+ top.usr.KP_8@0
+ top.usr.KP_9@0
+ top.impl.usr.KP_71@0
+ top.impl.usr.KP_91@0
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (not top.usr.KP_7@0)
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4))
+ (<=
+  (+
+   top.impl.usr.microwave_microwave_KEYPAD_PROCESSING_DISPLAY_RIGHT_DIGIT_DIGIT_TO_DISPLAY@0
+   (*
+    6
+    top.impl.usr.microwave_microwave_KEYPAD_PROCESSING_DISPLAY_MIDDLE_DIGIT_DIGIT_TO_DISPLAY@0))
+  (- 1)))
+with unsat core to
+(or (not top.usr.KP_7@0) top.impl.usr.KP_71@0)
+ind-gen literal frequency priority for clause #33:
+original: {
+(not top.usr.KP_7@0) [freq=0.000, ast=2]
+top.impl.usr.KP_71@0 [freq=0.000, ast=1]
+}
+reordered by freq+ast-asc: {
+top.impl.usr.KP_71@0 [freq=0.000, ast=1]
+(not top.usr.KP_7@0) [freq=0.000, ast=2]
+}
+ind_generalize: Dropped 21 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #33:
+#34 {top.impl.usr.KP_71@0; (not top.usr.KP_7@0)}
+block: Reduced clause
+(or (not top.usr.KP_7@0) top.impl.usr.KP_71@0)
+with ind. gen. to
+(or top.impl.usr.KP_71@0 (not top.usr.KP_7@0))
+check_frames: frames k to 1
+
+Frame:
+6
+12
+10
+16
+14
+18
+28
+30
+32
+20
+34
+26
+8
+24
+22
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 1.556
+Analysis time       : 1.479
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 1
+Solver                                    : 260
+Frame sizes                               : 15
+Forward propagations                      : 0
+Forward propagations before generalization: 0
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 0
+Activation literals                       : 839
+Stale activation literals                 : 786
+Total time                                : 1.477
+Forward propagation time                  : 0.009
+Frame strengthening time                  : 1.398
+Generalization time                       : 0.029
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.013
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 0.463
+check-sat calls     : 260
+get-value time      : 0.011
+get-value calls     : 16
+get-unsat-core time : 0.001
+get-unsat-core calls: 30
+
+ IC3QE main loop at k=2
+
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+fwd_propagate: Checking forward propagation of clauses before generalization in frame 1.
+Copied clause #5 in forward propagation:
+#35 {top.usr.KP_START@0;
+     top.usr.KP_9@0;
+     top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0;
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      2);
+     (let
+      ((X1
+        (div
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+         10)))
+      (let
+       ((X2
+         (=
+          (+
+           top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+           (*
+            (- 60)
+            (div
+             top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+             60))
+           (* (- 10) X1))
+          9)))
+       X2));
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step@0);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (>=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       1));
+     (not
+      (<=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       3));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       3))}
+Copied clause #9 in forward propagation:
+#36 {top.usr.KP_START@0;
+     top.usr.KP_9@0;
+     top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0;
+     (not top.usr.KP_0@0);
+     (not top.usr.KP_1@0);
+     (not top.usr.KP_2@0);
+     (not top.usr.KP_3@0);
+     (not top.usr.KP_4@0);
+     (not top.usr.KP_5@0);
+     (not top.usr.KP_6@0);
+     (not top.usr.KP_7@0);
+     (not top.usr.KP_8@0);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4);
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (let
+      ((X1
+        (div
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 60)))
+         10)))
+      (let
+       ((X2
+         (=
+          (+
+           top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+           (*
+            (- 60)
+            (div
+             top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+             60))
+           (* (- 10) X1))
+          9)))
+       X2));
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step@0);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))}
+Copied clause #21 in forward propagation:
+#37 {top.usr.KP_0@0;
+     top.usr.KP_1@0;
+     top.usr.KP_2@0;
+     top.usr.KP_9@0;
+     top.impl.usr.KP_91@0;
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.impl.usr.KP_61@0);
+     (not top.usr.KP_START@0);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (>=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       1));
+     (not
+      (<=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       3));
+     (<= top.impl.usr.chart_microwave_mode_logic_steps_remaining@0 0);
+     (let
+      ((X1
+        (+
+         (- 1)
+         top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+         (*
+          (- 60)
+          (div
+           (+
+            (- 1)
+            top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+           60)))))
+      (let
+       ((X2
+         (+
+          top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+          (*
+           (- 60)
+           (div
+            (+
+             (- 1)
+             top.impl.usr.chart_microwave_mode_logic_steps_remaining@0)
+            60))
+          (* (- 10) (div X1 10)))))
+       (= X2 10)));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       2))}
+partition_fwd_prop: Checking for forward propagation of clause set
+partition_fwd_prop: Checking for forward propagation of clause set
+Deactivating activation literals for clause
+subsume_and_add: clause 6
+subsume_and_add: clause 10
+subsume_and_add: clause 22
+ind-gen literal frequency priority for clause #22:
+original: {
+(not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0)) [freq=0.471, ast=4]
+(not
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)) [freq=0.905, ast=4]
+}
+reordered by freq+ast-asc: {
+(not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0)) [freq=0.471, ast=4]
+(not
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)) [freq=0.905, ast=4]
+}
+fwd_propagate: Checking for inductiveness of clauses in last frame.
+Checking for inductiveness of clauses
+ind_generalize: Dropped 19 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #37:
+#39 {(not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       2))}
+fwd_propagate: Asserting new invariants.
+check_frames: frames k to 1
+
+Frame:
+
+
+Frame:
+6
+10
+22
+check_frames: Does R_2 |= P hold?
+check_frames: Does R_1 & T |= R_2 hold?
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             top.usr.KP_9@0
+                                                             (not
+                                                              top.impl.usr.KP_91@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             top.impl.usr.KP_01@0
+                                                             (not
+                                                              top.usr.KP_0@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             top.impl.usr.KP_11@0
+                                                             (not
+                                                              top.usr.KP_1@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             top.impl.usr.KP_21@0
+                                                             (not
+                                                              top.usr.KP_2@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             top.impl.usr.KP_31@0
+                                                             (not
+                                                              top.usr.KP_3@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             top.impl.usr.KP_41@0
+                                                             (not
+                                                              top.usr.KP_4@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             top.impl.usr.KP_51@0
+                                                             (not
+                                                              top.usr.KP_5@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             top.impl.usr.KP_61@0
+                                                             (not
+                                                              top.usr.KP_6@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             top.impl.usr.KP_71@0
+                                                             (not
+                                                              top.usr.KP_7@0))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             top.impl.usr.KP_81@0
+                                                             (not
+                                                              top.usr.KP_8@0))
+
+check_frames: Does R_1 |= P hold?
+ Message received from property directed reachability (QE): Invariant for top
+                                                            top.impl.usr.chart_microwave_mode_logic____wakeup___@0
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (=
+                                                              top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+                                                              4)
+                                                             (<=
+                                                              top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+                                                              3))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             (not
+                                                              (=
+                                                               1
+                                                               top.impl.usr.microwave_microwave_mode_logic_mode@0))
+                                                             (not
+                                                              (=
+                                                               top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+                                                               2)))
+
+ Message received from property directed reachability (QE): Invariant for top
+                                                            (or
+                                                             top.usr.KP_START@0
+                                                             top.usr.KP_9@0
+                                                             top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0
+                                                             (not
+                                                              top.usr.KP_0@0)
+                                                             (not
+                                                              top.usr.KP_1@0)
+                                                             (not
+                                                              top.usr.KP_2@0)
+                                                             (not
+                                                              top.usr.KP_3@0)
+                                                             (not
+                                                              top.usr.KP_4@0)
+                                                             (not
+                                                              top.usr.KP_5@0)
+                                                             (not
+                                                              top.usr.KP_6@0)
+                                                             (not
+                                                              top.usr.KP_7@0)
+                                                             (not
+                                                              top.usr.KP_8@0)
+                                                             (=
+                                                              top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+                                                              4)
+                                                             (<=
+                                                              top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+                                                              3)
+                                                             (let
+                                                              ((X1
+                                                                (div
+                                                                 (+
+                                                                  top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+                                                                  (*
+                                                                   (- 60)
+                                                                   (div
+                                                                    top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+                                                                    60)))
+                                                                 10)))
+                                                              (let
+                                                               ((X2
+                                                                 (=
+                                                                  (+
+                                                                   top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+                                                                   (*
+                                                                    (- 60)
+                                                                    (div
+                                                                    top.impl.usr.chart_microwave_mode_logic_steps_remaining@0
+                                                                    60))
+                                                                   (*
+                                                                    (- 10)
+                                                                    X1))
+                                                                  9)))
+                                                               X2))
+                                                             (not
+                                                              top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step@0)
+                                                             (not
+                                                              top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+                                                             (not
+                                                              top.res.subrange_3@0)
+                                                             (not
+                                                              top.res.subrange_2@0)
+                                                             (not
+                                                              top.res.subrange_1@0)
+                                                             (not top.usr.OK@0)
+                                                             (not
+                                                              (=
+                                                               1
+                                                               top.impl.usr.microwave_microwave_mode_logic_mode@0)))
+
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_2 are safe.
+New clause at frontier:
+#40 {top.usr.KP_START@0;
+     top.usr.KP_9@0;
+     top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0;
+     (not top.usr.KP_0@0);
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step@0);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       4))}
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #40:
+#41 {(= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0);
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       4));
+     (not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0))}
+block: Is blocking clause relative inductive to R_0?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0)
+ (not
+  top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0)
+ (<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3)
+ (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0)
+ (not top.res.subrange_3@0)
+ (not top.res.subrange_2@0)
+ (not top.res.subrange_1@0)
+ (not top.usr.OK@0)
+ (not
+  (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4))
+ (not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0)))
+with unsat core to
+(or
+ (not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0))
+ (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ind-gen literal frequency priority for clause #41:
+original: {
+(not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0)) [freq=0.000, ast=4]
+(= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0) [freq=0.000, ast=3]
+}
+reordered by freq+ast-asc: {
+(= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0) [freq=0.000, ast=3]
+(not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0)) [freq=0.000, ast=4]
+}
+ind_generalize: Dropped 8 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #41:
+#42 {(= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0);
+     (not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0))}
+block: Reduced clause
+(or
+ (not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0))
+ (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+with ind. gen. to
+(or
+ (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0)
+ (not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0)))
+Copied clause #41 for blocking at depth 0:
+#43 {(= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0);
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (<=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      3);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       4));
+     (not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0))}
+check_frames: frames k to 1
+
+Frame:
+6
+10
+42
+22
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: All counterexamples blocked in R_1
+ind-gen literal frequency priority for clause #43:
+original: {
+(= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0) [freq=0.500, ast=3]
+(not
+ top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0) [freq=0.000, ast=2]
+(<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3) [freq=0.466, ast=3]
+(not top.impl.usr.chart_microwave_mode_logic____wakeup___@0) [freq=0.000, ast=2]
+(not top.res.subrange_3@0) [freq=0.000, ast=2]
+(not top.res.subrange_2@0) [freq=0.000, ast=2]
+(not top.res.subrange_1@0) [freq=0.000, ast=2]
+(not top.usr.OK@0) [freq=0.000, ast=2]
+(not
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)) [freq=0.000, ast=4]
+(not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0)) [freq=0.500, ast=4]
+}
+reordered by freq+ast-asc: {
+(not
+ top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0) [freq=0.000, ast=2]
+(not top.impl.usr.chart_microwave_mode_logic____wakeup___@0) [freq=0.000, ast=2]
+(not top.res.subrange_3@0) [freq=0.000, ast=2]
+(not top.res.subrange_2@0) [freq=0.000, ast=2]
+(not top.res.subrange_1@0) [freq=0.000, ast=2]
+(not top.usr.OK@0) [freq=0.000, ast=2]
+(not
+ (= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 4)) [freq=0.000, ast=4]
+(<= top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0 3) [freq=0.466, ast=3]
+(= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0) [freq=0.500, ast=3]
+(not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0)) [freq=0.500, ast=4]
+}
+ind_generalize: Dropped 8 literals from clause.
+Deactivating activation literals for clause
+New clause from inductive generalization of #43:
+#44 {(= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0);
+     (not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0))}
+block: Is blocking clause relative inductive to R_1?
+block: Check I |= C to get unsat core.
+block: Reduced clause
+(or
+ (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0)
+ (not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0)))
+with unsat core to
+(or
+ (not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0))
+ (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+ind-gen literal frequency priority for clause #44:
+original: {
+(not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0)) [freq=0.995, ast=4]
+(= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0) [freq=0.995, ast=3]
+}
+reordered by freq+ast-asc: {
+(= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0) [freq=0.995, ast=3]
+(not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0)) [freq=0.995, ast=4]
+}
+block: Reduced clause
+(or
+ (not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0))
+ (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0))
+with ind. gen. to
+(or
+ (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0)
+ (not (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0)))
+check_frames: frames k to 1
+
+Frame:
+44
+
+Frame:
+6
+10
+42
+22
+check_frames: Does R_2 |= P hold?
+check_frames: Does I |= C for C in R_2 hold?
+check_frames: Does R_1 & T |= R_2 hold?
+check_frames: Does R_1 |= P hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does I |= C for C in R_1 hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Is blocking clause relative inductive to R_1?
+New clause at depth 1 to block #40:
+#45 {top.usr.KP_CLEAR@0;
+     (= 1 top.impl.usr.microwave_microwave_mode_logic_mode@0);
+     (not
+      top.impl.usr.rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock@0);
+     (not top.usr.KP_START@0);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      4);
+     (=
+      top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+      2);
+     (not top.impl.usr.chart_microwave_mode_logic____wakeup___@0);
+     (not top.res.subrange_3@0);
+     (not top.res.subrange_2@0);
+     (not top.res.subrange_1@0);
+     (not top.usr.OK@0);
+     (not
+      (>=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       1));
+     (not
+      (<=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       3));
+     (not
+      (=
+       top.impl.usr.chart_microwave_mode_logic_final_state_states___root@0
+       3));
+     (= 1 top.impl.usr.chart_microwave_mode_logic_mode@0)}
+block: Is blocking clause relative inductive to R_0?
+~P reachable from I: 45, 40, 4
+extract_cex_path: extracting concrete counterexample trace.
+check_frames: frames k to 1
+
+Frame:
+
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+block: Check if all successors of frontier R_1 are safe.
+block: All successors of R_1 are safe.
+fwd_propagate: Checking forward propagation of clauses in frame 1.
+check_frames: Does R_1 |= P hold?
+ Property SubRange[L17C1] not disproved by IC3QE
+
+ Property SubRange[L17C1] not disproved by IC3QE
+
+ Property SubRange[L17C1] not disproved by IC3QE
+
+ Property InvProp[L1148C3] disproved by IC3QE
+
+ Restarting IC3QE with properties SubRange[L17C1] SubRange[L17C1] SubRange[L17C1]
+
+ Message received from property directed reachability (QE): Property InvProp[L1148C3] false at step 3
+
+check_frames: Does R_0 & T |= R_1 hold?
+partition_fwd_prop: Checking for forward propagation of clause set
+check_frames: Does R_1 |= P hold?
+check_frames: Does R_0 & T |= R_1 hold?
+<Failure> Property InvProp[L1148C3] is invalid by property directed reachability (QE) for k=3 after 2.603s.
+
+Counterexample:
+  Node top ()
+    == Mode(s) ==
+    
+    == Inputs ==
+    KP_START                                                                    ff
+                                                                    tt ff ff
+    KP_CLEAR                                                                    ff
+                                                                    ff tt ff
+    KP_0                                                                        ff
+                                                                    tt tt tt
+    KP_1                                                                        ff
+                                                                    tt tt tt
+    KP_2                                                                        ff
+                                                                    tt tt tt
+    KP_3                                                                        ff
+                                                                    tt tt tt
+    KP_4                                                                        ff
+                                                                    tt tt tt
+    KP_5                                                                        ff
+                                                                    tt tt tt
+    KP_6                                                                        tt
+                                                                    ff ff ff
+    KP_7                                                                        ff
+                                                                    tt tt tt
+    KP_8                                                                        ff
+                                                                    ff tt tt
+    KP_9                                                                        tt
+                                                                    ff ff tt
+    DOOR_CLOSED                                                                 ff
+                                                                    ff ff ff
+    == Outputs ==
+    OK                                                                          tt
+                                                                    tt tt ff
+    == Locals ==
+    RIGHT_DIGIT                                                                  0
+                                                                     0  0  0
+    microwave_microwave_TIME_ON_DISPLAY_SECONDS_TO_TENS__REMAINDER               0
+                                                                     0  0  0
+    chart_microwave_mode_logic_steps_remaining                                   0
+                                                                    60  0  0
+    chart_microwave_mode_logic____wakeup___                                     tt
+                                                                    tt tt tt
+    rlt_eval_microwave_mode_logic_ON_rlt_state_6_outports_steps_remaining        0
+                                                                    60  0  0
+    rlt_eval_microwave_mode_logic_ON_rlt_fired_4                                ff
+                                                                    ff tt ff
+    chart_microwave_mode_logic_clear_off                                         0
+                                                                     0  1  0
+    CLEAR_PRESSED                                                               ff
+                                                                    ff tt ff
+    rlt_eval_microwave_mode_logic_ON_rlt_complete_1                             ff
+                                                                    ff ff ff
+    rlt_eval_microwave_mode_logic_ON_rlt_fired_1                                ff
+                                                                    ff ff ff
+    rlt_eval_microwave_mode_logic_rlt_state_1_outports_steps_remaining           0
+                                                                    60 60  0
+    STEPS_TO_COOK                                                                6
+                                                                    60  0  0
+    rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_clock            tt
+                                                                    tt ff tt
+    enable                                                                      tt
+                                                                    tt ff tt
+    microwave_microwave_mode_logic_mode                                          1
+                                                                     3  1  1
+    chart_microwave_mode_logic_mode                                              1
+                                                                     3  1  1
+    rlt_eval_microwave_mode_logic_ON_rlt_fired_6                                ff
+                                                                    ff ff ff
+    chart_microwave_mode_logic_door_closed                                       0
+                                                                     0  0  0
+    rlt_eval_microwave_mode_logic_ON_rlt_complete_2                             ff
+                                                                    ff tt ff
+    rlt_eval_microwave_mode_logic_ON_rlt_fired_5                                ff
+                                                                    ff ff ff
+    rlt_eval_microwave_mode_logic_ON_rlt_state_7_states___root                   0
+                                                                     3  4  4
+    rlt_eval_microwave_mode_logic_ON_rlt_state_6_states___root                   0
+                                                                     3  0  4
+    rlt_eval_microwave_mode_logic_ON_rlt_state_4_states___root                   0
+                                                                     3  3  4
+    rlt_eval_microwave_mode_logic_ON_rlt_fired_2                                ff
+                                                                    ff ff ff
+    chart_microwave_mode_logic_start                                             0
+                                                                     1  0  0
+    START_PRESSED                                                               ff
+                                                                    tt ff ff
+    rlt_eval_microwave_mode_logic_ON_rlt_state_2_states___root                   0
+                                                                     3  3  4
+    rlt_eval_microwave_mode_logic_ON_rlt_state_1_states___root                   0
+                                                                     3  3  4
+    rlt_eval_microwave_mode_logic_rlt_state_3_states___root                      0
+                                                                     3  3  4
+    rlt_enter_microwave_mode_logic_ON_rlt_state_4_states___root                  3
+                                                                     3  3  3
+    rlt_enter_microwave_mode_logic_ON_rlt_state_2_states___root                  1
+                                                                     1  3  1
+    rlt_enter_microwave_mode_logic_ON_rlt_state_1_states___root                  1
+                                                                     1  3  1
+    rlt_eval_microwave_mode_logic_rlt_state_2_states___root                      0
+                                                                     0  3  4
+    rlt_eval_microwave_mode_logic_rlt_fired_1                                   ff
+                                                                    tt ff ff
+    rlt_eval_microwave_mode_logic_rlt_fired_0                                   ff
+                                                                    tt ff tt
+    chart_microwave_mode_logic_begin_state_states___root                         0
+                                                                     4  3  4
+    chart_microwave_mode_logic_final_state_states___root                         4
+                                                                     3  4  4
+    rlt_eval_microwave_mode_logic_ON_rlt_state_11_states___root                  0
+                                                                     3  4  4
+    rlt_eval_microwave_mode_logic_ON_rlt_state_10_states___root                  0
+                                                                     3  4  4
+    rlt_eval_microwave_mode_logic_ON_rlt_state_9_states___root                   0
+                                                                     3  4  4
+    rlt_enter_microwave_mode_logic_rlt_state_2_states___root                     4
+                                                                     4  4  4
+    chart_microwave_mode_logic_rlt_evtInitStep                                  tt
+                                                                    ff ff ff
+    rlt_enter_microwave_mode_logic_ON_rlt_fired_1                               ff
+                                                                    ff ff ff
+    rlt_enter_microwave_mode_logic_ON_rlt_fired_0                               tt
+                                                                    tt ff tt
+    rlt_enter_microwave_mode_logic_ON_rlt_fired_2                               tt
+                                                                    tt ff tt
+    rlt_eval_microwave_mode_logic_ON_rlt_state_3_states___root                   0
+                                                                     3  3  4
+    rlt_eval_microwave_mode_logic_ON_rlt_state_11_outports_mode                  0
+                                                                     3  1  1
+    rlt_eval_microwave_mode_logic_ON_rlt_state_8_outports_mode                   0
+                                                                     3  1  1
+    rlt_eval_microwave_mode_logic_ON_rlt_state_4_outports_mode                   0
+                                                                     3  3  1
+    rlt_eval_microwave_mode_logic_ON_rlt_state_3_outports_mode                   0
+                                                                     3  3  1
+    rlt_eval_microwave_mode_logic_rlt_state_3_outports_mode                      0
+                                                                     3  3  1
+    rlt_enter_microwave_mode_logic_ON_rlt_state_2_outports_mode                  0
+                                                                     1  3  1
+    chart_microwave_mode_logic_begin_state_outports_mode                         0
+                                                                     1  3  1
+    rlt_condact_resetmicrowave_microwave_KEYPAD_PROCESSING_rlt_init_step        tt
+                                                                    ff tt tt
+    microwave_microwave_KEYPAD_PROCESSING_DISPLAY_LEFT_DIGIT_DIGIT_TO_DISPLAY    0
+                                                                     0  0  0
+    KP_01                                                                       ff
+                                                                    tt tt tt
+    KP_11                                                                       ff
+                                                                    tt tt tt
+    KP_21                                                                       ff
+                                                                    tt tt tt
+    KP_31                                                                       ff
+                                                                    tt tt tt
+    KP_41                                                                       ff
+                                                                    tt tt tt
+    KP_51                                                                       ff
+                                                                    tt tt tt
+    KP_61                                                                       tt
+                                                                    ff ff ff
+    KP_71                                                                       ff
+                                                                    tt tt tt
+    KP_81                                                                       ff
+                                                                    ff tt tt
+    KP_91                                                                       tt
+                                                                    ff ff tt
+    microwave_microwave_KEYPAD_PROCESSING_DISPLAY_MIDDLE_DIGIT_DIGIT_TO_DISPLAY  0
+                                                                     6  6  0
+    microwave_microwave_KEYPAD_PROCESSING_DISPLAY_RIGHT_DIGIT_DIGIT_TO_DISPLAY   6
+                                                                     0  0  0
+    chart_microwave_mode_logic_begin_state_outports_steps_remaining              0
+                                                                     0 60  0
+    
+  
+ <Done> All properties proved or disproved in 2.680s.
+        Waiting for children to terminate.
+
+ Child process 18618 (property directed reachability (QE)) exited with return code 0
+
+ IC3QE main loop at k=1
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 2.675
+Analysis time       : 2.598
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 1
+Restarts                                  : 2
+Solver                                    : 476
+Frame sizes                               : 0
+Forward propagations                      : 12
+Forward propagations before generalization: 2
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 0
+Inductive blocking clauses                : 14
+Activation literals                       : 1201
+Stale activation literals                 : 1072
+Total time                                : 2.596
+Forward propagation time                  : 0.783
+Frame strengthening time                  : 1.400
+Generalization time                       : 0.106
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.005
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 1.296
+check-sat calls     : 476
+get-value time      : 0.021
+get-value calls     : 26
+get-unsat-core time : 0.002
+get-unsat-core calls: 34
+
+ IC3QE main loop at k=2
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 2.689
+Analysis time       : 2.611
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 2
+Solver                                    : 483
+Frame sizes                               : 0
+Forward propagations                      : 12
+Forward propagations before generalization: 2
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 14
+Activation literals                       : 1207
+Stale activation literals                 : 1075
+Total time                                : 2.609
+Forward propagation time                  : 0.793
+Frame strengthening time                  : 1.400
+Generalization time                       : 0.106
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.005
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 1.301
+check-sat calls     : 483
+get-value time      : 0.021
+get-value calls     : 26
+get-unsat-core time : 0.002
+get-unsat-core calls: 34
+
+ Process 18618 terminating
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] invariant (1-inductive)
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] invariant (1-inductive)
+
+ Message received from property directed reachability (QE): Property SubRange[L17C1] invariant (1-inductive)
+
+<Success> Generated candidate property SubRange[L17C1] is valid by property directed reachability (QE) after 2.714s.
+
+ --------------------------------------------------------------------------------
+ 
+ Final statistics:
+
+Statistics for property directed reachability (QE)
+
+[General]
+Total time          : 2.689
+Analysis time       : 2.611
+clause_of_term time : 0.000
+smtexpr_of_term time: 0.000
+term_of_smtexpr time: 0.000
+
+[IC3]
+k                                         : 2
+Restarts                                  : 2
+Solver                                    : 483
+Frame sizes                               : 0
+Forward propagations                      : 12
+Forward propagations before generalization: 2
+Forward subsumed clauses                  : 0
+Backward subsumed clauses                 : 0
+Fixpoint at                               : 1
+Inductive blocking clauses                : 14
+Activation literals                       : 1207
+Stale activation literals                 : 1075
+Total time                                : 2.609
+Forward propagation time                  : 0.793
+Frame strengthening time                  : 1.400
+Generalization time                       : 0.106
+Counterexample search time                : 0.000
+Inductive generalization time             : 0.005
+Inductiveness check time                  : 0.000
+
+[SMT]
+check-sat time      : 1.301
+check-sat calls     : 483
+get-value time      : 0.021
+get-value calls     : 26
+get-unsat-core time : 0.002
+get-unsat-core calls: 34
+
+--------------------------------------------------------------------------------
+Summary of Properties:
+--------------------------------------------------------------------------------
+InvProp[L1148C3]: invalid after 3 steps
+  OK
+
+================================================================================
+
+ Killing all remaining child processes
+
+ Waiting for remaining child processes to terminate
+
+ Result: config: First top: 'top' (no subsystems)
+         - no contracts
+         - no sub-assumptions
+         invalid: 'InvProp[L1148C3]': /home/artifact/kind2-exp/kind2-benchmark/FMCAD08/Int/large/microwave39.lus:1148:3
+         
+         
+
